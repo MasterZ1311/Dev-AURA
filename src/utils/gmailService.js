@@ -1,13 +1,14 @@
 /**
  * gmailService.js
  * Fetches Gmail messages via REST API and normalizes them to Aura's inbox schema.
- * Uses Gemini AI for category and priority classification.
+ * Uses AURA's universal AI service for category and priority classification.
  */
 
 import { googleFetch } from './googleApiHelper';
 import { addToCollection, getUserCollection } from './firestoreHelpers';
 import { getDocs, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
+import { callAI, parseAIJson } from './universalAIService';
 
 const GMAIL_BASE = 'https://gmail.googleapis.com/gmail/v1/users/me';
 const MAX_RESULTS = 30;
@@ -50,46 +51,38 @@ const normalizeGmailMessage = (gmailMsg) => {
 };
 
 /**
- * AI-classify a message into Aura categories using Gemini.
- * Falls back to 'announcement' on failure.
+ * AI-classify a message into Aura categories.
+ * Falls back to 'announcement' on failure or when AI is not configured.
+ *
+ * @param {string} subject
+ * @param {string} preview
+ * @param {object|null} jobConfig - from AISettingsContext.getJobConfig('inbox_summary')
  */
-const classifyMessage = async (subject, preview) => {
-  try {
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-    if (!apiKey) return { category: 'announcement', priority: 'medium' };
+const classifyMessage = async (subject, preview, jobConfig = null) => {
+  // Local rule-based fallback (always works, no AI needed)
+  if (!jobConfig) {
+    const lower = (subject + ' ' + preview).toLowerCase();
+    let category = 'announcement';
+    let priority = 'medium';
+    if (/assigned|action required|please review|complete|task/i.test(lower)) { category = 'assignment'; priority = 'high'; }
+    else if (/mentioned you|@|standup|team update/i.test(lower)) { category = 'mention'; priority = 'medium'; }
+    else if (/reminder|deadline|due|follow.?up/i.test(lower)) { category = 'reminder'; priority = 'medium'; }
+    else if (/team|project|status|sprint/i.test(lower)) { category = 'team'; priority = 'low'; }
+    return { category, priority };
+  }
 
-    const prompt = `You are an email classifier for a productivity app. 
+  const system = `You are an email classifier for a productivity app.
 Classify this email into ONE category and ONE priority.
-
-Subject: "${subject}"
-Preview: "${preview}"
-
-Categories (pick one):
-- assignment (task assigned to you, action required)
-- mention (someone mentioned you or needs your input)
-- reminder (deadline, meeting reminder, follow-up)
-- team (team update, standup, project status)
-- announcement (news, newsletter, FYI, promotions)
-
-Priority (pick one): low, medium, high
-
+Categories: assignment (action required), mention (needs input), reminder (deadline/meeting), team (project status), announcement (FYI/newsletter).
+Priority: low, medium, high.
 Respond ONLY with JSON: {"category": "...", "priority": "..."}`;
 
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
-      }
-    );
-    const data = await res.json();
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    const match = text.match(/\{[\s\S]*?\}/);
-    if (match) return JSON.parse(match[0]);
-  } catch {
-    // silent fail — use defaults
-  }
+  const result = await callAI(jobConfig, system,
+    `Subject: "${subject}"\nPreview: "${preview}"`
+  );
+
+  const parsed = parseAIJson(result);
+  if (parsed?.category) return parsed;
   return { category: 'announcement', priority: 'medium' };
 };
 
@@ -97,8 +90,12 @@ Respond ONLY with JSON: {"category": "...", "priority": "..."}`;
  * Main sync function: fetch Gmail → classify → write to Firestore inbox.
  * Skips messages already imported (keyed by gmailId).
  * Returns count of new messages added.
+ *
+ * @param {string} uid
+ * @param {string} accessToken
+ * @param {object|null} jobConfig - from AISettingsContext.getJobConfig('inbox_summary')
  */
-export const syncGmailToFirestore = async (uid, accessToken) => {
+export const syncGmailToFirestore = async (uid, accessToken, jobConfig = null) => {
   // 1. Fetch message IDs
   const listData = await googleFetch(
     `${GMAIL_BASE}/messages?maxResults=${MAX_RESULTS}&labelIds=INBOX`,
@@ -130,7 +127,8 @@ export const syncGmailToFirestore = async (uid, accessToken) => {
           accessToken
         );
         const normalized = normalizeGmailMessage(detail);
-        const classification = await classifyMessage(normalized.subject, normalized.preview);
+        // Pass jobConfig so classification uses user's chosen AI (or local rules)
+        const classification = await classifyMessage(normalized.subject, normalized.preview, jobConfig);
         const finalItem = { ...normalized, ...classification };
         await addToCollection(uid, 'inbox', finalItem);
         added++;

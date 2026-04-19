@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { AISettingsProvider } from './context/AISettingsContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { TaskProvider } from './context/TaskContext';
 import { InboxProvider } from './context/InboxContext';
@@ -10,7 +9,8 @@ import { CalendarProvider } from './context/CalendarContext';
 import { WorkflowProvider } from './context/WorkflowContext';
 import { AdminProvider } from './context/AdminContext';
 import { NotificationProvider } from './context/NotificationContext';
-import { TourProvider } from './context/TourContext';
+import { MessagingProvider } from './context/MessagingContext';
+import { NotesProvider } from './context/NotesContext';
 
 // Components & Pages
 import Header from './components/Header';
@@ -28,27 +28,22 @@ import CalendarPage from './pages/CalendarPage';
 import WorkflowPage from './pages/WorkflowPage';
 import AdminPage from './pages/AdminPage';
 import ReportsPage from './pages/ReportsPage';
+import Messages from './pages/Messages';
+import NotesPage from './pages/NotesPage';
 
-// A simple wrapper to protect routes that require authentication
 const ProtectedRoute = ({ children }) => {
   const { currentUser } = useAuth();
   const location = useLocation();
-
-  if (!currentUser) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
-  }
-
+  if (!currentUser) return <Navigate to="/login" state={{ from: location }} replace />;
   return children;
 };
 
-// Page transition wrapper — re-triggers animation on every route change
 const PageTransition = ({ children }) => {
   const location = useLocation();
   const [displayChildren, setDisplayChildren] = useState(children);
   const [transitionKey, setTransitionKey] = useState(location.pathname);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTransitionKey(location.pathname);
     setDisplayChildren(children);
   }, [location.pathname, children]);
@@ -60,18 +55,14 @@ const PageTransition = ({ children }) => {
   );
 };
 
-// Layout component that includes Header and BottomNav
 const AppLayout = ({ children }) => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-
   return (
     <div className="app-container">
       <LiveBackground />
       <Header onOpenSettings={() => setIsSettingsOpen(true)} />
       <main className="main-content">
-        <PageTransition>
-          {children}
-        </PageTransition>
+        <PageTransition>{children}</PageTransition>
       </main>
       <BottomNav />
       <ThresholdRitual />
@@ -80,39 +71,33 @@ const AppLayout = ({ children }) => {
   );
 };
 
-// Data providers that require a logged-in user
-const DataProviders = ({ children }) => {
-  return (
-    <AISettingsProvider>
-      <ThemeProvider>
-        <TaskProvider>
-          <InboxProvider>
-            <GroupProvider>
-              <CalendarProvider>
-                <WorkflowProvider>
-                  <AdminProvider>
-                    <NotificationProvider>
-                      <TourProvider>
-                        {children}
-                      </TourProvider>
-                    </NotificationProvider>
-                  </AdminProvider>
-                </WorkflowProvider>
-              </CalendarProvider>
-            </GroupProvider>
-          </InboxProvider>
-        </TaskProvider>
-      </ThemeProvider>
-    </AISettingsProvider>
-  );
-};
+const DataProviders = ({ children }) => (
+  <ThemeProvider>
+    <TaskProvider>
+      <InboxProvider>
+        <GroupProvider>
+          <CalendarProvider>
+            <WorkflowProvider>
+              <AdminProvider>
+                <NotificationProvider>
+                  <MessagingProvider>
+                    <NotesProvider>
+                      {children}
+                    </NotesProvider>
+                  </MessagingProvider>
+                </NotificationProvider>
+              </AdminProvider>
+            </WorkflowProvider>
+          </CalendarProvider>
+        </GroupProvider>
+      </InboxProvider>
+    </TaskProvider>
+  </ThemeProvider>
+);
 
 const AppContent = () => {
   const [showLoading, setShowLoading] = useState(true);
-
-  if (showLoading) {
-    return <LoadingScreen onFinish={() => setShowLoading(false)} />;
-  }
+  if (showLoading) return <LoadingScreen onFinish={() => setShowLoading(false)} />;
 
   return (
     <Routes>
@@ -127,6 +112,8 @@ const AppContent = () => {
                   <Route path="/" element={<Dashboard />} />
                   <Route path="/tasks" element={<Tasks />} />
                   <Route path="/inbox" element={<Inbox />} />
+                  <Route path="/messages" element={<Messages />} />
+                  <Route path="/notes" element={<NotesPage />} />
                   <Route path="/projects" element={<GroupProductivity />} />
                   <Route path="/calendar" element={<CalendarPage />} />
                   <Route path="/workflows" element={<WorkflowPage />} />
@@ -142,14 +129,12 @@ const AppContent = () => {
   );
 };
 
-const App = () => {
-  return (
-    <AuthProvider>
-      <Router>
-        <AppContent />
-      </Router>
-    </AuthProvider>
-  );
-};
+const App = () => (
+  <AuthProvider>
+    <Router>
+      <AppContent />
+    </Router>
+  </AuthProvider>
+);
 
 export default App;
