@@ -85,3 +85,13 @@ export const getCollectionData = async (uid, collectionName) => {
     const snapshot = await getDocs(colRef);
     return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
 };
+
+/**
+ * Write a single activity log entry to admin_logs — fire and forget.
+ * Avoids context circular dependency; any provider can call this directly.
+ */
+export const logActivity = (uid, action, type = 'system') => {
+    if (!uid) return;
+    const colRef = getUserCollection(uid, 'admin_logs');
+    addDoc(colRef, { action, type, timestamp: Date.now() }).catch(() => {});
+};

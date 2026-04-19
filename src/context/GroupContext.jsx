@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import {
     subscribeToCollection, addToCollection,
-    updateInCollection, deleteFromCollection,
+    updateInCollection, deleteFromCollection, logActivity,
 } from '../utils/firestoreHelpers';
 
 const GroupContext = createContext();
@@ -40,17 +40,29 @@ export const GroupProvider = ({ children }) => {
     const addProject = async (p) => {
         if (!uid) return;
         await addToCollection(uid, 'projects', { createdAt: Date.now(), progress: 0, tasks: 0, members: [], ...p });
+        logActivity(uid, `Created project: "${p.name || 'Untitled'}"`, 'group');
     };
     const updateProject = async (id, u) => { if (uid) await updateInCollection(uid, 'projects', id, u); };
-    const deleteProject = async (id) => { if (uid) await deleteFromCollection(uid, 'projects', id); };
+    const deleteProject = async (id) => {
+        if (uid) await deleteFromCollection(uid, 'projects', id);
+        logActivity(uid, `Deleted a project`, 'group');
+    };
 
     // ── Teams ──
     const addTeam = async (t) => {
         if (!uid) return;
-        await addToCollection(uid, 'teams', { createdAt: Date.now(), members: [], ...t });
+        const members = (t.members || []).map(m => ({
+            ...m,
+            vibrationalState: m.vibrationalState || 'Calm'
+        }));
+        await addToCollection(uid, 'teams', { createdAt: Date.now(), ...t, members });
+        logActivity(uid, `Created team: "${t.name || 'Untitled'}"`, 'group');
     };
     const updateTeam = async (id, u) => { if (uid) await updateInCollection(uid, 'teams', id, u); };
-    const deleteTeam = async (id) => { if (uid) await deleteFromCollection(uid, 'teams', id); };
+    const deleteTeam = async (id) => {
+        if (uid) await deleteFromCollection(uid, 'teams', id);
+        logActivity(uid, `Deleted a team`, 'group');
+    };
 
     // ── Users ──
     const addUser = async (u) => {
@@ -65,9 +77,13 @@ export const GroupProvider = ({ children }) => {
     const addGoal = async (g) => {
         if (!uid) return;
         await addToCollection(uid, 'goals', { createdAt: Date.now(), progress: 0, keyResults: [], ...g });
+        logActivity(uid, `Created goal: "${g.title || 'Untitled'}"`, 'group');
     };
     const updateGoal = async (id, u) => { if (uid) await updateInCollection(uid, 'goals', id, u); };
-    const deleteGoal = async (id) => { if (uid) await deleteFromCollection(uid, 'goals', id); };
+    const deleteGoal = async (id) => {
+        if (uid) await deleteFromCollection(uid, 'goals', id);
+        logActivity(uid, `Deleted a goal`, 'group');
+    };
     const toggleKeyResult = async (goalId, krIdx) => {
         if (!uid) return;
         const goal = goals.find(g => g.id === goalId);
@@ -78,13 +94,43 @@ export const GroupProvider = ({ children }) => {
         await updateInCollection(uid, 'goals', goalId, { keyResults: krs, progress });
     };
 
+    // ── Harmony Logic ──
+    const calculateHarmony = (teamId) => {
+        const team = teams.find(t => t.id === teamId);
+        if (!team || !team.members || team.members.length === 0) return 100;
+
+        const stateWeights = {
+            'Focused': 100,
+            'Creative': 95,
+            'Calm': 80,
+            'High-Stress': 40,
+            'Overloaded': 15
+        };
+
+        const total = team.members.reduce((acc, m) => acc + (stateWeights[m.vibrationalState] || 80), 0);
+        let baseHarmony = Math.round(total / team.members.length);
+
+        // Resonance Boost: if multiple members share an focus ID
+        const focusGroups = {};
+        team.members.forEach(m => {
+            if (m.activeFocusId) {
+                focusGroups[m.activeFocusId] = (focusGroups[m.activeFocusId] || 0) + 1;
+            }
+        });
+        const inResonance = Object.values(focusGroups).some(count => count >= 2);
+        if (inResonance) baseHarmony = Math.min(100, baseHarmony + 10);
+
+        return baseHarmony;
+    };
+
     const value = {
         projects, teams, users, goals,
         addProject, updateProject, deleteProject,
         addTeam, updateTeam, deleteTeam,
         addUser, updateUser, deleteUser,
         addGoal, updateGoal, deleteGoal, toggleKeyResult,
+        calculateHarmony,
     };
 
-    return <GroupContext.Provider value={value}>{loaded && children}</GroupContext.Provider>;
+    return <GroupContext.Provider value={value}>{children}</GroupContext.Provider>;
 };

@@ -1,0 +1,496 @@
+/* ══════════════════════════════════════════════════════════════
+   AI SETTINGS PANEL — Complete Styles
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── Panel header ── */
+.ai-settings-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.ai-panel-header {
+    margin-bottom: 1.25rem;
+}
+
+.ai-panel-title-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.5rem;
+}
+
+.ai-panel-title-row h3 {
+    flex: 1;
+    margin: 0;
+    font-size: 1.05rem;
+}
+
+.ai-panel-subtitle {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* Global AI toggle */
+.ai-global-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+}
+
+.ai-master-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    transition: color 0.2s;
+}
+
+.ai-master-toggle.on  { color: var(--accent); }
+.ai-master-toggle.off { color: var(--text-muted); }
+.ai-master-toggle:hover { opacity: 0.85; }
+
+/* ── Section tabs ── */
+.ai-section-tabs {
+    display: flex;
+    gap: 0.4rem;
+    background: var(--bg-secondary);
+    border-radius: 10px;
+    padding: 4px;
+    margin-bottom: 1.25rem;
+}
+
+.ai-section-tab {
+    flex: 1;
+    background: none;
+    border: none;
+    padding: 0.45rem 0.5rem;
+    border-radius: 7px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.18s ease;
+    white-space: nowrap;
+}
+
+.ai-section-tab.active {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+}
+
+.ai-section-tab:hover:not(.active) {
+    color: var(--text-primary);
+}
+
+/* ── Tutorial ── */
+.ai-tutorial {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.ai-tutorial-intro {
+    display: flex;
+    gap: 0.6rem;
+    align-items: flex-start;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    font-size: 0.79rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.ai-tutorial-intro svg { margin-top: 2px; flex-shrink: 0; color: var(--accent); }
+
+.ai-tutorial-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.ai-tutorial-step {
+    display: flex;
+    gap: 0.9rem;
+    align-items: flex-start;
+}
+
+.ai-step-number {
+    flex-shrink: 0;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 2px;
+}
+
+.ai-step-body { flex: 1; }
+
+.ai-step-title {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.25rem;
+}
+
+.ai-step-title strong {
+    font-size: 0.85rem;
+    color: var(--text-primary);
+}
+
+.ai-step-content {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    line-height: 1.55;
+    margin: 0;
+    white-space: pre-line;
+}
+
+/* Quick links */
+.ai-quick-links h4 {
+    font-size: 0.82rem;
+    color: var(--text-primary);
+    margin: 0 0 0.6rem;
+}
+
+.ai-quick-links-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 0.5rem;
+}
+
+.ai-quick-link-card {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 0.7rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--text-secondary);
+    font-size: 0.76rem;
+    transition: all 0.2s ease;
+    border-left: 3px solid var(--provider-color, var(--accent));
+}
+
+.ai-quick-link-card:hover {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
+
+.ql-icon { font-size: 1rem; }
+.ql-label { flex: 1; font-weight: 500; }
+.ql-ext { flex-shrink: 0; opacity: 0.5; }
+
+/* ── Providers list ── */
+.ai-providers-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.ai-section-hint {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin: 0 0 0.5rem;
+    line-height: 1.4;
+}
+
+/* Provider card */
+.ai-provider-card {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--bg-secondary);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    border-left: 3px solid transparent;
+}
+
+.ai-provider-card.configured {
+    border-left-color: var(--provider-color, var(--accent));
+    background: color-mix(in srgb, var(--provider-color, var(--accent)) 4%, var(--bg-secondary));
+}
+
+.ai-provider-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.65rem 0.9rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+.ai-provider-identity {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.ai-provider-icon {
+    font-size: 1.2rem;
+    width: 28px;
+    text-align: center;
+}
+
+.ai-provider-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: block;
+}
+
+.ai-provider-status {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    display: block;
+    margin-top: 1px;
+}
+
+.ai-provider-status.configured {
+    color: var(--provider-color, var(--accent));
+    font-weight: 500;
+}
+
+.ai-provider-chevron {
+    color: var(--text-muted);
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+}
+
+.ai-provider-chevron.rotated { transform: rotate(180deg); }
+
+.ai-provider-body {
+    padding: 0 0.9rem 0.9rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    border-top: 1px solid var(--border);
+}
+
+/* Key link */
+.ai-key-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.76rem;
+    color: var(--provider-color, var(--accent));
+    text-decoration: none;
+    padding-top: 0.5rem;
+    transition: opacity 0.15s;
+}
+
+.ai-key-link:hover { opacity: 0.75; text-decoration: underline; }
+
+/* Input group */
+.ai-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.ai-label {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.ai-key-input-wrapper {
+    position: relative;
+}
+
+.ai-input {
+    width: 100%;
+    padding: 0.45rem 2.2rem 0.45rem 0.7rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    color: var(--text-primary);
+    font-size: 0.8rem;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    outline: none;
+    transition: border-color 0.15s;
+    box-sizing: border-box;
+}
+
+.ai-input:focus {
+    border-color: var(--provider-color, var(--accent));
+}
+
+.ai-key-toggle {
+    position: absolute;
+    right: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0.1rem;
+    display: flex;
+    align-items: center;
+    transition: color 0.15s;
+}
+
+.ai-key-toggle:hover { color: var(--text-primary); }
+
+.ai-select {
+    padding: 0.45rem 0.7rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    color: var(--text-primary);
+    font-size: 0.8rem;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.15s;
+    width: 100%;
+}
+
+.ai-select:focus { border-color: var(--provider-color, var(--accent)); }
+
+.ai-ollama-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.4rem;
+    font-size: 0.76rem;
+    color: var(--text-muted);
+    background: var(--bg-card);
+    border-radius: 7px;
+    padding: 0.5rem 0.7rem;
+    line-height: 1.4;
+}
+
+.ai-ollama-note svg { flex-shrink: 0; margin-top: 2px; }
+.ai-ollama-note code { font-family: monospace; color: var(--accent); }
+
+/* Test button */
+.ai-test-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 0.9rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    color: var(--text-secondary);
+    font-size: 0.78rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    width: fit-content;
+}
+
+.ai-test-btn:hover:not(:disabled) {
+    border-color: var(--provider-color, var(--accent));
+    color: var(--text-primary);
+    background: color-mix(in srgb, var(--provider-color, var(--accent)) 8%, var(--bg-card));
+}
+
+.ai-test-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.ai-test-result {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.4rem;
+    font-size: 0.76rem;
+    padding: 0.45rem 0.7rem;
+    border-radius: 7px;
+    line-height: 1.4;
+}
+
+.ai-test-result.ok  { background: rgba(16,185,129,0.1); color: #10b981; }
+.ai-test-result.fail { background: rgba(239,68,68,0.1); color: #ef4444; }
+
+/* ── Job assignments ── */
+.ai-jobs-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.ai-job-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.65rem 0.9rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    transition: all 0.2s ease;
+}
+
+.ai-job-row.ready {
+    border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+    background: color-mix(in srgb, var(--accent) 4%, var(--bg-secondary));
+}
+
+.ai-job-info {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    flex: 1;
+    min-width: 0;
+}
+
+.ai-job-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 2px; }
+
+.ai-job-label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.ai-job-desc {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin-top: 1px;
+    line-height: 1.4;
+}
+
+.ai-job-assign { flex-shrink: 0; }
+
+.ai-job-select {
+    padding: 0.35rem 0.6rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    color: var(--text-secondary);
+    font-size: 0.76rem;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.15s;
+    min-width: 160px;
+    border-left: 3px solid var(--provider-color, var(--border));
+}
+
+.ai-job-select:focus { border-color: var(--accent); }
+
+/* Spin animation for loader */
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+.spin { animation: spin 0.8s linear infinite; }

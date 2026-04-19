@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import {
     subscribeToCollection, addToCollection,
-    updateInCollection, deleteFromCollection,
+    updateInCollection, deleteFromCollection, logActivity,
 } from '../utils/firestoreHelpers';
 
 const WorkflowContext = createContext();
@@ -33,6 +33,7 @@ export const WorkflowProvider = ({ children }) => {
             { id: `s${Date.now()}c`, name: 'Done', color: '#059669', cards: [] },
         ];
         await addToCollection(uid, 'workflows', { createdAt: Date.now(), stages: defaultStages, ...wf });
+        logActivity(uid, `Created workflow: "${wf.name || 'Untitled'}"`, 'workflow');
     };
 
     const updateWorkflow = async (id, updates) => {
@@ -40,7 +41,9 @@ export const WorkflowProvider = ({ children }) => {
     };
 
     const deleteWorkflow = async (id) => {
+        const wf = workflows.find(w => w.id === id);
         if (uid) await deleteFromCollection(uid, 'workflows', id);
+        logActivity(uid, `Deleted workflow: "${wf?.name || id}"`, 'workflow');
     };
 
     // Stage & card operations update the workflow document directly
@@ -77,6 +80,7 @@ export const WorkflowProvider = ({ children }) => {
                 return { ...s, cards: [...s.cards, { id: Date.now().toString(), createdAt: Date.now(), ...card }] };
             })
         );
+        logActivity(uid, `Added card: "${card.title || 'Untitled'}"`, 'workflow');
     };
 
     const updateCard = async (wfId, stageId, cardId, updates) => {
@@ -95,6 +99,7 @@ export const WorkflowProvider = ({ children }) => {
                 return { ...s, cards: s.cards.filter(c => c.id !== cardId) };
             })
         );
+        logActivity(uid, `Deleted a workflow card`, 'workflow');
     };
 
     const moveCard = async (wfId, fromStageId, cardId, toStageId) => {
@@ -116,6 +121,18 @@ export const WorkflowProvider = ({ children }) => {
     };
 
     const moveCardDnD = async (wfId, sourceStageId, destStageId, sourceIndex, destIndex) => {
+        // Optimistic local update for instant header count sync
+        setWorkflows(prev => prev.map(wf => {
+            if (wf.id !== wfId) return wf;
+            const stages = wf.stages.map(s => ({ ...s, cards: [...s.cards] }));
+            const srcIdx = stages.findIndex(s => s.id === sourceStageId);
+            const dstIdx = stages.findIndex(s => s.id === destStageId);
+            if (srcIdx === -1 || dstIdx === -1) return wf;
+            const [moved] = stages[srcIdx].cards.splice(sourceIndex, 1);
+            stages[dstIdx].cards.splice(destIndex, 0, moved);
+            return { ...wf, stages };
+        }));
+
         await _updateStages(wfId, (stages) => {
             const newStages = [...stages];
             const sourceStageIndex = newStages.findIndex(s => s.id === sourceStageId);
@@ -136,6 +153,7 @@ export const WorkflowProvider = ({ children }) => {
 
             return newStages;
         });
+        logActivity(uid, `Moved a card between workflow stages`, 'workflow');
     };
 
     const value = {
@@ -145,5 +163,5 @@ export const WorkflowProvider = ({ children }) => {
         addCard, updateCard, deleteCard, moveCard, moveCardDnD,
     };
 
-    return <WorkflowContext.Provider value={value}>{loaded && children}</WorkflowContext.Provider>;
+    return <WorkflowContext.Provider value={value}>{children}</WorkflowContext.Provider>;
 };

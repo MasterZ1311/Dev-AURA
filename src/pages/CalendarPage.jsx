@@ -2,9 +2,10 @@ import React, { useState, useMemo } from 'react';
 import { useCalendar } from '../context/CalendarContext';
 import {
     CalendarDays, ChevronLeft, ChevronRight, Plus, X,
-    Clock, Trash2, Edit3, Eye, Repeat, Tag
+    Clock, Trash2, Edit3, Eye, Repeat, Tag, Waves, Sparkles
 } from 'lucide-react';
 import '../styles/CalendarPage.css';
+import TimeRiver from '../components/TimeRiver';
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -24,7 +25,7 @@ const pad = (n) => String(n).padStart(2, '0');
 const toDateStr = (y, m, d) => `${y}-${pad(m + 1)}-${pad(d)}`;
 
 const CalendarPage = () => {
-    const { events, addEvent, updateEvent, deleteEvent, getEventsForDate } = useCalendar();
+    const { events, addEvent, updateEvent, deleteEvent, getEventsForDate, healSchedule, isHealing } = useCalendar();
     const today = new Date();
     const todayStr = toDateStr(today.getFullYear(), today.getMonth(), today.getDate());
 
@@ -47,6 +48,10 @@ const CalendarPage = () => {
     };
 
     const goToday = () => { setCurrentDate(new Date()); setSelectedDate(todayStr); };
+
+    const handleHeal = () => {
+        healSchedule(selectedDate);
+    };
 
     // Month grid
     const monthGrid = useMemo(() => {
@@ -109,7 +114,7 @@ const CalendarPage = () => {
     };
 
     return (
-        <div className="cal-page">
+        <div className={`cal-page ${isHealing ? 'healing' : ''}`}>
             {/* LEFT SIDEBAR */}
             <aside className="cal-left">
                 {/* Mini month */}
@@ -165,13 +170,13 @@ const CalendarPage = () => {
             </aside>
 
             {/* CENTER */}
-            <main className="cal-center">
+            <main className="cal-center tour-calendar-view">
                 {/* Header */}
                 <div className="cal-header">
                     <div className="cal-view-tabs">
-                        {['month', 'week', 'day'].map(v => (
+                        {['month', 'week', 'day', 'chronos'].map(v => (
                             <button key={v} className={`cal-view-tab ${view === v ? 'active' : ''}`} onClick={() => setView(v)}>
-                                {v.charAt(0).toUpperCase() + v.slice(1)}
+                                {v === 'chronos' ? <><Waves size={14} /> Chronos</> : v.charAt(0).toUpperCase() + v.slice(1)}
                             </button>
                         ))}
                     </div>
@@ -184,6 +189,14 @@ const CalendarPage = () => {
                         </h2>
                         <button className="cal-nav-btn" onClick={() => navigate(1)}><ChevronRight size={18} /></button>
                         <button className="cal-today-btn" onClick={goToday}>Today</button>
+                        
+                        <button 
+                            className={`cal-heal-btn ${isHealing ? 'active' : ''}`} 
+                            onClick={handleHeal}
+                            disabled={isHealing}
+                        >
+                            <Sparkles size={16} /> {isHealing ? 'Healing...' : 'Heal Day'}
+                        </button>
                     </div>
                 </div>
 
@@ -261,6 +274,11 @@ const CalendarPage = () => {
                             })()}
                         </div>
                     </div>
+                )}
+
+                {/* Chronos View */}
+                {view === 'chronos' && (
+                    <TimeRiver dateStr={selectedDate} />
                 )}
 
                 {/* Selected date events (for month/week view) */}

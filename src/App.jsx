@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { AISettingsProvider } from './context/AISettingsContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { TaskProvider } from './context/TaskContext';
 import { InboxProvider } from './context/InboxContext';
@@ -9,6 +10,7 @@ import { CalendarProvider } from './context/CalendarContext';
 import { WorkflowProvider } from './context/WorkflowContext';
 import { AdminProvider } from './context/AdminContext';
 import { NotificationProvider } from './context/NotificationContext';
+import { TourProvider } from './context/TourContext';
 
 // Components & Pages
 import Header from './components/Header';
@@ -16,6 +18,7 @@ import BottomNav from './components/BottomNav';
 import Settings from './components/Settings';
 import LoadingScreen from './components/LoadingScreen';
 import LiveBackground from './components/LiveBackground';
+import ThresholdRitual from './components/ThresholdRitual';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Tasks from './pages/Tasks';
@@ -71,6 +74,7 @@ const AppLayout = ({ children }) => {
         </PageTransition>
       </main>
       <BottomNav />
+      <ThresholdRitual />
       {isSettingsOpen && <Settings onClose={() => setIsSettingsOpen(false)} />}
     </div>
   );
@@ -79,23 +83,27 @@ const AppLayout = ({ children }) => {
 // Data providers that require a logged-in user
 const DataProviders = ({ children }) => {
   return (
-    <ThemeProvider>
-      <TaskProvider>
-        <InboxProvider>
-          <GroupProvider>
-            <CalendarProvider>
-              <WorkflowProvider>
-                <AdminProvider>
-                  <NotificationProvider>
-                    {children}
-                  </NotificationProvider>
-                </AdminProvider>
-              </WorkflowProvider>
-            </CalendarProvider>
-          </GroupProvider>
-        </InboxProvider>
-      </TaskProvider>
-    </ThemeProvider>
+    <AISettingsProvider>
+      <ThemeProvider>
+        <TaskProvider>
+          <InboxProvider>
+            <GroupProvider>
+              <CalendarProvider>
+                <WorkflowProvider>
+                  <AdminProvider>
+                    <NotificationProvider>
+                      <TourProvider>
+                        {children}
+                      </TourProvider>
+                    </NotificationProvider>
+                  </AdminProvider>
+                </WorkflowProvider>
+              </CalendarProvider>
+            </GroupProvider>
+          </InboxProvider>
+        </TaskProvider>
+      </ThemeProvider>
+    </AISettingsProvider>
   );
 };
 

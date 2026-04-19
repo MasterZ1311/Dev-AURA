@@ -5,8 +5,9 @@ import {
     Plus, X, Trash2, Edit3, Search,
     CheckCircle2, Clock, PauseCircle, AlertTriangle,
     Mail, Shield, Eye, Star,
-    ChevronRight, Hash, BarChart3
+    ChevronRight, Hash, BarChart3, Zap
 } from 'lucide-react';
+import TeamAuraVisualization from '../components/TeamAuraVisualization';
 import '../styles/GroupProductivity.css';
 
 /* ── Status configs ── */
@@ -40,6 +41,7 @@ const GroupProductivity = () => {
     const [search, setSearch] = useState('');
     const [showForm, setShowForm] = useState(false);
     const [editId, setEditId] = useState(null);
+    const [resonanceActive, setResonanceActive] = useState(false);
 
     // ── Form states ──
     const [form, setForm] = useState({});
@@ -86,7 +88,7 @@ const GroupProductivity = () => {
                     </div>
                 </aside>
                 <main className="gp-center">
-                    <div className="gp-card-grid">
+                    <div className="gp-card-grid tour-projects-list">
                         {filtered.length > 0 ? filtered.map(p => (
                             <div key={p.id} className="gp-card glass-panel" onClick={() => openEdit(p)}>
                                 <div className="gp-card-header">
@@ -154,6 +156,45 @@ const GroupProductivity = () => {
                     </div>
                 </aside>
                 <main className="gp-center">
+                    {(() => {
+                        const activeTeam = ctx.teams.find(t => t.id === editId);
+                        if (!editId || activeTab !== 'teams' || !activeTeam) return null;
+                        
+                        return (
+                            <div className="aura-resonance-box glass-panel" style={{marginBottom: '2rem'}}>
+                                <div className="resonance-header">
+                                    <h3 style={{display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
+                                        <Zap size={18} className="text-accent" /> 
+                                        Team Resonance Field
+                                    </h3>
+                                    {resonanceActive && <div className="resonance-badge">Collective Flow Active</div>}
+                                </div>
+                                
+                                <TeamAuraVisualization 
+                                    members={activeTeam.members?.map(m => {
+                                        const isResonating = (m.name === 'Current User' || m.name === 'Sarah') && resonanceActive;
+                                        return isResonating ? { ...m, activeFocusId: 'abstract-focus-x' } : m;
+                                    })} 
+                                    harmony={resonanceActive ? Math.min(100, ctx.calculateHarmony(editId) + 12) : ctx.calculateHarmony(editId)} 
+                                />
+
+                                <div className="resonance-footer" style={{marginTop: '1.5rem', textAlign: 'center'}}>
+                                    <p style={{fontSize: '0.8rem', opacity: 0.7, marginBottom: '1rem'}}>
+                                        {resonanceActive 
+                                            ? "Abstractions shared. Quantum Bridge established between resonating nodes." 
+                                            : "Resonance occurs when focus frequencies align. Seek collective flow."}
+                                    </p>
+                                    <button 
+                                        className={`btn-primary resonance-btn ${resonanceActive ? 'active' : ''}`}
+                                        onClick={() => setResonanceActive(!resonanceActive)}
+                                    >
+                                        {resonanceActive ? 'Resonance Active' : 'Enter Quantum Flow'}
+                                    </button>
+                                </div>
+                            </div>
+                        );
+                    })()}
+
                     <div className="gp-card-grid">
                         {filtered.length > 0 ? filtered.map(t => (
                             <div key={t.id} className="gp-card glass-panel" onClick={() => openEdit(t)}>
@@ -387,7 +428,7 @@ const GroupProductivity = () => {
                         <input type="text" placeholder={`Search ${activeTab}...`} value={search} onChange={e => setSearch(e.target.value)} />
                         {search && <button onClick={() => setSearch('')} className="search-clear"><X size={14} /></button>}
                     </div>
-                    <button className="btn-primary gp-create-btn" onClick={openCreate}><Plus size={16} /> Create</button>
+                    <button className="btn-primary gp-create-btn tour-projects-add" onClick={openCreate}><Plus size={16} /> Create</button>
                 </div>
             </div>
 

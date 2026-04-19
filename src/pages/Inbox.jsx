@@ -1,5 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useInbox } from '../context/InboxContext';
+import { useTasks } from '../context/TaskContext';
+import { convertInboxToTask, summarizeInboxMessage } from '../utils/auraEngine';
 import {
     Search,
     Inbox as InboxIcon,
@@ -20,7 +22,10 @@ import {
     Reply,
     X,
     Plus,
-    Send
+    Send,
+    Loader2,
+    CheckSquare,
+    Sparkles
 } from 'lucide-react';
 import '../styles/Inbox.css';
 
@@ -54,12 +59,17 @@ const timeAgo = (ts) => {
 
 const Inbox = () => {
     const { items, addItem, markRead, markAllRead, toggleStar, archiveItem, deleteItem, unreadCount } = useInbox();
+    const { addTask } = useTasks();
 
     const [activeCategory, setActiveCategory] = useState('all');
     const [activeFilter, setActiveFilter] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedId, setSelectedId] = useState(null);
     const [showCompose, setShowCompose] = useState(false);
+    const [convertingId, setConvertingId] = useState(null);
+    const [convertedIds, setConvertedIds] = useState(new Set());
+    const [aiSummary, setAiSummary] = useState({});
+    const [summaryLoading, setSummaryLoading] = useState(false);
 
     // Compose form state
     const [compSender, setCompSender] = useState('');
@@ -97,10 +107,18 @@ const Inbox = () => {
         return items.find(i => i.id === selectedId) || null;
     }, [items, selectedId]);
 
-    const handleSelect = (item) => {
+    const handleSelect = async (item) => {
         setSelectedId(item.id);
         setShowCompose(false);
         if (!item.read) markRead(item.id);
+
+        // AI-summarize long messages (cache per item id)
+        if (item.body && item.body.length > 100 && !aiSummary[item.id]) {
+            setSummaryLoading(true);
+            const summary = await summarizeInboxMessage(item.subject, item.body);
+            if (summary) setAiSummary(prev => ({ ...prev, [item.id]: summary }));
+            setSummaryLoading(false);
+        }
     };
 
     // Category unread counts
@@ -112,6 +130,35 @@ const Inbox = () => {
         counts.all = items.filter(i => !i.archived && !i.read).length;
         return counts;
     }, [items]);
+
+    const handleConvertToTask = async (item) => {
+        setConvertingId(item.id);
+        const taskData = await convertInboxToTask(item.subject, item.body, item.priority);
+        await addTask({
+            title: taskData.title,
+            priority: taskData.priority,
+            project: taskData.project,
+            date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+            isFocus: item.priority === 'high',
+        });
+        setConvertedIds(prev => new Set([...prev, item.id]));
+        setConvertingId(null);
+        // Play a soft confirmation tone
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = ctx.createOscillator();
+            const gain = ctx.createGain();
+            oscillator.connect(gain);
+            gain.connect(ctx.destination);
+            oscillator.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
+            oscillator.frequency.setValueAtTime(659.25, ctx.currentTime + 0.1); // E5
+            oscillator.frequency.setValueAtTime(783.99, ctx.currentTime + 0.2); // G5
+            gain.gain.setValueAtTime(0.15, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+            oscillator.start(ctx.currentTime);
+            oscillator.stop(ctx.currentTime + 0.5);
+        } catch (e) { /* Audio not supported */ }
+    };
 
     // Compose submit
     const handleCompose = (e) => {
@@ -151,7 +198,7 @@ const Inbox = () => {
                 </div>
 
                 {/* Compose Button */}
-                <button className="compose-btn btn-primary" onClick={() => { setShowCompose(true); setSelectedId(null); }}>
+                <button className="compose-btn btn-primary tour-inbox-input" onClick={() => { setShowCompose(true); setSelectedId(null); }}>
                     <Plus size={18} /> Compose
                 </button>
 
@@ -173,7 +220,7 @@ const Inbox = () => {
                 </div>
 
                 {/* Category Filters */}
-                <nav className="category-nav">
+                <nav className="category-nav tour-inbox-triage">
                     <span className="nav-section-label">Categories</span>
                     {categories.map(cat => {
                         const Icon = cat.icon;
@@ -357,6 +404,20 @@ const Inbox = () => {
                             <p>{selectedItem.body}</p>
                         </div>
 
+                        {/* AI Summary */}
+                        {summaryLoading && (
+                            <div className="detail-ai-summary loading">
+                                <Loader2 size={14} className="spin-icon-inbox" />
+                                <span>Summarizing with AI...</span>
+                            </div>
+                        )}
+                        {aiSummary[selectedItem.id] && (
+                            <div className="detail-ai-summary">
+                                <Sparkles size={14} className="ai-summary-icon" />
+                                <span className="ai-summary-text">{aiSummary[selectedItem.id]}</span>
+                            </div>
+                        )}
+
                         {selectedItem.relatedTask && (
                             <div className="detail-related">
                                 <ClipboardList size={14} />
@@ -371,6 +432,20 @@ const Inbox = () => {
                             >
                                 {selectedItem.starred ? <Star size={16} /> : <StarOff size={16} />}
                                 {selectedItem.starred ? 'Unstar' : 'Star'}
+                            </button>
+                            {/* AI Convert to Task Button */}
+                            <button
+                                className={`action-btn convert-task-btn ${convertedIds.has(selectedItem.id) ? 'converted' : ''}`}
+                                onClick={() => handleConvertToTask(selectedItem)}
+                                disabled={convertingId === selectedItem.id || convertedIds.has(selectedItem.id)}
+                            >
+                                {convertingId === selectedItem.id ? (
+                                    <><Loader2 size={16} className="spin-icon-inbox" /> Converting...</>
+                                ) : convertedIds.has(selectedItem.id) ? (
+                                    <><CheckSquare size={16} /> Task Created!</>
+                                ) : (
+                                    <><CheckSquare size={16} /> Convert to Task</>
+                                )}
                             </button>
                             <button className="action-btn" onClick={() => { archiveItem(selectedItem.id); setSelectedId(null); }}>
                                 <Archive size={16} /> Archive

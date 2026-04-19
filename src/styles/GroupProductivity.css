@@ -692,3 +692,66 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* ── AURA RESONANCE ── */
+.gp-aura-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.gp-empathy-alert {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    background: linear-gradient(90deg, rgba(244, 63, 94, 0.1) 0%, var(--surface-color) 100%);
+    border-left: 4px solid var(--danger-color);
+}
+
+.gp-empathy-alert p {
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+.text-danger { color: var(--danger-color); }
+
+.resonance-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.resonance-badge {
+    background: rgba(0, 255, 204, 0.1);
+    color: var(--accent-color);
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border: 1px solid rgba(0, 255, 204, 0.2);
+    animation: badge-glow 2s infinite;
+}
+
+@keyframes badge-glow {
+    0% { box-shadow: 0 0 5px rgba(0, 255, 204, 0); }
+    50% { box-shadow: 0 0 15px rgba(0, 255, 204, 0.3); }
+    100% { box-shadow: 0 0 5px rgba(0, 255, 204, 0); }
+}
+
+.resonance-btn {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.resonance-btn.active {
+    background: var(--accent-color);
+    color: var(--bg-color);
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.4);
+}
+

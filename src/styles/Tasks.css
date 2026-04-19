@@ -429,10 +429,12 @@
 .new-task-options {
     display: flex;
     gap: 0.5rem;
+    flex-wrap: wrap;
 }
 
 .new-task-select {
     flex: 1;
+    min-width: 0;
     padding: 0.5rem 0.6rem;
     border-radius: 8px;
     border: 1px solid var(--border-color);
@@ -571,3 +573,48 @@
         grid-column: 1;
     }
 }
+
+/* ── ENERGY TAGS ── */
+.task-energy-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.1rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    background-color: var(--surface-hover);
+    border: 1px solid var(--border-color);
+}
+
+.task-energy-tag[data-energy="Deep Focus"] { color: #6366f1; border-color: rgba(99, 102, 241, 0.3); }
+.task-energy-tag[data-energy="Creative"] { color: #f59e0b; border-color: rgba(245, 158, 11, 0.3); }
+.task-energy-tag[data-energy="Social"] { color: #10b981; border-color: rgba(16, 185, 129, 0.3); }
+.task-energy-tag[data-energy="Administrative"] { color: #0ea5e9; border-color: rgba(14, 165, 233, 0.3); }
+.task-energy-tag[data-energy="Routine"] { color: #f43f5e; border-color: rgba(244, 63, 94, 0.3); }
+.task-energy-tag[data-energy="Physical"] { color: #84cc16; border-color: rgba(132, 204, 22, 0.3); }
+.task-energy-tag[data-energy="Learning"] { color: #a855f7; border-color: rgba(168, 85, 247, 0.3); }
+
+.energy-select {
+    border-left: 4px solid var(--accent-color);
+}
+
+/* ── RITUAL & UNLOCK ── */
+.check-ritual {
+    color: var(--accent-color);
+    filter: drop-shadow(0 0 5px var(--accent-color));
+    animation: ritual-pulse 2s infinite;
+}
+
+@keyframes ritual-pulse {
+    0% { transform: scale(1); opacity: 0.7; }
+    50% { transform: scale(1.1); opacity: 1; }
+    100% { transform: scale(1); opacity: 0.7; }
+}
+
+.task-item.unlocked {
+    border-left: 4px solid var(--accent-color);
+    background: linear-gradient(90deg, rgba(99, 102, 241, 0.05) 0%, transparent 100%);
+    box-shadow: 0 0 15px rgba(99, 102, 241, 0.1);
+}
+

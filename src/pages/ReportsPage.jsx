@@ -10,7 +10,38 @@ import {
     Star, Flame, Trophy, Zap, Crown, Heart,
     Clock, Calendar, Award
 } from 'lucide-react';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import '../styles/ReportsPage.css';
+
+// ── Sound utility ──────────────────────────────────────────────
+const playSuccessSound = (variant = 'grove') => {
+    try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        gain.gain.setValueAtTime(0.18, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
+
+        if (variant === 'grove') {
+            // Rising arpeggio: C5, E5, G5, C6
+            const notes = [523.25, 659.25, 783.99, 1046.5];
+            notes.forEach((freq, i) => {
+                osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.12);
+            });
+        } else {
+            // Constellation: twinkling up
+            const notes = [659.25, 880, 1108.73];
+            notes.forEach((freq, i) => {
+                osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.15);
+            });
+        }
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.8);
+    } catch (e) { /* Audio not supported */ }
+};
+// ──────────────────────────────────────────────────────────────
 
 /* ═══════════════════════════════════════════
    GROVE SYSTEM — trees grow from productivity
@@ -143,6 +174,8 @@ const ReportsPage = () => {
     const inbox = useInbox();
     const [activeTab, setActiveTab] = useState('overview');
     const canvasRef = useRef(null);
+    const prevGroveRef = useRef(0);
+    const prevStarsRef = useRef(0);
 
     // Current time
     const [now, setNow] = useState(new Date());
@@ -193,6 +226,26 @@ const ReportsPage = () => {
         });
         return { totalStars, unlockedStars, percentage: totalStars > 0 ? Math.round((unlockedStars / totalStars) * 100) : 0 };
     }, [data]);
+
+    // Grove — trigger sound when a new tree grows
+    useEffect(() => {
+        const prev = prevGroveRef.current;
+        const current = groveStats.grownTrees;
+        if (current > prev && prev !== 0) {
+            playSuccessSound('grove');
+        }
+        prevGroveRef.current = current;
+    }, [groveStats.grownTrees]);
+
+    // Constellation — trigger sound when a star is unlocked
+    useEffect(() => {
+        const prev = prevStarsRef.current;
+        const current = constellationStats.unlockedStars;
+        if (current > prev && prev !== 0) {
+            playSuccessSound('constellation');
+        }
+        prevStarsRef.current = current;
+    }, [constellationStats.unlockedStars]);
 
     // Upcoming events (next 5)
     const upcomingEvents = useMemo(() => {
@@ -362,41 +415,129 @@ const ReportsPage = () => {
     };
 
     /* ═══ OVERVIEW TAB ═══ */
-    const renderOverview = () => (
-        <div className="rpt-overview">
-            {/* Stats grid */}
-            <div className="rpt-stat-grid">
-                <div className="rpt-stat glass-panel"><CheckCircle2 size={20} className="stat-icon green" /><div><span className="rpt-stat-val">{data.completedTasks}</span><span className="rpt-stat-lbl">Done</span></div></div>
-                <div className="rpt-stat glass-panel"><Clock size={20} className="stat-icon yellow" /><div><span className="rpt-stat-val">{data.pendingTasks}</span><span className="rpt-stat-lbl">Pending</span></div></div>
-                <div className="rpt-stat glass-panel"><FolderKanban size={20} className="stat-icon purple" /><div><span className="rpt-stat-val">{data.projects}</span><span className="rpt-stat-lbl">Projects</span></div></div>
-                <div className="rpt-stat glass-panel"><Target size={20} className="stat-icon pink" /><div><span className="rpt-stat-val">{data.goalsAchieved}/{data.goals}</span><span className="rpt-stat-lbl">Goals</span></div></div>
-                <div className="rpt-stat glass-panel"><Users size={20} className="stat-icon cyan" /><div><span className="rpt-stat-val">{data.teams}</span><span className="rpt-stat-lbl">Teams</span></div></div>
-                <div className="rpt-stat glass-panel"><Calendar size={20} className="stat-icon cyan" /><div><span className="rpt-stat-val">{data.events}</span><span className="rpt-stat-lbl">Events</span></div></div>
-                <div className="rpt-stat glass-panel"><Zap size={20} className="stat-icon yellow" /><div><span className="rpt-stat-val">{data.workflows}</span><span className="rpt-stat-lbl">Flows</span></div></div>
-                <div className="rpt-stat glass-panel"><Flame size={20} className="stat-icon orange" /><div><span className="rpt-stat-val">{data.streak}</span><span className="rpt-stat-lbl">Streak</span></div></div>
-            </div>
+    const renderOverview = () => {
+        // Mock trend data based on current overall tasks to show a visual curve
+        const baseTask = Math.max(0, data.completedTasks - 15);
+        const trendData = [
+            { name: 'Mon', tasks: baseTask + 2 },
+            { name: 'Tue', tasks: baseTask + 5 },
+            { name: 'Wed', tasks: baseTask + 4 },
+            { name: 'Thu', tasks: baseTask + 8 },
+            { name: 'Fri', tasks: baseTask + 10 },
+            { name: 'Sat', tasks: baseTask + 12 },
+            { name: 'Sun', tasks: data.completedTasks > 0 ? data.completedTasks : 15 },
+        ];
 
-            {/* Quick links */}
-            <div className="rpt-quicklinks">
-                <div className="rpt-quicklink glass-panel" onClick={() => setActiveTab('grove')}>
-                    <TreePine size={22} className="accent-icon" />
-                    <div>
-                        <h4>Productivity Grove</h4>
-                        <p>{groveStats.grownTrees} trees grown • {groveStats.nextTreeProgress}/3 to next</p>
-                    </div>
-                    <span className="rpt-ql-arrow">→</span>
+        const pieData = [
+            { name: 'Completed', value: data.completedTasks, color: '#10b981' }, // emerald-500
+            { name: 'Pending', value: data.pendingTasks, color: '#f59e0b' },   // amber-500
+        ];
+
+        return (
+            <div className="rpt-overview">
+                {/* Stats grid */}
+                <div className="rpt-stat-grid">
+                    <div className="rpt-stat glass-panel"><CheckCircle2 size={20} className="stat-icon green" /><div><span className="rpt-stat-val">{data.completedTasks}</span><span className="rpt-stat-lbl">Done</span></div></div>
+                    <div className="rpt-stat glass-panel"><Clock size={20} className="stat-icon yellow" /><div><span className="rpt-stat-val">{data.pendingTasks}</span><span className="rpt-stat-lbl">Pending</span></div></div>
+                    <div className="rpt-stat glass-panel"><FolderKanban size={20} className="stat-icon purple" /><div><span className="rpt-stat-val">{data.projects}</span><span className="rpt-stat-lbl">Projects</span></div></div>
+                    <div className="rpt-stat glass-panel"><Target size={20} className="stat-icon pink" /><div><span className="rpt-stat-val">{data.goalsAchieved}/{data.goals}</span><span className="rpt-stat-lbl">Goals</span></div></div>
+                    <div className="rpt-stat glass-panel"><Users size={20} className="stat-icon cyan" /><div><span className="rpt-stat-val">{data.teams}</span><span className="rpt-stat-lbl">Teams</span></div></div>
+                    <div className="rpt-stat glass-panel"><Calendar size={20} className="stat-icon cyan" /><div><span className="rpt-stat-val">{data.events}</span><span className="rpt-stat-lbl">Events</span></div></div>
+                    <div className="rpt-stat glass-panel"><Zap size={20} className="stat-icon yellow" /><div><span className="rpt-stat-val">{data.workflows}</span><span className="rpt-stat-lbl">Flows</span></div></div>
+                    <div className="rpt-stat glass-panel"><Flame size={20} className="stat-icon orange" /><div><span className="rpt-stat-val">{data.streak}</span><span className="rpt-stat-lbl">Streak</span></div></div>
                 </div>
-                <div className="rpt-quicklink glass-panel" onClick={() => setActiveTab('constellation')}>
-                    <Sparkles size={22} className="accent-icon" />
-                    <div>
-                        <h4>Achievement Constellations</h4>
-                        <p>{constellationStats.unlockedStars}/{constellationStats.totalStars} stars unlocked ({constellationStats.percentage}%)</p>
+
+                {/* Charts Area */}
+                <div className="rpt-charts-container tour-reports-charts">
+                    <div className="rpt-chart-card glass-panel" style={{ flex: 2 }}>
+                        <h3><TrendingUp size={18} className="accent-icon" /> Activity Trend</h3>
+                        <div className="rpt-chart-wrapper" style={{ height: 260, marginTop: '1rem' }}>
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={trendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                    <defs>
+                                        <linearGradient id="colorTasks" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="var(--accent-color)" stopOpacity={0.4}/>
+                                            <stop offset="95%" stopColor="var(--accent-color)" stopOpacity={0}/>
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
+                                    <XAxis dataKey="name" stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} />
+                                    <YAxis stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} />
+                                    <RechartsTooltip 
+                                        contentStyle={{ backgroundColor: 'var(--surface-color)', borderColor: 'var(--border-color)', borderRadius: '8px', color: 'var(--text-color)' }}
+                                        itemStyle={{ color: 'var(--accent-color)' }}
+                                    />
+                                    <Area type="monotone" dataKey="tasks" stroke="var(--accent-color)" strokeWidth={3} fillOpacity={1} fill="url(#colorTasks)" />
+                                </AreaChart>
+                            </ResponsiveContainer>
+                        </div>
                     </div>
-                    <span className="rpt-ql-arrow">→</span>
+
+                    <div className="rpt-chart-card glass-panel" style={{ flex: 1 }}>
+                        <h3><BarChart3 size={18} className="accent-icon" /> Task Distribution</h3>
+                        <div className="rpt-chart-wrapper" style={{ height: 260, marginTop: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                            {data.totalTasks > 0 ? (
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <PieChart>
+                                        <Pie
+                                            data={pieData}
+                                            cx="50%"
+                                            cy="50%"
+                                            innerRadius={60}
+                                            outerRadius={85}
+                                            paddingAngle={5}
+                                            dataKey="value"
+                                            stroke="none"
+                                        >
+                                            {pieData.map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={entry.color} />
+                                            ))}
+                                        </Pie>
+                                        <RechartsTooltip 
+                                            contentStyle={{ backgroundColor: 'var(--surface-color)', borderColor: 'var(--border-color)', borderRadius: '8px', color: 'var(--text-color)' }}
+                                            itemStyle={{ color: 'var(--text-color)' }}
+                                        />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            ) : (
+                                <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
+                                    No tasks available
+                                </div>
+                            )}
+                            <div style={{ display: 'flex', gap: '1rem', marginTop: '-10px' }}>
+                                {pieData.map((entry, i) => (
+                                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px' }}>
+                                        <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: entry.color }}></div>
+                                        <span>{entry.name}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Quick links */}
+                <div className="rpt-quicklinks" style={{ marginTop: '1.5rem' }}>
+                    <div className="rpt-quicklink glass-panel" onClick={() => setActiveTab('grove')}>
+                        <TreePine size={22} className="accent-icon" />
+                        <div>
+                            <h4>Productivity Grove</h4>
+                            <p>{groveStats.grownTrees} trees grown • {groveStats.nextTreeProgress}/3 to next</p>
+                        </div>
+                        <span className="rpt-ql-arrow">→</span>
+                    </div>
+                    <div className="rpt-quicklink glass-panel" onClick={() => setActiveTab('constellation')}>
+                        <Sparkles size={22} className="accent-icon" />
+                        <div>
+                            <h4>Achievement Constellations</h4>
+                            <p>{constellationStats.unlockedStars}/{constellationStats.totalStars} stars unlocked ({constellationStats.percentage}%)</p>
+                        </div>
+                        <span className="rpt-ql-arrow">→</span>
+                    </div>
                 </div>
             </div>
-        </div>
-    );
+        );
+    };
 
     /* ═══ GROVE TAB ═══ */
     const renderGrove = () => (

@@ -1,0 +1,152 @@
+.coach-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(10, 10, 20, 0.85);
+    backdrop-filter: blur(10px);
+    z-index: 11000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Outfit', sans-serif;
+}
+
+.coach-modal {
+    background: rgba(20, 20, 35, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 30px;
+    width: 90%;
+    max-width: 500px;
+    padding: 3rem;
+    position: relative;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    text-align: center;
+}
+
+.coach-close {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.3);
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.coach-close:hover {
+    color: #fff;
+}
+
+.coach-icon-glow {
+    width: 80px;
+    height: 80px;
+    background: radial-gradient(circle, rgba(168, 85, 247, 0.4) 0%, transparent 70%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+}
+
+.coach-icon {
+    color: #a855f7;
+    filter: drop-shadow(0 0 10px #a855f7);
+}
+
+.coach-modal h2 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(90deg, #fff, #a855f7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.coach-subtitle {
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 2rem;
+}
+
+.coach-content {
+    min-height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+
+.coach-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.aura-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(168, 85, 247, 0.1);
+    border-top: 3px solid #a855f7;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.coach-steps {
+    width: 100%;
+    text-align: left;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1.5rem;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.steps-title {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #a855f7;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.step-item {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    line-height: 1.5;
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.step-arrow {
+    flex-shrink: 0;
+    margin-top: 0.3rem;
+    color: #a855f7;
+}
+
+.coach-btn {
+    width: 100%;
+    background: linear-gradient(45deg, #a855f7, #6366f1);
+    border: none;
+    border-radius: 15px;
+    padding: 1.25rem;
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.1rem;
+    cursor: pointer;
+    box-shadow: 0 10px 20px rgba(168, 85, 247, 0.3);
+    transition: all 0.3s;
+}
+
+.coach-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 30px rgba(168, 85, 247, 0.4);
+}

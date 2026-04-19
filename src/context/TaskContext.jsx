@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import {
     subscribeToCollection, addToCollection,
-    updateInCollection, deleteFromCollection,
+    updateInCollection, deleteFromCollection, logActivity,
 } from '../utils/firestoreHelpers';
 
 const TaskContext = createContext();
@@ -19,6 +19,19 @@ export const TaskProvider = ({ children }) => {
     const uid = currentUser?.uid;
     const [tasks, setTasks] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [unlockedCategories, setUnlockedCategories] = useState(() => {
+        const saved = localStorage.getItem('aura_unlocked_categories');
+        const lastReset = localStorage.getItem('aura_ritual_reset');
+        const today = new Date().toDateString();
+        
+        if (lastReset !== today) {
+            localStorage.setItem('aura_ritual_reset', today);
+            localStorage.setItem('aura_unlocked_categories', JSON.stringify([]));
+            return [];
+        }
+        return saved ? JSON.parse(saved) : [];
+    });
+    const [ritualData, setRitualData] = useState(null); // { taskId, category }
 
     // Subscribe to Firestore
     useEffect(() => {
@@ -35,18 +48,47 @@ export const TaskProvider = ({ children }) => {
     // ── CRUD ──
     const addTask = async (task) => {
         if (!uid) return;
+        
+        const newTask = {
+            id: 'temp-' + Date.now(), // Temporary ID for optimistic UI
+            completed: false,
+            createdAt: Date.now(),
+            dueDate: '',
+            recurrence: 'none',
+            energyType: 'Deep Focus',
+            rescheduleCount: 0,
+            ...task,
+        };
+        
+        // Optimistic update
+        setTasks(prev => [newTask, ...prev]);
+        
         await addToCollection(uid, 'tasks', {
             completed: false,
             createdAt: Date.now(),
             dueDate: '',
             recurrence: 'none',
+            energyType: 'Deep Focus',
+            rescheduleCount: 0,
             ...task,
         });
+        logActivity(uid, `Created task: "${task.title || 'Untitled'}"`, 'task');
     };
 
     const updateTask = async (id, updates) => {
         if (!uid) return;
-        await updateInCollection(uid, 'tasks', id, updates);
+        
+        const task = tasks.find(t => t.id === id);
+        if (!task) return;
+
+        let finalUpdates = { ...updates };
+
+        // Logic for Procrastination Breaking: Increment reschedule count if date changes
+        if (updates.dueDate && updates.dueDate !== task.dueDate) {
+            finalUpdates.rescheduleCount = (task.rescheduleCount || 0) + 1;
+        }
+
+        await updateInCollection(uid, 'tasks', id, finalUpdates);
     };
 
     const toggleTaskCompletion = async (id) => {
@@ -73,11 +115,23 @@ export const TaskProvider = ({ children }) => {
             completed: nowCompleted,
             completedAt: nowCompleted ? Date.now() : null,
         });
+        logActivity(uid, `${nowCompleted ? 'Completed' : 'Reopened'} task: "${task.title}"`, 'task');
     };
 
     const deleteTask = async (id) => {
         if (!uid) return;
+        const task = tasks.find(t => t.id === id);
         await deleteFromCollection(uid, 'tasks', id);
+        logActivity(uid, `Deleted task: "${task?.title || id}"`, 'task');
+    };
+
+    const batchTasksToHour = async (taskIds, targetTime) => {
+        if (!uid) return;
+        // Batch move tasks to a target start time
+        for (const id of taskIds) {
+            await updateInCollection(uid, 'tasks', id, { startTime: targetTime });
+        }
+        logActivity(uid, `Performed Temporal Fold: Batched ${taskIds.length} tasks to ${targetTime}`, 'task');
     };
 
     // ── Overdue detection ──
@@ -89,16 +143,48 @@ export const TaskProvider = ({ children }) => {
         completed: tasks.filter(t => t.completed).length,
         pending: tasks.filter(t => !t.completed).length,
         overdue: overdueTasks.length,
+        // Energy distribution for completed tasks today
+        energyDistribution: tasks
+            .filter(t => {
+                if (!t.completed || !t.completedAt) return false;
+                const d = new Date(t.completedAt);
+                return d.toDateString() === new Date().toDateString();
+            })
+            .reduce((acc, t) => {
+                const type = t.energyType || 'Deep Focus';
+                acc[type] = (acc[type] || 0) + 1;
+                return acc;
+            }, {})
     };
 
+    // ── Rituals ──
+    const startRitual = (taskId, category) => {
+        setRitualData({ taskId, category });
+    };
+
+    const completeRitual = () => {
+        if (!ritualData) return;
+        const cat = ritualData.category;
+        if (!unlockedCategories.includes(cat)) {
+            const next = [...unlockedCategories, cat];
+            setUnlockedCategories(next);
+            localStorage.setItem('aura_unlocked_categories', JSON.stringify(next));
+        }
+        setRitualData(null);
+        logActivity(uid, `Completed threshold ritual for: ${cat}`, 'task');
+    };
+
+    const cancelRitual = () => setRitualData(null);
+
     const value = {
-        tasks, addTask, updateTask, toggleTaskCompletion, deleteTask,
+        tasks, addTask, updateTask, toggleTaskCompletion, deleteTask, batchTasksToHour,
         stats, overdueTasks,
+        unlockedCategories, ritualData, startRitual, completeRitual, cancelRitual,
     };
 
     return (
         <TaskContext.Provider value={value}>
-            {!loading && children}
+            {children}
         </TaskContext.Provider>
     );
 };

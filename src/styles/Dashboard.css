@@ -426,6 +426,29 @@
     transform: translateY(-1px);
 }
 
+.quick-add-select {
+    background: var(--surface-hover);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    padding: 0.35rem 0.5rem;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.quick-add-select:hover {
+    border-color: var(--accent-color);
+}
+
+/* Hero Mini Stats Group */
+.hero-stats-mini {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+}
+
 /* ── TASK LIST (shared in dashboard cards) ── */
 .dash-task-list {
     display: flex;
@@ -597,6 +620,66 @@
     color: var(--accent-color);
 }
 
+/* ── AI BRIEFING CARD ── */
+.ai-briefing-card {
+    border-color: rgba(0, 255, 204, 0.3);
+    background: linear-gradient(135deg, rgba(0, 255, 204, 0.04) 0%, var(--surface-color) 100%);
+}
+
+.ai-badge {
+    background: linear-gradient(90deg, #4285f4, #0f9d58);
+    color: #fff;
+    font-size: 0.62rem;
+}
+
+.ai-briefing-text {
+    font-size: 0.88rem;
+    line-height: 1.7;
+    color: var(--text-color);
+    opacity: 0.9;
+}
+
+.ai-loading {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.spin-icon {
+    animation: spin 1s linear infinite;
+    color: var(--accent-color);
+}
+
+/* ── AURA SCORE PILL ── */
+.aura-score-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 0.1rem 0.45rem;
+    border-radius: 8px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    background: rgba(0, 255, 204, 0.12);
+    color: var(--accent-color);
+    border: 1px solid rgba(0, 255, 204, 0.2);
+    flex-shrink: 0;
+}
+
+/* ── TASK RIGHT META (score + priority grouped) ── */
+.task-right-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-shrink: 0;
+}
+
 /* ═══════════ RESPONSIVE ═══════════ */
 @media (max-width: 1200px) {
     .dash-body {
@@ -658,3 +741,124 @@
         grid-template-columns: 1fr 1fr;
     }
 }
+
+/* ── RESONANCE STYLES ── */
+.sync-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0.9rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    background: rgba(0, 255, 204, 0.1);
+    color: var(--accent-color);
+    border: 1px solid rgba(0, 255, 204, 0.2);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.sync-btn:hover {
+    background: rgba(0, 255, 204, 0.2);
+    transform: translateY(-1px);
+}
+
+.sync-btn.synced {
+    background: var(--accent-color);
+    color: var(--bg-color);
+    border-color: var(--accent-color);
+}
+
+.echo-trigger-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0.9rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    background: rgba(168, 85, 247, 0.1);
+    color: #a855f7;
+    border: 1px solid rgba(168, 85, 247, 0.2);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.echo-trigger-btn:hover {
+    background: rgba(168, 85, 247, 0.2);
+    transform: translateY(-1px);
+}
+
+.future-trigger-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0.9rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    background: rgba(251, 191, 36, 0.1);
+    color: #fbbf24;
+    border: 1px solid rgba(251, 191, 36, 0.2);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.future-trigger-btn.active {
+    background: #fbbf24;
+    color: var(--bg-color);
+}
+
+
+
+.resonance-alert {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 1.25rem 2rem;
+    border-radius: 12px;
+    border-left: 4px solid #f43f5e;
+    background: linear-gradient(90deg, rgba(244, 63, 94, 0.1) 0%, var(--surface-color) 100%);
+}
+
+.res-icon {
+    color: #f43f5e;
+}
+
+.res-content p {
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+.res-action-btn {
+    margin-left: auto;
+    background: #f43f5e;
+    color: #fff;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.res-action-btn:hover {
+    background: #e11d48;
+    transform: translateY(-1px);
+}
+
+.dash-task-item.resonant {
+    border-left: 4px solid var(--accent-color);
+    background: linear-gradient(90deg, rgba(0, 255, 204, 0.05) 0%, var(--surface-color) 100%);
+    box-shadow: 0 0 15px rgba(0, 255, 204, 0.1);
+}
+
+.res-bolt {
+    color: var(--accent-color);
+    margin-right: 0.4rem;
+    animation: bolt-pulse 2s infinite alternate;
+}
+
+@keyframes bolt-pulse {
+    from { opacity: 0.4; }
+    to { opacity: 1; transform: scale(1.2); }
+}

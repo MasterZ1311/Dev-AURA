@@ -401,6 +401,27 @@
     font-size: 1.1rem;
 }
 
+/* Charts */
+.rpt-charts-container {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.rpt-chart-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.rpt-chart-card h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-color);
+}
+
 /* ═══════════════ GROVE ═══════════════ */
 .rpt-grove {
     display: flex;

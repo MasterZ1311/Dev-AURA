@@ -106,5 +106,5 @@ export const AdminProvider = ({ children }) => {
 
     const value = { logs, addLog, clearLogs, exportData, importData, resetSection, resetAll };
 
-    return <AdminContext.Provider value={value}>{loaded && children}</AdminContext.Provider>;
+    return <AdminContext.Provider value={value}>{children}</AdminContext.Provider>;
 };

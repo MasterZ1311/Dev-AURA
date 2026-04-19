@@ -10,12 +10,17 @@ import {
     Circle,
     Trash2,
     Flag,
-    ListTodo
+    ListTodo,
+    Zap,
+    Footprints,
+    FastForward
 } from 'lucide-react';
+import ProcrastinationCoach from '../components/ProcrastinationCoach';
 import '../styles/Tasks.css';
 
 const Tasks = () => {
-    const { tasks, addTask, toggleTaskCompletion, deleteTask } = useTasks();
+    const { tasks, addTask, toggleTaskCompletion, deleteTask, unlockedCategories, startRitual } = useTasks();
+    const [selectedProcrastinationTask, setSelectedProcrastinationTask] = useState(null);
 
     // ── Live Clock ──
     const [now, setNow] = useState(new Date());
@@ -43,6 +48,17 @@ const Tasks = () => {
     const [newTitle, setNewTitle] = useState('');
     const [newPriority, setNewPriority] = useState('Medium');
     const [newProject, setNewProject] = useState('Development');
+    const [newEnergyType, setNewEnergyType] = useState('Deep Focus');
+
+    const ENERGY_TYPES = [
+        { label: 'Deep Focus', color: '#6366f1', icon: '🎯' },
+        { label: 'Creative', color: '#f59e0b', icon: '🎨' },
+        { label: 'Social', color: '#10b981', icon: '🤝' },
+        { label: 'Administrative', color: '#0ea5e9', icon: '📂' },
+        { label: 'Routine', color: '#f43f5e', icon: '🔄' },
+        { label: 'Physical', color: '#84cc16', icon: '⚡' },
+        { label: 'Learning', color: '#a855f7', icon: '🧠' },
+    ];
 
     // ── Quick Note State ──
     const [quickNote, setQuickNote] = useState(() => {
@@ -62,6 +78,7 @@ const Tasks = () => {
             title: newTitle.trim(),
             priority: newPriority,
             project: newProject,
+            energyType: newEnergyType,
             date: now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
             isFocus: false
         });
@@ -171,17 +188,26 @@ const Tasks = () => {
                     </div>
                 </div>
 
-                <div className="tasks-list">
+                <div className="tasks-list tour-tasks-list">
                     {filteredTasks.length > 0 ? filteredTasks.map(task => (
-                        <div key={task.id} className={`task-item ${task.completed ? 'done' : ''}`}>
+                        <div key={task.id} className={`task-item ${task.completed ? 'done' : ''} ${unlockedCategories.includes(task.energyType) ? 'unlocked' : ''}`}>
                             <button
                                 className="task-check-btn"
-                                onClick={() => toggleTaskCompletion(task.id)}
-                                title={task.completed ? 'Mark incomplete' : 'Mark complete'}
+                                onClick={() => {
+                                    const needsRitual = ['Deep Focus', 'Creative'].includes(task.energyType) && !unlockedCategories.includes(task.energyType);
+                                    if (!task.completed && needsRitual) {
+                                        startRitual(task.id, task.energyType);
+                                    } else {
+                                        toggleTaskCompletion(task.id);
+                                    }
+                                }}
+                                title={task.completed ? 'Mark incomplete' : (['Deep Focus', 'Creative'].includes(task.energyType) && !unlockedCategories.includes(task.energyType) ? 'Enter Threshold' : 'Mark complete')}
                             >
                                 {task.completed
                                     ? <CheckCircle2 size={22} className="check-done" />
-                                    : <Circle size={22} className="check-pending" />
+                                    : (['Deep Focus', 'Creative'].includes(task.energyType) && !unlockedCategories.includes(task.energyType) 
+                                        ? <Zap size={22} className="check-ritual" /> 
+                                        : <Circle size={22} className="check-pending" />)
                                 }
                             </button>
                             <div className="task-info">
@@ -189,9 +215,34 @@ const Tasks = () => {
                                 <div className="task-meta">
                                     <span className="task-date">{task.date}</span>
                                     <span className="task-project">{task.project}</span>
+                                    {task.energyType && <span className="task-energy-tag" data-energy={task.energyType}>{task.energyType}</span>}
                                 </div>
                             </div>
                             <div className="task-actions">
+                                {task.rescheduleCount > 0 && !task.completed && (
+                                    <button 
+                                        className={`task-coach-trigger ${task.rescheduleCount >= 3 ? 'high-alert' : ''}`}
+                                        onClick={() => setSelectedProcrastinationTask(task)}
+                                        title={task.rescheduleCount >= 3 ? "AURA detected a block. Need a breakdown?" : "Break this down"}
+                                    >
+                                        <Footprints size={16} />
+                                        {task.rescheduleCount >= 3 && <span className="coach-alert-dot"></span>}
+                                    </button>
+                                )}
+                                {!task.completed && (
+                                    <button 
+                                        className="task-postpone-btn"
+                                        onClick={() => {
+                                            const d = new Date();
+                                            d.setDate(d.getDate() + 1);
+                                            const tomorrow = d.toISOString().split('T')[0];
+                                            updateTask(task.id, { dueDate: tomorrow, date: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) });
+                                        }}
+                                        title="Postpone to tomorrow"
+                                    >
+                                        <FastForward size={16} />
+                                    </button>
+                                )}
                                 <span className={`priority-pill ${task.priority.toLowerCase()}`}>
                                     <Flag size={12} /> {task.priority}
                                 </span>
@@ -216,7 +267,7 @@ const Tasks = () => {
             {/* ═══════════ RIGHT COLUMN ═══════════ */}
             <aside className="tasks-right-col">
                 {/* New Task */}
-                <div className="new-task-card glass-panel">
+                <div className="new-task-card glass-panel tour-tasks-add">
                     <h3><Plus size={18} /> New Task</h3>
                     <form onSubmit={handleAddTask} className="new-task-form">
                         <input
@@ -244,6 +295,17 @@ const Tasks = () => {
                                 <option value="Marketing">Marketing</option>
                                 <option value="Development">Development</option>
                                 <option value="Design">Design</option>
+                            </select>
+                            <select
+                                value={newEnergyType}
+                                onChange={e => setNewEnergyType(e.target.value)}
+                                className="new-task-select energy-select"
+                            >
+                                {ENERGY_TYPES.map(type => (
+                                    <option key={type.label} value={type.label}>
+                                        {type.icon} {type.label}
+                                    </option>
+                                ))}
                             </select>
                         </div>
                         <button type="submit" className="btn-primary new-task-submit">
@@ -281,6 +343,13 @@ const Tasks = () => {
                     )}
                 </div>
             </aside>
+
+            {/* AI Coach Modal */}
+            <ProcrastinationCoach 
+                isOpen={!!selectedProcrastinationTask} 
+                task={selectedProcrastinationTask} 
+                onClose={() => setSelectedProcrastinationTask(null)} 
+            />
         </div>
     );
 };

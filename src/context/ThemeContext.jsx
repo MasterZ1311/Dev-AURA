@@ -14,6 +14,7 @@ export const ThemeProvider = ({ children }) => {
     const [theme, setTheme] = useState('OLED Dark');
     const [liveBg, setLiveBg] = useState(true);
     const [liveBgIntensity, setLiveBgIntensity] = useState(70); // 0-100
+    const [lowGraphics, setLowGraphics] = useState(false);
     const { currentUser } = useAuth();
     const uid = currentUser?.uid;
 
@@ -49,6 +50,9 @@ export const ThemeProvider = ({ children }) => {
                 savedIntensity = stored ? parseInt(stored, 10) : 70;
             }
 
+            const storedLowGraphics = localStorage.getItem('aura_lowGraphics');
+            const savedLowGraphics = storedLowGraphics === 'true';
+
             if (savedTheme) {
                 setTheme(savedTheme);
                 document.documentElement.setAttribute('data-theme', savedTheme);
@@ -58,6 +62,7 @@ export const ThemeProvider = ({ children }) => {
 
             setLiveBg(savedLiveBg);
             setLiveBgIntensity(savedIntensity);
+            setLowGraphics(savedLowGraphics);
         };
 
         loadPrefs();
@@ -87,6 +92,13 @@ export const ThemeProvider = ({ children }) => {
         await _saveToFirestore({ liveBg: newVal });
     };
 
+    const toggleLowGraphics = async () => {
+        const newVal = !lowGraphics;
+        setLowGraphics(newVal);
+        localStorage.setItem('aura_lowGraphics', String(newVal));
+        await _saveToFirestore({ lowGraphics: newVal });
+    };
+
     const changeLiveBgIntensity = async (val) => {
         const num = parseInt(val, 10);
         setLiveBgIntensity(num);
@@ -101,6 +113,8 @@ export const ThemeProvider = ({ children }) => {
         toggleLiveBg,
         liveBgIntensity,
         changeLiveBgIntensity,
+        lowGraphics,
+        toggleLowGraphics
     };
 
     return (

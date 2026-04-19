@@ -13,7 +13,6 @@ import {
     TrendingUp,
     Flame,
     Plus,
-    ArrowRight,
     Sparkles,
     ListTodo,
     BarChart3,
@@ -22,9 +21,18 @@ import {
     Star,
     Sun,
     Moon,
-    Sunrise
+    Sunrise,
+    Brain,
+    Loader2,
+    Mic,
+    Eye
 } from 'lucide-react';
 import '../styles/Dashboard.css';
+import WorkflowTrajectory from '../components/WorkflowTrajectory';
+import { useCalendar } from '../context/CalendarContext';
+import { useNotifications } from '../context/NotificationContext';
+import { aiService } from '../utils/aiService';
+import { getTopFocusTasks } from '../utils/auraEngine';
 
 /* ── helper: greeting based on time of day ── */
 const getGreeting = () => {
@@ -40,6 +48,9 @@ import quotes from '../data/quotes';
 const Dashboard = () => {
     const { currentUser } = useAuth();
     const { tasks, toggleTaskCompletion, addTask, stats } = useTasks();
+    const { events } = useCalendar();
+    const { notifications } = useNotifications();
+    const [showTrajectory, setShowTrajectory] = useState(false);
 
     // ── Live clock ──
     const [now, setNow] = useState(new Date());
@@ -63,7 +74,6 @@ const Dashboard = () => {
     useEffect(() => {
         const lastVisit = localStorage.getItem('aura_last_visit');
         const savedStreak = parseInt(localStorage.getItem('aura_streak') || '0', 10);
-        // Use a static today string for streak logic to avoid 'now' dependency
         const todayStr = new Date().toDateString();
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
@@ -85,10 +95,30 @@ const Dashboard = () => {
 
     // ── Derived data ──
     const completionRate = tasks.length > 0 ? Math.round((stats.completed / tasks.length) * 100) : 0;
-    const focusTasks = tasks.filter(t => t.isFocus && !t.completed);
+    const focusTasks = useMemo(() => getTopFocusTasks(tasks, streak, 5), [tasks, streak]);
     const pendingTasks = tasks.filter(t => !t.completed);
     const recentlyCompleted = tasks.filter(t => t.completed).slice(0, 3);
     const highPriority = tasks.filter(t => t.priority === 'High' && !t.completed);
+
+    // ── Omni-Context AI Triage ──
+    const [briefing, setBriefing] = useState(null);
+    const [briefingLoading, setBriefingLoading] = useState(false);
+    
+    useEffect(() => {
+        const cached = sessionStorage.getItem('aura_unified_triage');
+        if (cached) { setBriefing(cached); return; }
+        if (tasks.length === 0 && events.length === 0) return;
+        
+        setBriefingLoading(true);
+        aiService.generateUnifiedTriage(tasks, events, notifications, currentUser?.name || 'AURA User')
+            .then(text => {
+                if (text) {
+                    setBriefing(text);
+                    sessionStorage.setItem('aura_unified_triage', text);
+                }
+            })
+            .finally(() => setBriefingLoading(false));
+    }, [tasks.length, events.length, notifications.length, currentUser?.name]);
 
     // ── Productivity score (gamified) ──
     const productivityScore = useMemo(() => {
@@ -102,6 +132,7 @@ const Dashboard = () => {
 
     // ── Quick-add task ──
     const [quickTask, setQuickTask] = useState('');
+    const [quickEnergyType, setQuickEnergyType] = useState('Deep Focus');
     const handleQuickAdd = (e) => {
         e.preventDefault();
         if (!quickTask.trim()) return;
@@ -109,6 +140,7 @@ const Dashboard = () => {
             title: quickTask.trim(),
             priority: 'Medium',
             project: 'Development',
+            energyType: quickEnergyType,
             date: now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
             isFocus: false
         });
@@ -151,17 +183,32 @@ const Dashboard = () => {
                     <p className="hero-quote">"{dailyQuote.text}" <span>— {dailyQuote.author}</span></p>
                 </div>
                 <div className="hero-right">
-                    <div className="hero-clock">{timeString}</div>
-                    <div className="hero-streak">
-                        <Flame size={20} className="streak-icon" />
-                        <span className="streak-count">{streak}</span>
-                        <span className="streak-label">day streak</span>
+                    <div className="hero-stats-mini">
+                        <div className="hero-clock">{timeString}</div>
+                        <div className="hero-streak">
+                            <Flame size={20} className="streak-icon" />
+                            <span className="streak-count">{streak}</span>
+                            <span className="streak-label">day streak</span>
+                        </div>
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <button 
+                                className={`future-trigger-btn ${showTrajectory ? 'active' : ''}`}
+                                onClick={() => setShowTrajectory(!showTrajectory)}
+                            >
+                                <Eye size={14} /> Workflow Trajectory
+                            </button>
+                        </div>
                     </div>
                 </div>
             </section>
 
+            {/* ═══════════ TEMPORAL PROJECTION ═══════════ */}
+            {showTrajectory && (
+                <WorkflowTrajectory onClose={() => setShowTrajectory(false)} />
+            )}
+
             {/* ═══════════ KPI METRICS ROW ═══════════ */}
-            <section className="dash-metrics">
+            <section className="dash-metrics tour-dashboard-widgets">
                 <div className="kpi-card glass-panel">
                     <div className="kpi-icon-wrap total"><ListTodo size={22} /></div>
                     <div className="kpi-info">
@@ -269,13 +316,44 @@ const Dashboard = () => {
                             value={quickTask}
                             onChange={e => setQuickTask(e.target.value)}
                         />
+                        <select 
+                            className="quick-add-select"
+                            value={quickEnergyType}
+                            onChange={e => setQuickEnergyType(e.target.value)}
+                        >
+                            <option value="Deep Focus">🎯 Focus</option>
+                            <option value="Creative">🎨 Creative</option>
+                            <option value="Social">🤝 Social</option>
+                            <option value="Administrative">📂 Admin</option>
+                            <option value="Routine">🔄 Routine</option>
+                            <option value="Physical">⚡ Physical</option>
+                            <option value="Learning">🧠 Learning</option>
+                        </select>
                         <button type="submit" className="quick-add-btn">Add</button>
                     </form>
 
-                    {/* Focus Tasks */}
+                    {/* AI Daily Briefing */}
+                    {(briefing || briefingLoading) && (
+                        <div className="dash-card glass-panel ai-briefing-card">
+                            <div className="dash-card-header">
+                                <Brain size={18} className="accent-icon" /> <h3>AI Briefing</h3>
+                                <span className="badge ai-badge">Gemini</span>
+                            </div>
+                            {briefingLoading ? (
+                                <div className="ai-loading">
+                                    <Loader2 size={16} className="spin-icon" />
+                                    <span>Generating your briefing...</span>
+                                </div>
+                            ) : (
+                                <p className="ai-briefing-text">{briefing}</p>
+                            )}
+                        </div>
+                    )}
+
+                    {/* AI-Ranked Focus Tasks */}
                     <div className="dash-card glass-panel">
                         <div className="dash-card-header">
-                            <Target size={18} /> <h3>My Focus</h3>
+                            <Target size={18} /> <h3>AI Focus</h3>
                             <span className="badge">{focusTasks.length}</span>
                         </div>
                         <div className="dash-task-list">
@@ -288,12 +366,19 @@ const Dashboard = () => {
                                         <span className="task-name">{task.title}</span>
                                         <span className="task-sub">{task.date} • {task.project}</span>
                                     </div>
-                                    <span className={`prio ${task.priority.toLowerCase()}`}>
-                                        <Flag size={12} /> {task.priority}
-                                    </span>
+                                    <div className="task-right-meta">
+                                        {task.auraScore !== undefined && (
+                                            <span className="aura-score-pill" title="Aura Score">
+                                                <Zap size={11} /> {task.auraScore}
+                                            </span>
+                                        )}
+                                        <span className={`prio ${task.priority.toLowerCase()}`}>
+                                            <Flag size={12} /> {task.priority}
+                                        </span>
+                                    </div>
                                 </div>
                             )) : (
-                                <p className="empty-text"><Star size={16} /> No focus tasks right now.</p>
+                                <p className="empty-text"><Star size={16} /> Add tasks to see AI rankings.</p>
                             )}
                         </div>
                     </div>
@@ -305,20 +390,24 @@ const Dashboard = () => {
                             <span className="badge">{pendingTasks.length}</span>
                         </div>
                         <div className="dash-task-list">
-                            {pendingTasks.slice(0, 5).map(task => (
-                                <div key={task.id} className="dash-task-item">
-                                    <button className="task-check" onClick={() => toggleTaskCompletion(task.id)}>
-                                        <Circle size={20} />
-                                    </button>
-                                    <div className="task-body">
-                                        <span className="task-name">{task.title}</span>
-                                        <span className="task-sub">{task.date} • {task.project}</span>
+                            {pendingTasks.slice(0, 5).map(task => {
+                                return (
+                                    <div key={task.id} className="dash-task-item">
+                                        <button className="task-check" onClick={() => toggleTaskCompletion(task.id)}>
+                                            <Circle size={20} />
+                                        </button>
+                                        <div className="task-body">
+                                            <span className="task-name">
+                                                {task.title}
+                                            </span>
+                                            <span className="task-sub">{task.date} • {task.project}</span>
+                                        </div>
+                                        <span className={`prio ${task.priority.toLowerCase()}`}>
+                                            <Flag size={12} /> {task.priority}
+                                        </span>
                                     </div>
-                                    <span className={`prio ${task.priority.toLowerCase()}`}>
-                                        <Flag size={12} /> {task.priority}
-                                    </span>
-                                </div>
-                            ))}
+                                );
+                            })}
                             {pendingTasks.length === 0 && (
                                 <p className="empty-text"><Sparkles size={16} /> All clear — no pending tasks!</p>
                             )}
@@ -412,6 +501,7 @@ const Dashboard = () => {
                     </div>
                 </aside>
             </div>
+            {/* ═══════════ MODALS & OVERLAYS ═══════════ */}
         </div>
     );
 };

@@ -4,10 +4,9 @@ import {
     Home,
     CheckSquare,
     Inbox,
-    FolderKanban,
     Calendar,
-    BarChart2,
     GitMerge,
+    BarChart2,
     Shield
 } from 'lucide-react';
 import '../styles/BottomNav.css';
@@ -16,10 +15,9 @@ const navItems = [
     { path: '/', label: 'Dashboard', icon: Home },
     { path: '/tasks', label: 'Tasks', icon: CheckSquare },
     { path: '/inbox', label: 'Inbox', icon: Inbox },
-    { path: '/projects', label: 'Groups', icon: FolderKanban },
     { path: '/calendar', label: 'Calendar', icon: Calendar },
-    { path: '/reports', label: 'Reports', icon: BarChart2 },
     { path: '/workflows', label: 'Workflows', icon: GitMerge },
+    { path: '/reports', label: 'Reports', icon: BarChart2 },
     { path: '/admin', label: 'Admin', icon: Shield },
 ];
 
@@ -32,7 +30,7 @@ const BottomNav = () => {
                     <NavLink
                         key={item.path}
                         to={item.path}
-                        className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}
+                        className={({ isActive }) => `nav-item ${isActive ? 'active' : ''} ${item.path === '/tasks' ? 'tour-nav-link-tasks' : ''}`}
                     >
                         <span className="nav-icon"><Icon size={20} /></span>
                         <span>{item.label}</span>

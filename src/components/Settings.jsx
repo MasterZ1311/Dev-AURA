@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { X, User, Save, Keyboard, Monitor } from 'lucide-react';
+import { X, User, Save, Keyboard, Monitor, Zap, Brain } from 'lucide-react';
+import AISettingsPanel from './AISettingsPanel';
 import '../styles/Settings.css';
 
 const themes = [
@@ -31,7 +32,7 @@ const defaultShortcuts = [
 
 const Settings = ({ onClose }) => {
     const { currentUser, updateProfile } = useAuth();
-    const { theme, changeTheme, liveBg, toggleLiveBg } = useTheme();
+    const { theme, changeTheme, liveBg, toggleLiveBg, lowGraphics, toggleLowGraphics } = useTheme();
     const [activeTab, setActiveTab] = useState('profile');
     const [name, setName] = useState(currentUser?.name || '');
     const [email, setEmail] = useState(currentUser?.email || '');
@@ -47,9 +48,10 @@ const Settings = ({ onClose }) => {
     };
 
     const tabs = [
-        { key: 'profile', label: 'Profile', icon: User },
-        { key: 'themes', label: 'Themes', icon: null },
-        { key: 'shortcuts', label: 'Shortcuts', icon: Keyboard },
+        { key: 'profile',   label: 'Profile',    icon: User },
+        { key: 'themes',    label: 'Themes',     icon: Monitor },
+        { key: 'ai',        label: 'AI',         icon: Brain },
+        { key: 'shortcuts', label: 'Shortcuts',  icon: Keyboard },
     ];
 
     return (
@@ -64,6 +66,7 @@ const Settings = ({ onClose }) => {
                                 className={`settings-tab ${activeTab === t.key ? 'active' : ''}`}
                                 onClick={() => setActiveTab(t.key)}
                             >
+                                <t.icon size={14} />
                                 {t.label}
                             </button>
                         ))}
@@ -121,7 +124,6 @@ const Settings = ({ onClose }) => {
                         <section className="settings-section">
                             <h3>Theme</h3>
 
-                            {/* Live Background Toggle */}
                             <div className="live-bg-toggle-row">
                                 <div className="live-bg-toggle-info">
                                     <Monitor size={18} />
@@ -134,6 +136,23 @@ const Settings = ({ onClose }) => {
                                     className={`toggle-switch ${liveBg ? 'active' : ''}`}
                                     onClick={toggleLiveBg}
                                     aria-label="Toggle live background"
+                                >
+                                    <span className="toggle-knob" />
+                                </button>
+                            </div>
+
+                            <div className="live-bg-toggle-row">
+                                <div className="live-bg-toggle-info">
+                                    <Zap size={18} />
+                                    <div>
+                                        <span className="live-bg-label">Low Graphics Mode</span>
+                                        <span className="live-bg-desc">Disable complex SVG filters for peak performance</span>
+                                    </div>
+                                </div>
+                                <button
+                                    className={`toggle-switch ${lowGraphics ? 'active' : ''}`}
+                                    onClick={toggleLowGraphics}
+                                    aria-label="Toggle low graphics"
                                 >
                                     <span className="toggle-knob" />
                                 </button>
@@ -154,6 +173,8 @@ const Settings = ({ onClose }) => {
                             </div>
                         </section>
                     )}
+
+                    {activeTab === 'ai' && <AISettingsPanel />}
 
                     {activeTab === 'shortcuts' && (
                         <section className="settings-section">

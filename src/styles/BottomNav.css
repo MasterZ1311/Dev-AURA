@@ -1,6 +1,6 @@
 .bottom-nav {
     display: flex;
-    justify-content: space-around;
+    justify-content: center;
     align-items: center;
     padding: 0.5rem 1rem;
     background-color: var(--surface-color);
@@ -14,6 +14,7 @@
     /* Allow scrolling if too many items on small screens */
     scrollbar-width: none;
     /* Hide scrollbar Firefox */
+    gap: 2rem;
 }
 
 .bottom-nav::-webkit-scrollbar {

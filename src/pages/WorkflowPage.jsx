@@ -66,7 +66,7 @@ const WorkflowPage = () => {
                     <h2>Workflows</h2>
                 </div>
 
-                <button className="btn-primary wf-create-btn" onClick={() => { setWfForm({}); setShowWfForm(true); }}>
+                <button className="btn-primary wf-create-btn tour-workflows-create" onClick={() => { setWfForm({}); setShowWfForm(true); }}>
                     <Plus size={16} /> New Workflow
                 </button>
 
