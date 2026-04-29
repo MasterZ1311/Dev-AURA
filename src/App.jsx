@@ -11,6 +11,8 @@ import { AdminProvider } from './context/AdminContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { MessagingProvider } from './context/MessagingContext';
 import { NotesProvider } from './context/NotesContext';
+import { AISettingsProvider } from './context/AISettingsContext';
+import { TourProvider } from './context/TourContext';
 
 // Components & Pages
 import Header from './components/Header';
@@ -40,17 +42,10 @@ const ProtectedRoute = ({ children }) => {
 
 const PageTransition = ({ children }) => {
   const location = useLocation();
-  const [displayChildren, setDisplayChildren] = useState(children);
-  const [transitionKey, setTransitionKey] = useState(location.pathname);
-
-  useEffect(() => {
-    setTransitionKey(location.pathname);
-    setDisplayChildren(children);
-  }, [location.pathname, children]);
 
   return (
-    <div className="page-transition-wrapper" key={transitionKey}>
-      {displayChildren}
+    <div className="page-transition-wrapper" key={location.pathname}>
+      {children}
     </div>
   );
 };
@@ -74,23 +69,27 @@ const AppLayout = ({ children }) => {
 const DataProviders = ({ children }) => (
   <ThemeProvider>
     <TaskProvider>
-      <InboxProvider>
-        <GroupProvider>
-          <CalendarProvider>
-            <WorkflowProvider>
-              <AdminProvider>
-                <NotificationProvider>
-                  <MessagingProvider>
-                    <NotesProvider>
-                      {children}
-                    </NotesProvider>
-                  </MessagingProvider>
-                </NotificationProvider>
-              </AdminProvider>
-            </WorkflowProvider>
-          </CalendarProvider>
-        </GroupProvider>
-      </InboxProvider>
+      <AISettingsProvider>
+        <InboxProvider>
+          <GroupProvider>
+            <CalendarProvider>
+              <WorkflowProvider>
+                <AdminProvider>
+                  <NotificationProvider>
+                    <MessagingProvider>
+                      <NotesProvider>
+                        <TourProvider>
+                          {children}
+                        </TourProvider>
+                      </NotesProvider>
+                    </MessagingProvider>
+                  </NotificationProvider>
+                </AdminProvider>
+              </WorkflowProvider>
+            </CalendarProvider>
+          </GroupProvider>
+        </InboxProvider>
+      </AISettingsProvider>
     </TaskProvider>
   </ThemeProvider>
 );

@@ -825,19 +825,27 @@
 
 /* ── Responsive ── */
 @media (max-width: 768px) {
+    .rpt-tabs {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
     .rpt-layout-3col {
         grid-template-columns: 1fr;
     }
 
     .rpt-left-panel {
         position: static;
-        flex-direction: row;
-        flex-wrap: wrap;
+        flex-direction: column;
     }
 
     .rpt-left-panel>* {
-        flex: 1;
-        min-width: 160px;
+        width: 100%;
+    }
+
+    .rpt-charts-container {
+        flex-direction: column;
+        overflow-x: hidden;
     }
 
     .const-sky {

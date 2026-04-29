@@ -9,6 +9,19 @@ import '../styles/WorkflowPage.css';
 
 const priorityColors = { low: 'var(--success-color)', medium: 'var(--warning-color)', high: 'var(--danger-color)' };
 
+const StrictModeDroppable = ({ children, ...props }) => {
+    const [enabled, setEnabled] = useState(false);
+    React.useEffect(() => {
+        const animation = requestAnimationFrame(() => setEnabled(true));
+        return () => {
+            cancelAnimationFrame(animation);
+            setEnabled(false);
+        };
+    }, []);
+    if (!enabled) return null;
+    return <Droppable {...props}>{children}</Droppable>;
+};
+
 const WorkflowPage = () => {
     const ctx = useWorkflow();
     const [selectedWfId, setSelectedWfId] = useState(null);
@@ -111,7 +124,7 @@ const WorkflowPage = () => {
                                             <span className="wf-col-count">{stage.cards?.length || 0}</span>
                                             <button className="icon-btn danger wf-col-delete" onClick={() => ctx.deleteStage(selectedWfId, stage.id)} title="Delete stage"><Trash2 size={12} /></button>
                                         </div>
-                                        <Droppable droppableId={stage.id}>
+                                        <StrictModeDroppable droppableId={stage.id}>
                                             {(provided, snapshot) => (
                                                 <div 
                                                     className={`wf-cards ${snapshot.isDraggingOver ? 'dragging-over' : ''}`}
@@ -147,7 +160,7 @@ const WorkflowPage = () => {
                                                     </button>
                                                 </div>
                                             )}
-                                        </Droppable>
+                                        </StrictModeDroppable>
                                     </div>
                                 ))}
 

@@ -160,3 +160,40 @@
         transform: scale(1);
     }
 }
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .header {
+        padding: 0.75rem 1rem;
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        width: 100%;
+        overflow: hidden;
+    }
+    
+    .header-center {
+        flex-grow: 0;
+        margin: 0 auto;
+    }
+    
+    .header-left {
+        justify-content: flex-start;
+    }
+    
+    .header-right {
+        justify-content: flex-end;
+    }
+    
+    .brand-title {
+        font-size: 1.25rem;
+    }
+    
+    .brand-subtitle {
+        display: none;
+    }
+    
+    .header-left, .header-right {
+        gap: 0.5rem;
+    }
+}

@@ -208,7 +208,7 @@ const Dashboard = () => {
             )}
 
             {/* ═══════════ KPI METRICS ROW ═══════════ */}
-            <section className="dash-metrics tour-dashboard-widgets">
+            <section className="dash-metrics tour-dashboard-widgets mobile-hide">
                 <div className="kpi-card glass-panel">
                     <div className="kpi-icon-wrap total"><ListTodo size={22} /></div>
                     <div className="kpi-info">
@@ -242,7 +242,7 @@ const Dashboard = () => {
             {/* ═══════════ 3-COLUMN BODY ═══════════ */}
             <div className="dash-body">
                 {/* ── LEFT SIDEBAR ── */}
-                <aside className="dash-sidebar-left">
+                <aside className="dash-sidebar-left mobile-hide">
                     {/* Mini Calendar */}
                     <div className="dash-card glass-panel">
                         <div className="dash-card-header">
@@ -305,7 +305,7 @@ const Dashboard = () => {
                 </aside>
 
                 {/* ── MAIN CENTER ── */}
-                <main className="dash-center">
+                <main className="dash-center mobile-order-first">
                     {/* Quick Add */}
                     <form className="quick-add glass-panel" onSubmit={handleQuickAdd}>
                         <Plus size={20} className="quick-add-icon" />
@@ -436,7 +436,7 @@ const Dashboard = () => {
                 </main>
 
                 {/* ── RIGHT SIDEBAR ── */}
-                <aside className="dash-sidebar-right">
+                <aside className="dash-sidebar-right mobile-order-last">
                     {/* High Priority Alerts */}
                     <div className="dash-card glass-panel priority-alert">
                         <div className="dash-card-header">

@@ -19,7 +19,7 @@ import ProcrastinationCoach from '../components/ProcrastinationCoach';
 import '../styles/Tasks.css';
 
 const Tasks = () => {
-    const { tasks, addTask, toggleTaskCompletion, deleteTask, unlockedCategories, startRitual } = useTasks();
+    const { tasks, addTask, updateTask, toggleTaskCompletion, deleteTask, unlockedCategories, startRitual } = useTasks();
     const [selectedProcrastinationTask, setSelectedProcrastinationTask] = useState(null);
 
     // ── Live Clock ──
@@ -93,7 +93,7 @@ const Tasks = () => {
 
     const recentlyAdded = [...tasks]
         .sort((a, b) => Number(b.id) - Number(a.id))
-        .slice(0, 5);
+        .slice(0, 10);
 
     // ── Mini-calendar: days of current week ──
     const getWeekDays = () => {
@@ -111,7 +111,7 @@ const Tasks = () => {
     return (
         <div className="tasks-page">
             {/* ═══════════ LEFT COLUMN ═══════════ */}
-            <aside className="tasks-left-col">
+            <aside className="tasks-left-col mobile-hide">
                 <div className="datetime-card glass-panel">
                     <div className="time-display">
                         <Clock size={20} className="datetime-icon" />
@@ -265,7 +265,7 @@ const Tasks = () => {
             </main>
 
             {/* ═══════════ RIGHT COLUMN ═══════════ */}
-            <aside className="tasks-right-col">
+            <aside className="tasks-right-col mobile-order-first">
                 {/* New Task */}
                 <div className="new-task-card glass-panel tour-tasks-add">
                     <h3><Plus size={18} /> New Task</h3>

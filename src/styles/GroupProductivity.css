@@ -685,7 +685,9 @@
     }
 
     .gp-tabs {
-        overflow-x: auto;
+        flex-direction: column;
+        overflow-x: visible;
+        gap: 0.5rem;
     }
 
     .gp-card-grid {

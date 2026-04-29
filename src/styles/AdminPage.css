@@ -490,17 +490,76 @@
     }
 
     .admin-nav {
-        flex-direction: row;
-        flex-wrap: wrap;
+        flex-direction: column;
         gap: 0.3rem;
     }
 
     .admin-nav-btn {
-        padding: 0.4rem 0.6rem;
-        font-size: 0.78rem;
+        padding: 0.6rem 0.8rem;
+        font-size: 0.85rem;
     }
 
     .admin-stat-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: 1fr;
+        width: 100%;
+    }
+    
+    .admin-page, .admin-center {
+        overflow-x: hidden;
+    }
+    
+    /* Vertical Table for Mobile */
+    .admin-table, .admin-table tbody, .admin-table tr, .admin-table td {
+        display: block;
+        width: 100%;
+    }
+    
+    .admin-table thead {
+        display: none;
+    }
+    
+    .admin-table tr {
+        margin-bottom: 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        background-color: var(--surface-color);
+        padding: 0.5rem;
+    }
+    
+    .admin-table td {
+        border-bottom: 1px solid var(--border-color);
+        padding: 0.5rem 0.5rem 0.5rem 40%;
+        position: relative;
+        text-align: right;
+        min-height: 2.5rem;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+    }
+    
+    .admin-table td:last-child {
+        border-bottom: none;
+    }
+    
+    .admin-table td::before {
+        position: absolute;
+        left: 0.5rem;
+        top: 50%;
+        transform: translateY(-50%);
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.7rem;
+        color: var(--text-muted);
+    }
+    
+    .admin-table td:nth-of-type(1)::before { content: "Name"; }
+    .admin-table td:nth-of-type(2)::before { content: "Email"; }
+    .admin-table td:nth-of-type(3)::before { content: "Role"; }
+    .admin-table td:nth-of-type(4)::before { content: "Status"; }
+    .admin-table td:nth-of-type(5)::before { content: "Dept"; }
+    .admin-table td:nth-of-type(6)::before { content: "Actions"; }
+    
+    .admin-user-name {
+        justify-content: flex-end;
     }
 }

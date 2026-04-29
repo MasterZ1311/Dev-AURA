@@ -506,20 +506,16 @@
     }
 
     .ai-section-tabs {
-        overflow-x: auto;
+        flex-direction: column;
         padding: 4px;
-        gap: 0.25rem;
-        scrollbar-width: none;
-    }
-
-    .ai-section-tabs::-webkit-scrollbar {
-        display: none;
+        gap: 0.5rem;
     }
 
     .ai-section-tab {
-        flex: none;
-        padding: 0.5rem 0.75rem;
-        font-size: 0.7rem;
+        width: 100%;
+        text-align: left;
+        padding: 0.6rem 0.75rem;
+        font-size: 0.75rem;
     }
 
     .ai-tutorial-intro {

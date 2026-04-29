@@ -164,10 +164,15 @@ const CalendarPage = () => {
                     ))}
                 </div>
 
-                <button className="btn-primary cal-add-btn" onClick={() => openCreate(selectedDate)}>
+                <button className="btn-primary cal-add-btn mobile-hide" onClick={() => openCreate(selectedDate)}>
                     <Plus size={16} /> Add Event
                 </button>
             </aside>
+
+            {/* MOBILE STICKY ADD BUTTON */}
+            <button className="sticky-add-btn mobile-show" onClick={() => openCreate(selectedDate)}>
+                <Plus size={24} />
+            </button>
 
             {/* CENTER */}
             <main className="cal-center tour-calendar-view">

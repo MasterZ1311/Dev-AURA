@@ -14,7 +14,7 @@
     justify-content: space-between;
     align-items: center;
     border-radius: 16px;
-    padding: 2rem 2.5rem;
+    padding: 1.5rem 2rem; /* Reduced padding */
     background: linear-gradient(135deg, var(--surface-color) 0%, var(--bg-color) 100%);
     border: 1px solid var(--border-color);
     position: relative;
@@ -712,6 +712,15 @@
         flex-direction: column;
         text-align: center;
         gap: 1.25rem;
+        padding: 1.5rem 1rem;
+    }
+
+    .hero-left {
+        align-items: center;
+    }
+
+    .hero-greeting {
+        justify-content: center;
     }
 
     .hero-right {
@@ -726,7 +735,8 @@
 
 @media (max-width: 768px) {
     .dash-body {
-        grid-template-columns: 1fr;
+        display: flex; /* Switch to flex for reordering */
+        flex-direction: column;
     }
 
     .dash-sidebar-left {
@@ -739,6 +749,14 @@
 
     .dash-metrics {
         grid-template-columns: 1fr 1fr;
+    }
+    
+    .dash-hero {
+        padding: 1.5rem 1rem;
+    }
+    
+    .hero-clock {
+        font-size: 2rem;
     }
 }
 
