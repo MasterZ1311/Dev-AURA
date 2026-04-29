@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useSearchParams } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { TaskProvider } from './context/TaskContext';
@@ -52,6 +52,21 @@ const PageTransition = ({ children }) => {
 
 const AppLayout = ({ children }) => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get('settings') === 'true') {
+      setIsSettingsOpen(true);
+    }
+  }, [searchParams]);
+
+  const handleCloseSettings = () => {
+    setIsSettingsOpen(false);
+    // Remove settings param without refreshing or adding to history if possible
+    searchParams.delete('settings');
+    setSearchParams(searchParams, { replace: true });
+  };
+
   return (
     <div className="app-container">
       <LiveBackground />
@@ -61,7 +76,7 @@ const AppLayout = ({ children }) => {
       </main>
       <BottomNav />
       <ThresholdRitual />
-      {isSettingsOpen && <Settings onClose={() => setIsSettingsOpen(false)} />}
+      {isSettingsOpen && <Settings onClose={handleCloseSettings} />}
     </div>
   );
 };

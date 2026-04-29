@@ -60,7 +60,22 @@ export const AuthProvider = ({ children }) => {
       if (firebaseUser) {
         const userDocRef = doc(db, 'users', firebaseUser.uid, 'settings', 'profile');
         const userSnap = await getDoc(userDocRef);
-        const profileData = userSnap.exists() ? userSnap.data() : {};
+        let profileData = userSnap.exists() ? userSnap.data() : {};
+
+        // If user exists but lacks an auraUID, generate and save it
+        if (!profileData.auraUID) {
+          const newAuraUID = await createUniqueAuraUID();
+          const updates = {
+            auraUID: newAuraUID,
+            name: profileData.name || firebaseUser.displayName || 'User',
+            email: profileData.email || firebaseUser.email,
+            status: profileData.status || 'Active',
+            role: profileData.role || 'admin',
+          };
+          await setDoc(userDocRef, updates, { merge: true });
+          await registerAuraUIDIndex(newAuraUID, firebaseUser.uid, updates.name, firebaseUser.photoURL);
+          profileData = { ...profileData, ...updates };
+        }
 
         setCurrentUser({
           uid: firebaseUser.uid,
@@ -69,7 +84,7 @@ export const AuthProvider = ({ children }) => {
           photoURL: firebaseUser.photoURL || profileData.photoURL || null,
           status: profileData.status || 'Active',
           role: profileData.role || 'admin',
-          auraUID: profileData.auraUID || null,
+          auraUID: profileData.auraUID,
           ...profileData,
         });
       } else {

@@ -86,16 +86,25 @@ const Header = ({ onOpenSettings }) => {
                             {initials}
                         </div>
 
-                        {showProfileMenu && (
-                            <div className="profile-dropdown glass-panel">
-                                <div className="profile-info">
-                                    <h4>{currentUser?.name || 'Admin User'}</h4>
-                                    <p>{currentUser?.email || 'admin@example.com'}</p>
-                                </div>
-                                <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '0.5rem 0' }} />
-                                <button className="logout-btn" onClick={logout}>Sign Out</button>
-                            </div>
-                        )}
+                                {showProfileMenu && (
+                                    <div className="profile-dropdown glass-panel">
+                                        <div className="profile-info">
+                                            <h4>{currentUser?.name || 'Admin User'}</h4>
+                                            <p>{currentUser?.email || 'admin@example.com'}</p>
+                                            {currentUser?.auraUID && (
+                                                <div className="profile-id-row" onClick={() => {
+                                                    navigator.clipboard.writeText(currentUser.auraUID);
+                                                    alert('Aura ID copied!');
+                                                }} title="Click to copy ID">
+                                                    <Zap size={12} className="accent-icon" />
+                                                    <span>{currentUser.auraUID}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                        <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '0.5rem 0' }} />
+                                        <button className="logout-btn" onClick={logout}>Sign Out</button>
+                                    </div>
+                                )}
                     </div>
                 </div>
             </header>

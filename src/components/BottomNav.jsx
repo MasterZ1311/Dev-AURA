@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useMessaging } from '../context/MessagingContext';
 import {
   Home, CheckSquare, Inbox, Calendar, GitMerge,
-  BarChart2, Shield, MessageSquare, NotebookPen, Menu, X, Users
+  BarChart2, Shield, MessageSquare, NotebookPen, Menu, X, Users, Settings as SettingsIcon
 } from 'lucide-react';
 import '../styles/BottomNav.css';
 
 const BottomNav = () => {
   const { totalUnread } = useMessaging();
+  const navigate = useNavigate();
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
 
@@ -17,6 +18,11 @@ const BottomNav = () => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  const navigateToSettings = () => {
+    navigate('?settings=true');
+    setShowMoreMenu(false);
+  };
 
   const allNavItems = [
     { path: '/', label: 'Dashboard', icon: Home },
@@ -28,11 +34,24 @@ const BottomNav = () => {
     { path: '/projects', label: 'Team', icon: Users },
     { path: '/calendar', label: 'Calendar', icon: Calendar },
     { path: '/reports', label: 'Reports', icon: BarChart2 },
+    { path: '/settings', label: 'Settings', icon: SettingsIcon, action: navigateToSettings },
     { path: '/admin', label: 'Admin', icon: Shield },
   ];
 
   const renderNavItem = (item, isMoreItem = false) => {
     const Icon = item.icon;
+    
+    const handleClick = (e) => {
+      if (item.action) {
+        e.preventDefault();
+        item.action();
+      }
+      if (isMoreItem) {
+        setShowMoreMenu(false);
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
     return (
       <NavLink
         key={item.path}
@@ -40,10 +59,7 @@ const BottomNav = () => {
         className={({ isActive }) =>
           `nav-item ${isActive ? 'active' : ''} ${item.path === '/tasks' ? 'tour-nav-link-tasks' : ''} ${isMoreItem ? 'more-menu-item' : ''}`
         }
-        onClick={() => {
-            if (isMoreItem) setShowMoreMenu(false);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}
+        onClick={handleClick}
       >
         <span className="nav-icon" style={{ position: 'relative' }}>
           <Icon size={20} />

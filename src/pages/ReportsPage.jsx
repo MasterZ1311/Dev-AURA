@@ -451,7 +451,7 @@ const ReportsPage = () => {
                 <div className="rpt-charts-container tour-reports-charts">
                     <div className="rpt-chart-card glass-panel" style={{ flex: 2 }}>
                         <h3><TrendingUp size={18} className="accent-icon" /> Activity Trend</h3>
-                        <div className="rpt-chart-wrapper" style={{ height: 260, marginTop: '1rem' }}>
+                        <div className="rpt-chart-wrapper" style={{ height: 260, minHeight: 260, marginTop: '1rem' }}>
                             <ResponsiveContainer width="100%" height="100%">
                                 <AreaChart data={trendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                     <defs>
@@ -475,7 +475,7 @@ const ReportsPage = () => {
 
                     <div className="rpt-chart-card glass-panel" style={{ flex: 1 }}>
                         <h3><BarChart3 size={18} className="accent-icon" /> Task Distribution</h3>
-                        <div className="rpt-chart-wrapper" style={{ height: 260, marginTop: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <div className="rpt-chart-wrapper" style={{ height: 260, minHeight: 260, marginTop: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                             {data.totalTasks > 0 ? (
                                 <ResponsiveContainer width="100%" height="100%">
                                     <PieChart>
