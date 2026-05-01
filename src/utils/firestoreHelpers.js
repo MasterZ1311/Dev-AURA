@@ -1,8 +1,30 @@
+/**
+ * AURA — Data Layer
+ * ─────────────────────────────────────────────────────────────────────
+ * WRITE operations (create, update, delete, log) → go through the
+ *   Render backend API (/api/*) which uses Firebase Admin SDK server-side.
+ *
+ * READ / REAL-TIME subscriptions → still use the Firebase client SDK
+ *   directly, because onSnapshot WebSocket connections must come from
+ *   the browser. The Firestore security rules allow reads for the
+ *   authenticated owner, so this is safe.
+ *
+ * This hybrid approach gives us:
+ *   ✅ Secure writes validated on the server
+ *   ✅ Real-time UI updates via Firestore's WebSocket push
+ *   ✅ No polling required
+ */
+
 import {
-    collection, doc, addDoc, updateDoc, deleteDoc,
-    onSnapshot, query, orderBy, limit, writeBatch, getDocs
+    collection, doc,
+    onSnapshot, query, orderBy, limit,
 } from 'firebase/firestore';
 import { db } from '../firebase';
+import api from './api';
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  REAL-TIME SUBSCRIPTIONS (client-side Firestore — must stay here)
+// ─────────────────────────────────────────────────────────────────────────────
 
 /**
  * Get a reference to a user-scoped collection: users/{uid}/{collectionName}
@@ -19,6 +41,7 @@ export const getUserDoc = (uid, collectionName, docId) =>
 /**
  * Subscribe to a user-scoped collection with real-time updates.
  * Returns an unsubscribe function.
+ * ⚡ This must stay client-side — it uses Firestore's WebSocket push.
  */
 export const subscribeToCollection = (uid, collectionName, setState, options = {}) => {
     const colRef = getUserCollection(uid, collectionName);
@@ -37,61 +60,60 @@ export const subscribeToCollection = (uid, collectionName, setState, options = {
         const data = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
         setState(data);
     }, (error) => {
-        console.error(`Firestore error on ${collectionName}:`, error);
+        console.error(`[Firestore] onSnapshot error on ${collectionName}:`, error.message);
     });
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+//  WRITES — routed through the Render backend API
+// ─────────────────────────────────────────────────────────────────────────────
+
 /**
  * Add a document to a user-scoped collection. Returns the new doc ID.
+ * ➡ Routes to: POST /api/{collection}
  */
-export const addToCollection = async (uid, collectionName, data) => {
-    const colRef = getUserCollection(uid, collectionName);
-    const docRef = await addDoc(colRef, data);
-    return docRef.id;
+export const addToCollection = async (_uid, collectionName, data) => {
+    const result = await api.create(collectionName, data);
+    return result.id;
 };
 
 /**
  * Update a document in a user-scoped collection.
+ * ➡ Routes to: PATCH /api/{collection}/{id}
  */
-export const updateInCollection = async (uid, collectionName, docId, updates) => {
-    const docRef = getUserDoc(uid, collectionName, docId);
-    await updateDoc(docRef, updates);
+export const updateInCollection = async (_uid, collectionName, docId, updates) => {
+    await api.update(collectionName, docId, updates);
 };
 
 /**
  * Delete a document from a user-scoped collection.
+ * ➡ Routes to: DELETE /api/{collection}/{id}
  */
-export const deleteFromCollection = async (uid, collectionName, docId) => {
-    const docRef = getUserDoc(uid, collectionName, docId);
-    await deleteDoc(docRef);
+export const deleteFromCollection = async (_uid, collectionName, docId) => {
+    await api.remove(collectionName, docId);
 };
 
 /**
  * Delete all documents in a user-scoped collection.
+ * ➡ Routes to: DELETE /api/{collection}
  */
-export const clearCollection = async (uid, collectionName) => {
-    const colRef = getUserCollection(uid, collectionName);
-    const snapshot = await getDocs(colRef);
-    const batch = writeBatch(db);
-    snapshot.docs.forEach(d => batch.delete(d.ref));
-    await batch.commit();
+export const clearCollection = async (_uid, collectionName) => {
+    await api.clearCollection(collectionName);
 };
 
 /**
  * Get all documents from a user-scoped collection (one-time read).
+ * ➡ Routes to: GET /api/{collection}
  */
-export const getCollectionData = async (uid, collectionName) => {
-    const colRef = getUserCollection(uid, collectionName);
-    const snapshot = await getDocs(colRef);
-    return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+export const getCollectionData = async (_uid, collectionName) => {
+    return api.list(collectionName);
 };
 
 /**
- * Write a single activity log entry to admin_logs — fire and forget.
- * Avoids context circular dependency; any provider can call this directly.
+ * Write a single activity log entry — fire and forget.
+ * ➡ Routes to: POST /api/admin_logs
  */
 export const logActivity = (uid, action, type = 'system') => {
     if (!uid) return;
-    const colRef = getUserCollection(uid, 'admin_logs');
-    addDoc(colRef, { action, type, timestamp: Date.now() }).catch(() => {});
+    api.create('admin_logs', { action, type, timestamp: Date.now() }).catch(() => {});
 };

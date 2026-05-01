@@ -49,20 +49,6 @@ export const TaskProvider = ({ children }) => {
     const addTask = async (task) => {
         if (!uid) return;
         
-        const newTask = {
-            id: 'temp-' + Date.now(), // Temporary ID for optimistic UI
-            completed: false,
-            createdAt: Date.now(),
-            dueDate: '',
-            recurrence: 'none',
-            energyType: 'Deep Focus',
-            rescheduleCount: 0,
-            ...task,
-        };
-        
-        // Optimistic update
-        setTasks(prev => [newTask, ...prev]);
-        
         await addToCollection(uid, 'tasks', {
             completed: false,
             createdAt: Date.now(),
@@ -178,7 +164,7 @@ export const TaskProvider = ({ children }) => {
 
     const value = {
         tasks, addTask, updateTask, toggleTaskCompletion, deleteTask, batchTasksToHour,
-        stats, overdueTasks,
+        stats, overdueTasks, loading,
         unlockedCategories, ritualData, startRitual, completeRitual, cancelRitual,
     };
 

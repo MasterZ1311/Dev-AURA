@@ -28,6 +28,15 @@ export const NotificationProvider = ({ children }) => {
         return unsub;
     }, [uid]);
 
+    const addNotification = useCallback(async (notification) => {
+        if (!uid) return;
+        await addToCollection(uid, 'notifications', {
+            timestamp: Date.now(),
+            read: false,
+            ...notification,
+        });
+    }, [uid]);
+
     // Background checker for upcoming meetings
     useEffect(() => {
         if (!uid || events.length === 0) return;
@@ -65,16 +74,7 @@ export const NotificationProvider = ({ children }) => {
         }, 30000);
 
         return () => clearInterval(checkInterval);
-    }, [uid, events, processedMeetings, getJobConfig]);
-
-    const addNotification = useCallback(async (notification) => {
-        if (!uid) return;
-        await addToCollection(uid, 'notifications', {
-            timestamp: Date.now(),
-            read: false,
-            ...notification,
-        });
-    }, [uid]);
+    }, [uid, events, processedMeetings, getJobConfig, addNotification]);
 
     const markAsRead = useCallback(async (id) => {
         if (!uid) return;

@@ -34,6 +34,10 @@ export const ThemeProvider = ({ children }) => {
                         if (d.theme) savedTheme = d.theme;
                         if (d.liveBg !== undefined) savedLiveBg = d.liveBg;
                         if (d.liveBgIntensity !== undefined) savedIntensity = d.liveBgIntensity;
+                        if (d.lowGraphics !== undefined) {
+                            setLowGraphics(d.lowGraphics);
+                            localStorage.setItem('aura_lowGraphics', String(d.lowGraphics));
+                        }
                     }
                 } catch (e) {
                     console.error('Failed to load prefs from Firestore:', e);

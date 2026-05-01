@@ -92,7 +92,7 @@ const Tasks = () => {
     });
 
     const recentlyAdded = [...tasks]
-        .sort((a, b) => Number(b.id) - Number(a.id))
+        .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
         .slice(0, 10);
 
     // ── Mini-calendar: days of current week ──

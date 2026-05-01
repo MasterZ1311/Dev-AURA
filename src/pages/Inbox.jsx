@@ -1,6 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { useInbox } from '../context/InboxContext';
 import { useTasks } from '../context/TaskContext';
+import { useNotes } from '../context/NotesContext';
+import { useAISettings } from '../context/AISettingsContext';
 import { convertInboxToTask, summarizeInboxMessage } from '../utils/auraEngine';
 import {
     Search,
@@ -25,7 +27,8 @@ import {
     Send,
     Loader2,
     CheckSquare,
-    Sparkles
+    Sparkles,
+    NotebookPen
 } from 'lucide-react';
 import '../styles/Inbox.css';
 
@@ -60,6 +63,8 @@ const timeAgo = (ts) => {
 const Inbox = () => {
     const { items, addItem, markRead, markAllRead, toggleStar, archiveItem, deleteItem, unreadCount } = useInbox();
     const { addTask } = useTasks();
+    const { createNoteFromMessage } = useNotes();
+    const { getJobConfig } = useAISettings();
 
     const [activeCategory, setActiveCategory] = useState('all');
     const [activeFilter, setActiveFilter] = useState('all');
@@ -68,8 +73,10 @@ const Inbox = () => {
     const [showCompose, setShowCompose] = useState(false);
     const [convertingId, setConvertingId] = useState(null);
     const [convertedIds, setConvertedIds] = useState(new Set());
+    const [savedToNotesIds, setSavedToNotesIds] = useState(new Set());
     const [aiSummary, setAiSummary] = useState({});
     const [summaryLoading, setSummaryLoading] = useState(false);
+    const [replyText, setReplyText] = useState('');
 
     // Compose form state
     const [compSender, setCompSender] = useState('');
@@ -110,12 +117,14 @@ const Inbox = () => {
     const handleSelect = async (item) => {
         setSelectedId(item.id);
         setShowCompose(false);
+        setReplyText('');
         if (!item.read) markRead(item.id);
 
         // AI-summarize long messages (cache per item id)
         if (item.body && item.body.length > 100 && !aiSummary[item.id]) {
             setSummaryLoading(true);
-            const summary = await summarizeInboxMessage(item.subject, item.body);
+            const jobConfig = getJobConfig('inbox_summary');
+            const summary = await summarizeInboxMessage(item.subject, item.body, jobConfig);
             if (summary) setAiSummary(prev => ({ ...prev, [item.id]: summary }));
             setSummaryLoading(false);
         }
@@ -133,7 +142,8 @@ const Inbox = () => {
 
     const handleConvertToTask = async (item) => {
         setConvertingId(item.id);
-        const taskData = await convertInboxToTask(item.subject, item.body, item.priority);
+        const jobConfig = getJobConfig('inbox_to_task');
+        const taskData = await convertInboxToTask(item.subject, item.body, item.priority, jobConfig);
         await addTask({
             title: taskData.title,
             priority: taskData.priority,
@@ -158,6 +168,29 @@ const Inbox = () => {
             oscillator.start(ctx.currentTime);
             oscillator.stop(ctx.currentTime + 0.5);
         } catch (e) { /* Audio not supported */ }
+    };
+
+    const handleSaveToNotes = async (item) => {
+        if (!item || savedToNotesIds.has(item.id)) return;
+        await createNoteFromMessage(item);
+        setSavedToNotesIds(prev => new Set([...prev, item.id]));
+    };
+
+    const handleReply = (e) => {
+        e.preventDefault();
+        if (!replyText.trim() || !selectedId) return;
+        const item = items.find(i => i.id === selectedId);
+        if (!item) return;
+        addItem({
+            category: item.category,
+            sender: 'You',
+            senderInitials: 'YO',
+            subject: `Re: ${item.subject}`,
+            body: replyText.trim(),
+            preview: replyText.trim().slice(0, 80),
+            priority: item.priority,
+        });
+        setReplyText('');
     };
 
     // Compose submit
@@ -447,6 +480,16 @@ const Inbox = () => {
                                     <><CheckSquare size={16} /> Convert to Task</>
                                 )}
                             </button>
+                            {/* Save to Notes Button */}
+                            <button
+                                className={`action-btn ${savedToNotesIds.has(selectedItem.id) ? 'converted' : ''}`}
+                                onClick={() => handleSaveToNotes(selectedItem)}
+                                disabled={savedToNotesIds.has(selectedItem.id)}
+                                title="Save as a Note"
+                            >
+                                <NotebookPen size={16} />
+                                {savedToNotesIds.has(selectedItem.id) ? 'Saved!' : 'Save to Notes'}
+                            </button>
                             <button className="action-btn" onClick={() => { archiveItem(selectedItem.id); setSelectedId(null); }}>
                                 <Archive size={16} /> Archive
                             </button>
@@ -455,10 +498,21 @@ const Inbox = () => {
                             </button>
                         </div>
 
-                        <div className="detail-reply">
+                        <form className="detail-reply" onSubmit={handleReply}>
                             <Reply size={16} className="accent-icon" />
-                            <textarea placeholder="Quick reply..." rows={3} className="reply-textarea" />
-                        </div>
+                            <textarea
+                                placeholder="Quick reply..."
+                                rows={3}
+                                className="reply-textarea"
+                                value={replyText}
+                                onChange={e => setReplyText(e.target.value)}
+                            />
+                            {replyText.trim() && (
+                                <button type="submit" className="btn-primary reply-send-btn">
+                                    <Send size={14} /> Send Reply
+                                </button>
+                            )}
+                        </form>
                     </div>
                 ) : (
                     /* Empty state */

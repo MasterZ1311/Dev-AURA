@@ -661,6 +661,16 @@
     box-shadow: 0 0 0 2px rgba(0, 255, 204, 0.08);
 }
 
+.reply-send-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.45rem 0.85rem;
+    font-size: 0.82rem;
+    align-self: flex-end;
+    animation: fadeIn 0.2s ease;
+}
+
 /* Detail Empty */
 .detail-empty {
     display: flex;

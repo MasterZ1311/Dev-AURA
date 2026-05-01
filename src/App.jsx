@@ -32,6 +32,7 @@ import AdminPage from './pages/AdminPage';
 import ReportsPage from './pages/ReportsPage';
 import Messages from './pages/Messages';
 import NotesPage from './pages/NotesPage';
+import ErrorBoundary from './components/ErrorBoundary';
 
 const ProtectedRoute = ({ children }) => {
   const { currentUser } = useAuth();
@@ -82,31 +83,33 @@ const AppLayout = ({ children }) => {
 };
 
 const DataProviders = ({ children }) => (
-  <ThemeProvider>
-    <TaskProvider>
-      <AISettingsProvider>
-        <InboxProvider>
-          <GroupProvider>
-            <CalendarProvider>
-              <WorkflowProvider>
-                <AdminProvider>
-                  <NotificationProvider>
-                    <MessagingProvider>
-                      <NotesProvider>
-                        <TourProvider>
-                          {children}
-                        </TourProvider>
-                      </NotesProvider>
-                    </MessagingProvider>
-                  </NotificationProvider>
-                </AdminProvider>
-              </WorkflowProvider>
-            </CalendarProvider>
-          </GroupProvider>
-        </InboxProvider>
-      </AISettingsProvider>
-    </TaskProvider>
-  </ThemeProvider>
+  <ErrorBoundary message="A data provider crashed. Try refreshing the page.">
+    <AISettingsProvider>
+      <ThemeProvider>
+        <TaskProvider>
+          <InboxProvider>
+            <GroupProvider>
+              <CalendarProvider>
+                <WorkflowProvider>
+                  <AdminProvider>
+                    <NotificationProvider>
+                      <MessagingProvider>
+                        <NotesProvider>
+                          <TourProvider>
+                            {children}
+                          </TourProvider>
+                        </NotesProvider>
+                      </MessagingProvider>
+                    </NotificationProvider>
+                  </AdminProvider>
+                </WorkflowProvider>
+              </CalendarProvider>
+            </GroupProvider>
+          </InboxProvider>
+        </TaskProvider>
+      </ThemeProvider>
+    </AISettingsProvider>
+  </ErrorBoundary>
 );
 
 const AppContent = () => {
@@ -144,11 +147,13 @@ const AppContent = () => {
 };
 
 const App = () => (
-  <AuthProvider>
-    <Router>
-      <AppContent />
-    </Router>
-  </AuthProvider>
+  <ErrorBoundary>
+    <AuthProvider>
+      <Router>
+        <AppContent />
+      </Router>
+    </AuthProvider>
+  </ErrorBoundary>
 );
 
 export default App;

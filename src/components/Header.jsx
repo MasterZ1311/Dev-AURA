@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
 import SearchModal from './SearchModal';
 import NotificationPanel from './NotificationPanel';
-import { Search, Bell, Settings, User } from 'lucide-react';
+import { Search, Bell, Settings, User, Zap } from 'lucide-react';
 import '../styles/Header.css';
 
 const Header = ({ onOpenSettings }) => {

@@ -50,7 +50,9 @@ export const AdminProvider = ({ children }) => {
         const a = document.createElement('a');
         a.href = url;
         a.download = `aura-backup-${new Date().toISOString().slice(0, 10)}.json`;
+        document.body.appendChild(a);
         a.click();
+        document.body.removeChild(a);
         URL.revokeObjectURL(url);
         await addLog('Exported all data', 'system');
     };
@@ -70,8 +72,9 @@ export const AdminProvider = ({ children }) => {
                 }
             }
             await batch.commit();
-        } catch {
-            alert('Invalid backup file.');
+        } catch (err) {
+            console.error('[AdminContext] Import failed:', err);
+            throw new Error('Invalid backup file — could not parse JSON.');
         }
     };
 

@@ -31,6 +31,8 @@ import '../styles/Dashboard.css';
 import WorkflowTrajectory from '../components/WorkflowTrajectory';
 import { useCalendar } from '../context/CalendarContext';
 import { useNotifications } from '../context/NotificationContext';
+import { useAdmin } from '../context/AdminContext';
+import { useAISettings } from '../context/AISettingsContext';
 import { aiService } from '../utils/aiService';
 import { getTopFocusTasks } from '../utils/auraEngine';
 
@@ -50,6 +52,8 @@ const Dashboard = () => {
     const { tasks, toggleTaskCompletion, addTask, stats } = useTasks();
     const { events } = useCalendar();
     const { notifications } = useNotifications();
+    const { logs: activityLogs } = useAdmin();
+    const { getJobConfig } = useAISettings();
     const [showTrajectory, setShowTrajectory] = useState(false);
 
     // ── Live clock ──
@@ -109,8 +113,11 @@ const Dashboard = () => {
         if (cached) { setBriefing(cached); return; }
         if (tasks.length === 0 && events.length === 0) return;
         
+        const jobConfig = getJobConfig('morning_triage');
+        if (!jobConfig) return; // Only run if AI is configured
+
         setBriefingLoading(true);
-        aiService.generateUnifiedTriage(tasks, events, notifications, currentUser?.name || 'AURA User')
+        aiService.generateUnifiedTriage(tasks, events, notifications, currentUser?.name || 'AURA User', jobConfig)
             .then(text => {
                 if (text) {
                     setBriefing(text);
@@ -118,7 +125,7 @@ const Dashboard = () => {
                 }
             })
             .finally(() => setBriefingLoading(false));
-    }, [tasks.length, events.length, notifications.length, currentUser?.name]);
+    }, [tasks.length, events.length, notifications.length, currentUser?.name, getJobConfig]);
 
     // ── Productivity score (gamified) ──
     const productivityScore = useMemo(() => {
@@ -337,7 +344,7 @@ const Dashboard = () => {
                         <div className="dash-card glass-panel ai-briefing-card">
                             <div className="dash-card-header">
                                 <Brain size={18} className="accent-icon" /> <h3>AI Briefing</h3>
-                                <span className="badge ai-badge">Gemini</span>
+                                <span className="badge ai-badge">{getJobConfig('morning_triage')?.provider?.label || 'AI'}</span>
                             </div>
                             {briefingLoading ? (
                                 <div className="ai-loading">
@@ -460,31 +467,18 @@ const Dashboard = () => {
                         </div>
                     </div>
 
-                    {/* Activity Feed */}
+                    {/* Activity Feed — wired to real admin logs */}
                     <div className="dash-card glass-panel">
                         <div className="dash-card-header">
                             <Activity size={18} /> <h3>Activity Feed</h3>
                         </div>
                         <div className="activity-list">
-                            {stats.completed > 0 && (
-                                <div className="activity-item">
-                                    <div className="activity-dot success"></div>
-                                    <span>Completed <strong>{stats.completed}</strong> task{stats.completed > 1 ? 's' : ''}</span>
+                            {activityLogs.slice(0, 8).length > 0 ? activityLogs.slice(0, 8).map(log => (
+                                <div key={log.id} className="activity-item">
+                                    <div className={`activity-dot ${log.type === 'task' ? 'success' : log.type === 'inbox' ? 'streak' : 'danger'}`}></div>
+                                    <span>{log.action}</span>
                                 </div>
-                            )}
-                            {streak > 1 && (
-                                <div className="activity-item">
-                                    <div className="activity-dot streak"></div>
-                                    <span><strong>{streak}-day</strong> streak active!</span>
-                                </div>
-                            )}
-                            {highPriority.length > 0 && (
-                                <div className="activity-item">
-                                    <div className="activity-dot danger"></div>
-                                    <span><strong>{highPriority.length}</strong> high priority pending</span>
-                                </div>
-                            )}
-                            {stats.completed === 0 && streak <= 1 && highPriority.length === 0 && (
+                            )) : (
                                 <p className="empty-text">No recent activity.</p>
                             )}
                         </div>

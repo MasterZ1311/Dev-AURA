@@ -96,6 +96,7 @@ export const AuthProvider = ({ children }) => {
     return unsubscribe;
   }, []);
 
+
   /* ─── Email Login ─── */
   const login = async (email, password) => {
     const cred = await signInWithEmailAndPassword(auth, email, password);

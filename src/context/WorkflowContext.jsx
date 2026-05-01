@@ -140,8 +140,12 @@ export const WorkflowProvider = ({ children }) => {
 
             if (sourceStageIndex === -1 || destStageIndex === -1) return stages;
 
+            // Always create independent copies — same-stage move must not alias objects
             const sourceStage = { ...newStages[sourceStageIndex], cards: [...newStages[sourceStageIndex].cards] };
-            const destStage = sourceStageId === destStageId ? sourceStage : { ...newStages[destStageIndex], cards: [...newStages[destStageIndex].cards] };
+            // If same stage, start from the already-modified sourceStage copy; otherwise fresh copy of dest
+            const destStage = sourceStageId === destStageId
+                ? sourceStage
+                : { ...newStages[destStageIndex], cards: [...newStages[destStageIndex].cards] };
 
             const [movedCard] = sourceStage.cards.splice(sourceIndex, 1);
             destStage.cards.splice(destIndex, 0, movedCard);
@@ -149,6 +153,9 @@ export const WorkflowProvider = ({ children }) => {
             newStages[sourceStageIndex] = sourceStage;
             if (sourceStageId !== destStageId) {
                 newStages[destStageIndex] = destStage;
+            } else {
+                // Same stage: sourceStage IS destStage; assignment already done above
+                newStages[sourceStageIndex] = sourceStage;
             }
 
             return newStages;
