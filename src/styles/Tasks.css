@@ -665,4 +665,67 @@
     background: linear-gradient(90deg, rgba(99, 102, 241, 0.05) 0%, transparent 100%);
     box-shadow: 0 0 15px rgba(99, 102, 241, 0.1);
 }
+
+/* ── ATTACHMENTS ── */
+.task-attachments {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+.attachment-pill {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    background-color: var(--surface-hover);
+    border: 1px solid var(--border-color);
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    color: var(--text-color);
+    max-width: 150px;
+}
+
+.att-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+}
+
+.att-remove {
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    transition: color var(--transition-fast);
+}
+
+.att-remove:hover {
+    color: var(--danger-color);
+}
+
+.task-attach-btn {
+    color: var(--text-muted);
+    padding: 0.35rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+}
+
+.task-attach-btn:hover {
+    color: var(--accent-color);
+    background-color: rgba(0, 255, 204, 0.1);
+}
+
+.hidden-file-input {
+    display: none;
+}
+
 

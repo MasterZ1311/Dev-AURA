@@ -1,0 +1,159 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String            @id // Matches Firebase UID
+  email            String            @unique
+  displayName      String?
+  avatarUrl        String?
+  teamId           String?
+  roleId           String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  team             Team?             @relation(fields: [teamId], references: [id])
+  role             Role?             @relation(fields: [roleId], references: [id])
+  ownedTeams       Team[]            @relation("TeamOwner")
+  tasksCreated     Task[]            @relation("TaskCreator")
+  tasksAssigned    Task[]            @relation("TaskAssignee")
+  taskAttachments  TaskAttachment[]
+  eventsCreated    Event[]           @relation("EventCreator")
+  eventAttendees   EventAttendee[]
+  notes            Note[]
+  groupMembers     GroupMember[]
+  messages         Message[]
+}
+
+model Team {
+  id        String   @id @default(uuid())
+  name      String
+  ownerId   String
+  createdAt DateTime @default(now())
+  owner     User     @relation("TeamOwner", fields: [ownerId], references: [id])
+  users     User[]
+  roles     Role[]
+  workflows Workflow[]
+  events    Event[]
+  notes     Note[]
+  groups    Group[]
+}
+
+model Role {
+  id          String   @id @default(uuid())
+  name        String
+  permissions Json     @default("[]")
+  teamId      String
+  team        Team     @relation(fields: [teamId], references: [id])
+  users       User[]
+}
+
+model Workflow {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  teamId      String
+  status      String   @default("Active")
+  team        Team     @relation(fields: [teamId], references: [id])
+  tasks       Task[]
+}
+
+model Task {
+  id              String           @id @default(uuid())
+  title           String
+  description     String?
+  status          String           @default("Todo")
+  workflowId      String?
+  assigneeId      String?
+  creatorId       String
+  dueDate         DateTime?
+  aiPriorityScore Float?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  workflow        Workflow?        @relation(fields: [workflowId], references: [id])
+  assignee        User?            @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  creator         User             @relation("TaskCreator", fields: [creatorId], references: [id])
+  attachments     TaskAttachment[]
+}
+
+model TaskAttachment {
+  id           String   @id @default(uuid())
+  taskId       String
+  fileName     String
+  fileUrl      String
+  fileType     String
+  uploadedById String
+  createdAt    DateTime @default(now())
+  task         Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  uploadedBy   User     @relation(fields: [uploadedById], references: [id])
+}
+
+model Event {
+  id          String          @id @default(uuid())
+  title       String
+  description String?
+  startTime   DateTime
+  endTime     DateTime
+  creatorId   String
+  teamId      String?
+  creator     User            @relation("EventCreator", fields: [creatorId], references: [id])
+  team        Team?           @relation(fields: [teamId], references: [id])
+  attendees   EventAttendee[]
+}
+
+model EventAttendee {
+  eventId String
+  userId  String
+  status  String @default("Pending")
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([eventId, userId])
+}
+
+model Note {
+  id        String   @id @default(uuid())
+  title     String
+  content   String
+  authorId  String
+  teamId    String?
+  isPrivate Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  author    User     @relation(fields: [authorId], references: [id])
+  team      Team?    @relation(fields: [teamId], references: [id])
+}
+
+model Group {
+  id       String        @id @default(uuid())
+  name     String
+  type     String        @default("Direct") // "Direct" or "Group"
+  teamId   String?
+  team     Team?         @relation(fields: [teamId], references: [id])
+  members  GroupMember[]
+  messages Message[]
+}
+
+model GroupMember {
+  groupId String
+  userId  String
+  group   Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([groupId, userId])
+}
+
+model Message {
+  id            String   @id @default(uuid())
+  groupId       String
+  senderId      String
+  content       String
+  attachmentUrl String?
+  createdAt     DateTime @default(now())
+  group         Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  sender        User     @relation(fields: [senderId], references: [id])
+}

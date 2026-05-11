@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/LoadingScreen.css';
 
-const stages = ['✓', '📅', '⭐', '🚀'];
-
 const LoadingScreen = ({ onFinish }) => {
     const [stageIndex, setStageIndex] = useState(0);
     const [fadeOut, setFadeOut] = useState(false);
@@ -10,7 +8,7 @@ const LoadingScreen = ({ onFinish }) => {
     useEffect(() => {
         const interval = setInterval(() => {
             setStageIndex(prev => {
-                if (prev >= stages.length - 1) {
+                if (prev >= 3) { // 4 stages: 0, 1, 2, 3
                     clearInterval(interval);
                     setTimeout(() => setFadeOut(true), 300);
                     setTimeout(() => onFinish && onFinish(), 800);
@@ -18,7 +16,7 @@ const LoadingScreen = ({ onFinish }) => {
                 }
                 return prev + 1;
             });
-        }, 400);
+        }, 500);
         return () => clearInterval(interval);
     }, [onFinish]);
 
@@ -27,15 +25,12 @@ const LoadingScreen = ({ onFinish }) => {
             <div className="loading-content">
                 <img src="/aura-logo.png" alt="Aura" className="loading-logo" />
                 <div className="loading-morph">
-                    <span className="loading-morph-icon" key={stageIndex}>
-                        {stages[stageIndex]}
-                    </span>
+                    <img src="/aura-icon.png" alt="" className="loading-icon-animate" />
                 </div>
-                <h1 className="loading-title">Aura</h1>
                 <div className="loading-bar">
                     <div
                         className="loading-bar-fill"
-                        style={{ width: `${((stageIndex + 1) / stages.length) * 100}%` }}
+                        style={{ width: `${((stageIndex + 1) / 4) * 100}%` }}
                     />
                 </div>
                 <p className="loading-subtitle">Preparing your workspace…</p>

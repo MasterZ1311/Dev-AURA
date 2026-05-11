@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { X, Sparkles, Footprints, ArrowRight } from 'lucide-react';
 import { aiService } from '../utils/aiService';
+import { useAISettings } from '../context/AISettingsContext';
 import '../styles/ProcrastinationCoach.css';
 
 const ProcrastinationCoach = ({ isOpen, task, onClose }) => {
+    const { getJobConfig } = useAISettings();
     const [loading, setLoading] = useState(false);
     const [steps, setSteps] = useState('');
 
@@ -16,7 +18,8 @@ const ProcrastinationCoach = ({ isOpen, task, onClose }) => {
     const getBreakdown = async () => {
         setLoading(true);
         try {
-            const breakdown = await aiService.breakdownProcrastination(task.title);
+            const jobConfig = getJobConfig('procrastination');
+            const breakdown = await aiService.breakdownProcrastination(task.title, jobConfig);
             setSteps(breakdown);
         } catch (error) {
             setSteps("Let's start by just opening the documents needed. One step at a time.");

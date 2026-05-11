@@ -25,7 +25,10 @@ const pad = (n) => String(n).padStart(2, '0');
 const toDateStr = (y, m, d) => `${y}-${pad(m + 1)}-${pad(d)}`;
 
 const CalendarPage = () => {
-    const { events, addEvent, updateEvent, deleteEvent, getEventsForDate, healSchedule, isHealing } = useCalendar();
+    const {
+        events, addEvent, updateEvent, deleteEvent, getEventsForDate,
+        healSchedule, isHealing, healResult, clearHealResult
+    } = useCalendar();
     const today = new Date();
     const todayStr = toDateStr(today.getFullYear(), today.getMonth(), today.getDate());
 
@@ -286,21 +289,40 @@ const CalendarPage = () => {
                     <TimeRiver dateStr={selectedDate} />
                 )}
 
-                {/* Selected date events (for month/week view) */}
-                {view !== 'day' && selectedDate && (
-                    <div className="cal-selected-events">
-                        <h3>Events on {selectedDate}</h3>
-                        {selectedEvents.length > 0 ? selectedEvents.map(ev => (
-                            <div key={ev.id} className="cal-event-row" onClick={() => openEdit(ev)}>
-                                <span className="cal-dot" style={{ background: categoryColors[ev.category] || '#6b7280' }}></span>
-                                <span className="cal-event-row-title">{ev.title}</span>
-                                {ev.startTime && <span className="cal-event-row-time">{ev.startTime}</span>}
-                                <button className="icon-btn danger" onClick={(e) => { e.stopPropagation(); deleteEvent(ev.id); }}><Trash2 size={14} /></button>
-                            </div>
-                        )) : <p className="cal-no-events">No events. Click a date or "Add Event" to get started.</p>}
+            {/* Selected date events (for month/week view) */}
+            {view !== 'day' && selectedDate && (
+                <div className="cal-selected-events">
+                    <h3>Events on {selectedDate}</h3>
+                    {selectedEvents.length > 0 ? selectedEvents.map(ev => (
+                        <div key={ev.id} className="cal-event-row" onClick={() => openEdit(ev)}>
+                            <span className="cal-dot" style={{ background: categoryColors[ev.category] || '#6b7280' }}></span>
+                            <span className="cal-event-row-title">{ev.title}</span>
+                            {ev.startTime && <span className="cal-event-row-time">{ev.startTime}</span>}
+                            <button className="icon-btn danger" onClick={(e) => { e.stopPropagation(); deleteEvent(ev.id); }}><Trash2 size={14} /></button>
+                        </div>
+                    )) : <p className="cal-no-events">No events. Click a date or "Add Event" to get started.</p>}
+                </div>
+            )}
+
+            {/* AI Heal Result Modal */}
+            {healResult && (
+                <div className="cal-modal-overlay" onClick={clearHealResult}>
+                    <div className="cal-heal-modal glass-panel" onClick={e => e.stopPropagation()}>
+                        <div className="cal-heal-header">
+                            <Sparkles size={20} className="accent-icon" />
+                            <h3>AURA Schedule Healing</h3>
+                            <button className="icon-btn" onClick={clearHealResult}><X size={20} /></button>
+                        </div>
+                        <div className="cal-heal-content">
+                            <p>{healResult}</p>
+                        </div>
+                        <div className="cal-heal-footer">
+                            <button className="btn-primary" onClick={clearHealResult}>I understand</button>
+                        </div>
                     </div>
-                )}
-            </main>
+                </div>
+            )}
+        </main>
 
             {/* RIGHT — Form */}
             {showForm && (

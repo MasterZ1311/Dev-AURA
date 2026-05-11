@@ -61,7 +61,10 @@ const timeAgo = (ts) => {
 };
 
 const Inbox = () => {
-    const { items, addItem, markRead, markAllRead, toggleStar, archiveItem, deleteItem, unreadCount } = useInbox();
+    const {
+        items, addItem, markRead, markAllRead, toggleStar, archiveItem, deleteItem, unreadCount,
+        convertedIds, markAsConverted, aiSummaries, saveSummary
+    } = useInbox();
     const { addTask } = useTasks();
     const { createNoteFromMessage } = useNotes();
     const { getJobConfig } = useAISettings();
@@ -72,9 +75,7 @@ const Inbox = () => {
     const [selectedId, setSelectedId] = useState(null);
     const [showCompose, setShowCompose] = useState(false);
     const [convertingId, setConvertingId] = useState(null);
-    const [convertedIds, setConvertedIds] = useState(new Set());
     const [savedToNotesIds, setSavedToNotesIds] = useState(new Set());
-    const [aiSummary, setAiSummary] = useState({});
     const [summaryLoading, setSummaryLoading] = useState(false);
     const [replyText, setReplyText] = useState('');
 
@@ -121,11 +122,11 @@ const Inbox = () => {
         if (!item.read) markRead(item.id);
 
         // AI-summarize long messages (cache per item id)
-        if (item.body && item.body.length > 100 && !aiSummary[item.id]) {
+        if (item.body && item.body.length > 100 && !aiSummaries[item.id]) {
             setSummaryLoading(true);
             const jobConfig = getJobConfig('inbox_summary');
             const summary = await summarizeInboxMessage(item.subject, item.body, jobConfig);
-            if (summary) setAiSummary(prev => ({ ...prev, [item.id]: summary }));
+            if (summary) saveSummary(item.id, summary);
             setSummaryLoading(false);
         }
     };
@@ -151,23 +152,8 @@ const Inbox = () => {
             date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
             isFocus: item.priority === 'high',
         });
-        setConvertedIds(prev => new Set([...prev, item.id]));
+        markAsConverted(item.id);
         setConvertingId(null);
-        // Play a soft confirmation tone
-        try {
-            const ctx = new (window.AudioContext || window.webkitAudioContext)();
-            const oscillator = ctx.createOscillator();
-            const gain = ctx.createGain();
-            oscillator.connect(gain);
-            gain.connect(ctx.destination);
-            oscillator.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
-            oscillator.frequency.setValueAtTime(659.25, ctx.currentTime + 0.1); // E5
-            oscillator.frequency.setValueAtTime(783.99, ctx.currentTime + 0.2); // G5
-            gain.gain.setValueAtTime(0.15, ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
-            oscillator.start(ctx.currentTime);
-            oscillator.stop(ctx.currentTime + 0.5);
-        } catch (e) { /* Audio not supported */ }
     };
 
     const handleSaveToNotes = async (item) => {
@@ -197,10 +183,8 @@ const Inbox = () => {
     const handleCompose = (e) => {
         e.preventDefault();
         if (!compSubject.trim() || !compBody.trim()) return;
-
         const senderName = compSender.trim() || 'You';
         const initials = senderName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-
         addItem({
             category: compCategory,
             sender: senderName,
@@ -210,8 +194,6 @@ const Inbox = () => {
             preview: compBody.trim().slice(0, 80) + (compBody.length > 80 ? '...' : ''),
             priority: compPriority,
         });
-
-        // Reset form
         setCompSender('');
         setCompSubject('');
         setCompBody('');
@@ -222,20 +204,15 @@ const Inbox = () => {
 
     return (
         <div className="inbox-page">
-            {/* LEFT COLUMN */}
             <aside className="inbox-left">
                 <div className="inbox-left-header">
                     <InboxIcon size={20} className="accent-icon" />
                     <h2>Inbox</h2>
                     {unreadCount > 0 && <span className="unread-badge">{unreadCount}</span>}
                 </div>
-
-                {/* Compose Button */}
                 <button className="compose-btn btn-primary tour-inbox-input" onClick={() => { setShowCompose(true); setSelectedId(null); }}>
                     <Plus size={18} /> Compose
                 </button>
-
-                {/* Quick Filters */}
                 <div className="quick-filters">
                     {[
                         { key: 'all', label: 'All' },
@@ -251,8 +228,6 @@ const Inbox = () => {
                         </button>
                     ))}
                 </div>
-
-                {/* Category Filters */}
                 <nav className="category-nav tour-inbox-triage">
                     <span className="nav-section-label">Categories</span>
                     {categories.map(cat => {
@@ -271,16 +246,11 @@ const Inbox = () => {
                         );
                     })}
                 </nav>
-
-                {/* Mark all read */}
                 <button className="mark-all-btn" onClick={markAllRead}>
                     <CheckCheck size={16} /> Mark all as read
                 </button>
             </aside>
-
-            {/* CENTER COLUMN */}
             <main className="inbox-center">
-                {/* Search */}
                 <div className="inbox-search glass-panel">
                     <Search size={18} className="search-icon" />
                     <input
@@ -296,8 +266,6 @@ const Inbox = () => {
                         </button>
                     )}
                 </div>
-
-                {/* List */}
                 <div className="inbox-list">
                     {visibleItems.length > 0 ? visibleItems.map(item => (
                         <div
@@ -335,11 +303,8 @@ const Inbox = () => {
                     )}
                 </div>
             </main>
-
-            {/* RIGHT COLUMN */}
             <aside className="inbox-right">
                 {showCompose ? (
-                    /* Compose Form */
                     <div className="detail-panel">
                         <div className="compose-header">
                             <Send size={20} className="accent-icon" />
@@ -405,7 +370,6 @@ const Inbox = () => {
                         </form>
                     </div>
                 ) : selectedItem ? (
-                    /* Detail Panel */
                     <div className="detail-panel">
                         <div className="detail-header">
                             <div className={`detail-avatar ${selectedItem.category}`}>
@@ -419,45 +383,31 @@ const Inbox = () => {
                                 <X size={18} />
                             </button>
                         </div>
-
                         <span className={`detail-category-badge ${selectedItem.category}`}>
                             {categories.find(c => c.key === selectedItem.category)?.label || selectedItem.category}
                         </span>
-
                         <h3 className="detail-subject">{selectedItem.subject}</h3>
-
                         <div className="detail-priority-row">
                             <Flag size={14} />
                             <span className={`detail-priority ${selectedItem.priority}`}>
                                 {selectedItem.priority.charAt(0).toUpperCase() + selectedItem.priority.slice(1)} Priority
                             </span>
                         </div>
-
                         <div className="detail-body">
                             <p>{selectedItem.body}</p>
                         </div>
-
-                        {/* AI Summary */}
                         {summaryLoading && (
                             <div className="detail-ai-summary loading">
                                 <Loader2 size={14} className="spin-icon-inbox" />
                                 <span>Summarizing with AI...</span>
                             </div>
                         )}
-                        {aiSummary[selectedItem.id] && (
+                        {aiSummaries[selectedItem.id] && (
                             <div className="detail-ai-summary">
                                 <Sparkles size={14} className="ai-summary-icon" />
-                                <span className="ai-summary-text">{aiSummary[selectedItem.id]}</span>
+                                <span className="ai-summary-text">{aiSummaries[selectedItem.id]}</span>
                             </div>
                         )}
-
-                        {selectedItem.relatedTask && (
-                            <div className="detail-related">
-                                <ClipboardList size={14} />
-                                <span>Related: <strong>{selectedItem.relatedTask}</strong></span>
-                            </div>
-                        )}
-
                         <div className="detail-actions">
                             <button
                                 className={`action-btn ${selectedItem.starred ? 'starred' : ''}`}
@@ -466,7 +416,6 @@ const Inbox = () => {
                                 {selectedItem.starred ? <Star size={16} /> : <StarOff size={16} />}
                                 {selectedItem.starred ? 'Unstar' : 'Star'}
                             </button>
-                            {/* AI Convert to Task Button */}
                             <button
                                 className={`action-btn convert-task-btn ${convertedIds.has(selectedItem.id) ? 'converted' : ''}`}
                                 onClick={() => handleConvertToTask(selectedItem)}
@@ -480,7 +429,6 @@ const Inbox = () => {
                                     <><CheckSquare size={16} /> Convert to Task</>
                                 )}
                             </button>
-                            {/* Save to Notes Button */}
                             <button
                                 className={`action-btn ${savedToNotesIds.has(selectedItem.id) ? 'converted' : ''}`}
                                 onClick={() => handleSaveToNotes(selectedItem)}
@@ -497,7 +445,6 @@ const Inbox = () => {
                                 <Trash2 size={16} /> Delete
                             </button>
                         </div>
-
                         <form className="detail-reply" onSubmit={handleReply}>
                             <Reply size={16} className="accent-icon" />
                             <textarea
@@ -515,7 +462,6 @@ const Inbox = () => {
                         </form>
                     </div>
                 ) : (
-                    /* Empty state */
                     <div className="detail-empty">
                         <Mail size={48} />
                         <h3>Select a message</h3>

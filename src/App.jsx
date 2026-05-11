@@ -13,6 +13,7 @@ import { MessagingProvider } from './context/MessagingContext';
 import { NotesProvider } from './context/NotesContext';
 import { AISettingsProvider } from './context/AISettingsContext';
 import { TourProvider } from './context/TourContext';
+import { SplashScreen } from '@capacitor/splash-screen';
 
 // Components & Pages
 import Header from './components/Header';
@@ -33,6 +34,8 @@ import ReportsPage from './pages/ReportsPage';
 import Messages from './pages/Messages';
 import NotesPage from './pages/NotesPage';
 import ErrorBoundary from './components/ErrorBoundary';
+import SearchModal from './components/SearchModal';
+import { useKeyboardShortcuts } from './utils/useKeyboardShortcuts';
 
 const ProtectedRoute = ({ children }) => {
   const { currentUser } = useAuth();
@@ -43,7 +46,6 @@ const ProtectedRoute = ({ children }) => {
 
 const PageTransition = ({ children }) => {
   const location = useLocation();
-
   return (
     <div className="page-transition-wrapper" key={location.pathname}>
       {children}
@@ -53,7 +55,13 @@ const PageTransition = ({ children }) => {
 
 const AppLayout = ({ children }) => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
+
+  useKeyboardShortcuts({
+    onToggleSettings: () => setIsSettingsOpen(prev => !prev),
+    onToggleSearch: () => setIsSearchOpen(prev => !prev),
+  });
 
   useEffect(() => {
     if (searchParams.get('settings') === 'true') {
@@ -63,7 +71,6 @@ const AppLayout = ({ children }) => {
 
   const handleCloseSettings = () => {
     setIsSettingsOpen(false);
-    // Remove settings param without refreshing or adding to history if possible
     searchParams.delete('settings');
     setSearchParams(searchParams, { replace: true });
   };
@@ -71,13 +78,17 @@ const AppLayout = ({ children }) => {
   return (
     <div className="app-container">
       <LiveBackground />
-      <Header onOpenSettings={() => setIsSettingsOpen(true)} />
+      <Header
+        onOpenSettings={() => setIsSettingsOpen(true)}
+        onOpenSearch={() => setIsSearchOpen(true)}
+      />
       <main className="main-content">
         <PageTransition>{children}</PageTransition>
       </main>
       <BottomNav />
       <ThresholdRitual />
       {isSettingsOpen && <Settings onClose={handleCloseSettings} />}
+      <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </div>
   );
 };
@@ -114,6 +125,13 @@ const DataProviders = ({ children }) => (
 
 const AppContent = () => {
   const [showLoading, setShowLoading] = useState(true);
+
+  useEffect(() => {
+    if (!showLoading) {
+      SplashScreen.hide().catch(() => {});
+    }
+  }, [showLoading]);
+
   if (showLoading) return <LoadingScreen onFinish={() => setShowLoading(false)} />;
 
   return (

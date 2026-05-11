@@ -22,9 +22,15 @@
 }
 
 .loading-logo {
-    width: 80px;
-    height: 80px;
-    animation: loadingPulse 1.5s ease-in-out infinite, loadingSpin 4s linear infinite;
+    width: 180px;
+    height: auto;
+    animation: loadingPulse 1.5s ease-in-out infinite;
+}
+
+.loading-icon-animate {
+    width: 40px;
+    height: 40px;
+    animation: loadingSpin 4s linear infinite, loadingPulse 2s ease-in-out infinite;
 }
 
 @keyframes loadingPulse {

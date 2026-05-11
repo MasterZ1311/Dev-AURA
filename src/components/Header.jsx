@@ -6,11 +6,10 @@ import NotificationPanel from './NotificationPanel';
 import { Search, Bell, Settings, User, Zap } from 'lucide-react';
 import '../styles/Header.css';
 
-const Header = ({ onOpenSettings }) => {
+const Header = ({ onOpenSettings, onOpenSearch }) => {
     const { currentUser, logout } = useAuth();
     const { unreadCount } = useNotifications();
     const [showProfileMenu, setShowProfileMenu] = useState(false);
-    const [showSearch, setShowSearch] = useState(false);
     const [showNotifs, setShowNotifs] = useState(false);
     const profileRef = useRef(null);
     const notifRef = useRef(null);
@@ -25,42 +24,22 @@ const Header = ({ onOpenSettings }) => {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, [profileRef]);
 
-    // Global keyboard shortcuts
-    useEffect(() => {
-        const handler = (e) => {
-            // Ctrl+K → Search
-            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-                e.preventDefault();
-                setShowSearch(prev => !prev);
-            }
-            // Ctrl+\ → Settings
-            if ((e.ctrlKey || e.metaKey) && e.key === '\\') {
-                e.preventDefault();
-                onOpenSettings();
-            }
-        };
-        document.addEventListener('keydown', handler);
-        return () => document.removeEventListener('keydown', handler);
-    }, [onOpenSettings]);
-
     const initials = currentUser?.name
         ? currentUser.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
         : 'AU';
 
     return (
-        <>
-            <header className="header">
-                <div className="header-left">
-                    <button className="btn-icon" onClick={() => setShowSearch(true)} title="Search (Ctrl+K)">
-                        <Search size={20} />
-                    </button>
-                </div>
+        <header className="header">
+            <div className="header-left">
+                <button className="btn-icon" onClick={onOpenSearch} title="Search (Ctrl+K)">
+                    <Search size={20} />
+                </button>
+            </div>
 
                 <div className="header-center">
                     <div className="brand-area">
                         <img src="/aura-logo.png" alt="Aura" className="brand-logo" />
-                        <div>
-                            <div className="brand-title">Aura</div>
+                        <div className="brand-info">
                             <div className="brand-subtitle">Clarity for your work, peace for your mind.</div>
                         </div>
                     </div>
@@ -103,14 +82,11 @@ const Header = ({ onOpenSettings }) => {
                                         </div>
                                         <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '0.5rem 0' }} />
                                         <button className="logout-btn" onClick={logout}>Sign Out</button>
-                                    </div>
-                                )}
-                    </div>
                 </div>
-            </header>
-
-            <SearchModal isOpen={showSearch} onClose={() => setShowSearch(false)} />
-        </>
+            )}
+                </div>
+            </div>
+        </header>
     );
 };
 

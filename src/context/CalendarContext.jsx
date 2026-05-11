@@ -6,6 +6,7 @@ import {
   updateInCollection, deleteFromCollection,
 } from '../utils/firestoreHelpers';
 import { aiService } from '../utils/aiService';
+import { useAISettings } from './AISettingsContext';
 import { fetchGoogleCalendarEvents, pushAllEventsToGoogleCalendar } from '../utils/calendarService';
 import { callWithAutoRetry } from '../utils/googleApiHelper';
 
@@ -14,10 +15,12 @@ export const useCalendar = () => useContext(CalendarContext);
 
 export const CalendarProvider = ({ children }) => {
   const { currentUser, googleAccessToken, setGoogleAccessToken, silentGoogleReauth } = useAuth();
+  const { getJobConfig } = useAISettings();
   const uid = currentUser?.uid;
   const [events, setEvents] = useState([]);
   const [loaded, setLoaded] = useState(false);
   const [isHealing, setIsHealing] = useState(false);
+  const [healResult, setHealResult] = useState(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastGoogleSync, setLastGoogleSync] = useState(null);
   const [syncMessage, setSyncMessage] = useState('');
@@ -123,22 +126,28 @@ export const CalendarProvider = ({ children }) => {
   const healSchedule = async (dateStr, currentFocus = 'Steady Progress') => {
     if (!uid) return;
     setIsHealing(true);
+    setHealResult(null);
     try {
       const dayEvents = events.filter(ev => ev.date === dateStr);
-      const recommendation = await aiService.healSchedule(dayEvents, currentFocus);
+      const jobConfig = getJobConfig('heal_schedule');
+      const recommendation = await aiService.healSchedule(dayEvents, currentFocus, jobConfig);
+      setHealResult(recommendation);
       console.log('AURA AI Recommendation:', recommendation);
     } catch (error) {
       console.error('Schedule Healing failed:', error);
+      setHealResult('Schedule healing failed. Please check your AI configuration.');
     } finally {
       setIsHealing(false);
     }
   };
 
+  const clearHealResult = () => setHealResult(null);
+
   const getEventsForDate = (dateStr) => events.filter(ev => ev.date === dateStr);
 
   const value = {
     events, addEvent, updateEvent, deleteEvent,
-    getEventsForDate, healSchedule, isHealing,
+    getEventsForDate, healSchedule, isHealing, healResult, clearHealResult,
     pullFromGoogle, pushToGoogle, isSyncing, lastGoogleSync, syncMessage, setSyncMessage,
   };
 

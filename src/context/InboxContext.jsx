@@ -20,6 +20,10 @@ export const InboxProvider = ({ children }) => {
   const [lastGmailSync, setLastGmailSync] = useState(null);
   const [gmailSyncMessage, setGmailSyncMessage] = useState('');
 
+  // Persistent session states for AI features
+  const [convertedIds, setConvertedIds] = useState(new Set());
+  const [aiSummaries, setAiSummaries] = useState({});
+
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!uid) { setItems([]); setLoading(false); return; }
@@ -80,6 +84,14 @@ export const InboxProvider = ({ children }) => {
     logActivity(uid, 'Deleted inbox message', 'inbox');
   };
 
+  const markAsConverted = (id) => {
+    setConvertedIds(prev => new Set([...prev, id]));
+  };
+
+  const saveSummary = (id, summary) => {
+    setAiSummaries(prev => ({ ...prev, [id]: summary }));
+  };
+
   /* ─── Gmail Sync with auto-retry ─── */
   const syncGmail = async () => {
     if (!uid) return;
@@ -121,6 +133,7 @@ export const InboxProvider = ({ children }) => {
     toggleStar, archiveItem, deleteItem, unreadCount,
     syncGmail, gmailSyncing, lastGmailSync, gmailSyncMessage,
     isGoogleConnected: !!googleAccessToken,
+    convertedIds, markAsConverted, aiSummaries, saveSummary,
   };
 
   return (

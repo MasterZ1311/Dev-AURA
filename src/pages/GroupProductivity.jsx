@@ -39,6 +39,7 @@ const GroupProductivity = () => {
     const ctx = useGroup();
     const [activeTab, setActiveTab] = useState('projects');
     const [search, setSearch] = useState('');
+    const [activeStatusFilter, setActiveStatusFilter] = useState('all');
     const [showForm, setShowForm] = useState(false);
     const [editId, setEditId] = useState(null);
     const [resonanceActive, setResonanceActive] = useState(false);
@@ -54,7 +55,11 @@ const GroupProductivity = () => {
 
     /* ═══ PROJECTS TAB ═══ */
     const renderProjects = () => {
-        const filtered = ctx.projects.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
+        const filtered = ctx.projects.filter(p => {
+            const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase());
+            const matchesStatus = activeStatusFilter === 'all' || p.status === activeStatusFilter;
+            return matchesSearch && matchesStatus;
+        });
         const stats = {
             total: ctx.projects.length,
             active: ctx.projects.filter(p => p.status === 'in-progress').length,
@@ -79,9 +84,18 @@ const GroupProductivity = () => {
                         <div className="gp-stat-row"><span>Completed</span><strong className="text-success">{stats.done}</strong></div>
                     </div>
                     <div className="gp-filter-section">
-                        <span className="gp-filter-label">Status Filter</span>
+                        <div className="gp-filter-header">
+                            <span className="gp-filter-label">Status Filter</span>
+                            {activeStatusFilter !== 'all' && (
+                                <button className="gp-filter-clear" onClick={() => setActiveStatusFilter('all')}>Clear</button>
+                            )}
+                        </div>
                         {projectStatuses.map(s => (
-                            <button key={s.value} className="gp-filter-btn" onClick={() => setSearch(s.label)}>
+                            <button
+                                key={s.value}
+                                className={`gp-filter-btn ${activeStatusFilter === s.value ? 'active' : ''}`}
+                                onClick={() => setActiveStatusFilter(prev => prev === s.value ? 'all' : s.value)}
+                            >
                                 <span className="dot" style={{ background: s.color }}></span> {s.label}
                             </button>
                         ))}
@@ -416,7 +430,7 @@ const GroupProductivity = () => {
                     {tabs.map(t => {
                         const Icon = t.icon;
                         return (
-                            <button key={t.key} className={`gp-tab ${activeTab === t.key ? 'active' : ''}`} onClick={() => { setActiveTab(t.key); setSearch(''); resetForm(); }}>
+                            <button key={t.key} className={`gp-tab ${activeTab === t.key ? 'active' : ''}`} onClick={() => { setActiveTab(t.key); setSearch(''); setActiveStatusFilter('all'); resetForm(); }}>
                                 <Icon size={16} /> {t.label}
                             </button>
                         );

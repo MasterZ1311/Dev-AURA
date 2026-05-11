@@ -6,13 +6,15 @@
 import { initializeApp, cert, getApps } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
+import { getStorage } from 'firebase-admin/storage';
 
-let db, adminAuth;
+let db, adminAuth, storage;
 
 export function initFirebaseAdmin() {
     if (getApps().length > 0) {
         db = getFirestore();
         adminAuth = getAuth();
+        storage = getStorage();
         return;
     }
 
@@ -31,12 +33,14 @@ export function initFirebaseAdmin() {
             clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
             privateKey,
         }),
+        storageBucket: `${process.env.FIREBASE_PROJECT_ID}.firebasestorage.app`,
     });
 
     db = getFirestore();
     adminAuth = getAuth();
+    storage = getStorage();
 
     console.log(`[Firebase Admin] Connected to project: ${process.env.FIREBASE_PROJECT_ID}`);
 }
 
-export { db, adminAuth };
+export { db, adminAuth, storage };

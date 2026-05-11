@@ -31,10 +31,10 @@
 }
 
 .login-logo {
-  width: 64px;
-  height: 64px;
+  width: 200px;
+  height: auto;
   object-fit: contain;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
   animation: pulse 2s infinite;
 }
 

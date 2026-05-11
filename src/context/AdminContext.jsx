@@ -62,19 +62,40 @@ export const AdminProvider = ({ children }) => {
         const text = await file.text();
         try {
             const data = JSON.parse(text);
-            const batch = writeBatch(db);
+            let batch = writeBatch(db);
+            let count = 0;
+
             for (const [colName, docs] of Object.entries(data)) {
                 if (!Array.isArray(docs)) continue;
                 for (const d of docs) {
                     const { id, ...rest } = d;
                     const docRef = doc(getUserCollection(uid, colName), id || `imported_${Date.now()}_${Math.random().toString(36).slice(2)}`);
                     batch.set(docRef, rest);
+                    count++;
+
+                    if (count === 500) {
+                        await batch.commit();
+                        batch = writeBatch(db);
+                        count = 0;
+                    }
                 }
             }
+<<<<<<< Updated upstream
             await batch.commit();
         } catch (err) {
             console.error('[AdminContext] Import failed:', err);
             throw new Error('Invalid backup file — could not parse JSON.');
+=======
+
+            if (count > 0) {
+                await batch.commit();
+            }
+            await addLog('Imported data backup', 'system');
+            alert('Backup restored successfully.');
+        } catch (error) {
+            console.error('[Admin] Import failed:', error);
+            alert('Invalid backup file or import failed.');
+>>>>>>> Stashed changes
         }
     };
 

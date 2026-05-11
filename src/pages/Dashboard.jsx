@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTasks } from '../context/TaskContext';
+import { useAISettings } from '../context/AISettingsContext';
 import {
     CheckSquare,
     CheckCircle2,
@@ -24,7 +25,6 @@ import {
     Sunrise,
     Brain,
     Loader2,
-    Mic,
     Eye
 } from 'lucide-react';
 import '../styles/Dashboard.css';
@@ -32,9 +32,9 @@ import WorkflowTrajectory from '../components/WorkflowTrajectory';
 import { useCalendar } from '../context/CalendarContext';
 import { useNotifications } from '../context/NotificationContext';
 import { useAdmin } from '../context/AdminContext';
-import { useAISettings } from '../context/AISettingsContext';
 import { aiService } from '../utils/aiService';
 import { getTopFocusTasks } from '../utils/auraEngine';
+import { usePageShortcuts } from '../utils/keyboardShortcutHook';
 
 /* ── helper: greeting based on time of day ── */
 const getGreeting = () => {
@@ -55,6 +55,11 @@ const Dashboard = () => {
     const { logs: activityLogs } = useAdmin();
     const { getJobConfig } = useAISettings();
     const [showTrajectory, setShowTrajectory] = useState(false);
+
+    const quickAddRef = useRef(null);
+    usePageShortcuts({
+        onNew: () => quickAddRef.current?.focus()
+    });
 
     // ── Live clock ──
     const [now, setNow] = useState(new Date());
@@ -109,7 +114,8 @@ const Dashboard = () => {
     const [briefingLoading, setBriefingLoading] = useState(false);
     
     useEffect(() => {
-        const cached = sessionStorage.getItem('aura_unified_triage');
+        const cacheKey = `aura_triage_${tasks.length}_${events.length}_${notifications.length}`;
+        const cached = sessionStorage.getItem(cacheKey);
         if (cached) { setBriefing(cached); return; }
         if (tasks.length === 0 && events.length === 0) return;
         
@@ -117,15 +123,15 @@ const Dashboard = () => {
         if (!jobConfig) return; // Only run if AI is configured
 
         setBriefingLoading(true);
-        aiService.generateUnifiedTriage(tasks, events, notifications, currentUser?.name || 'AURA User', jobConfig)
+        aiService.generateUnifiedTriage(tasks, events, notifications, currentUser?.displayName || 'AURA User', jobConfig)
             .then(text => {
                 if (text) {
                     setBriefing(text);
-                    sessionStorage.setItem('aura_unified_triage', text);
+                    sessionStorage.setItem(cacheKey, text);
                 }
             })
             .finally(() => setBriefingLoading(false));
-    }, [tasks.length, events.length, notifications.length, currentUser?.name, getJobConfig]);
+    }, [tasks.length, events.length, notifications.length, currentUser?.displayName, getJobConfig]);
 
     // ── Productivity score (gamified) ──
     const productivityScore = useMemo(() => {
@@ -184,7 +190,7 @@ const Dashboard = () => {
                 <div className="hero-left">
                     <div className="hero-greeting">
                         <GreetIcon size={28} className="greeting-icon" />
-                        <h1>{greeting.text}, {currentUser?.name.split(' ')[0]}!</h1>
+                        <h1>{greeting.text}, {currentUser?.displayName?.split(' ')[0] || 'User'}!</h1>
                     </div>
                     <p className="hero-date">{dateString}</p>
                     <p className="hero-quote">"{dailyQuote.text}" <span>— {dailyQuote.author}</span></p>
@@ -317,6 +323,7 @@ const Dashboard = () => {
                     <form className="quick-add glass-panel" onSubmit={handleQuickAdd}>
                         <Plus size={20} className="quick-add-icon" />
                         <input
+                            ref={quickAddRef}
                             type="text"
                             className="quick-add-input"
                             placeholder="Quick add a task…"
@@ -495,7 +502,6 @@ const Dashboard = () => {
                     </div>
                 </aside>
             </div>
-            {/* ═══════════ MODALS & OVERLAYS ═══════════ */}
         </div>
     );
 };

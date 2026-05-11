@@ -120,6 +120,16 @@ const api = {
     health() {
         return fetch(`${BASE_URL}/health`).then(r => r.json()).catch(() => ({ status: 'offline' }));
     },
+
+    // ─── Real-time Messaging ──────────────────────────────────────────────────
+    getMessages(groupId) {
+        return request('GET', `/api/messages/${groupId}`);
+    },
+
+    // ─── File Uploads ─────────────────────────────────────────────────────────
+    getUploadUrl({ fileName, fileType, folder }) {
+        return request('POST', '/api/upload/signed-url', { fileName, fileType, folder });
+    }
 };
 
 export default api;

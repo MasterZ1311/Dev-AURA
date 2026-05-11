@@ -167,7 +167,7 @@ const getStreakLevel = (streak) => {
 
 
 const ReportsPage = () => {
-    const { stats } = useTasks();
+    const { tasks, stats } = useTasks();
     const group = useGroup();
     const calendar = useCalendar();
     const workflow = useWorkflow();
@@ -416,17 +416,30 @@ const ReportsPage = () => {
 
     /* ═══ OVERVIEW TAB ═══ */
     const renderOverview = () => {
-        // Mock trend data based on current overall tasks to show a visual curve
-        const baseTask = Math.max(0, data.completedTasks - 15);
-        const trendData = [
-            { name: 'Mon', tasks: baseTask + 2 },
-            { name: 'Tue', tasks: baseTask + 5 },
-            { name: 'Wed', tasks: baseTask + 4 },
-            { name: 'Thu', tasks: baseTask + 8 },
-            { name: 'Fri', tasks: baseTask + 10 },
-            { name: 'Sat', tasks: baseTask + 12 },
-            { name: 'Sun', tasks: data.completedTasks > 0 ? data.completedTasks : 15 },
-        ];
+        // Calculate real trend data for the last 7 days
+        const trendData = (() => {
+            const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            const last7Days = [];
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                last7Days.push({
+                    dateStr: d.toDateString(),
+                    name: dayNames[d.getDay()],
+                    count: 0
+                });
+            }
+
+            tasks.forEach(task => {
+                if (task.completed && task.completedAt) {
+                    const compDate = new Date(task.completedAt).toDateString();
+                    const day = last7Days.find(d => d.dateStr === compDate);
+                    if (day) day.count++;
+                }
+            });
+
+            return last7Days.map(d => ({ name: d.name, tasks: d.count }));
+        })();
 
         const pieData = [
             { name: 'Completed', value: data.completedTasks, color: '#10b981' }, // emerald-500

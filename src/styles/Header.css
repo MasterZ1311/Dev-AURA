@@ -33,7 +33,7 @@
 }
 
 .brand-logo {
-    width: 36px;
+    width: 120px;
     height: 36px;
     object-fit: contain;
     filter: drop-shadow(0 0 6px rgba(0, 255, 204, 0.3));

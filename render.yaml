@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: aura-backend
+    env: node
+    plan: free
+    region: ohio
+    buildCommand: "cd server && npm install && npx prisma generate && npx prisma db push"
+    startCommand: "cd server && npm start"
+    envVars:
+      - key: PORT
+        value: 5000
+      - key: DATABASE_URL
+        sync: false
+      - key: UPSTASH_REDIS_REST_URL
+        sync: false
+      - key: UPSTASH_REDIS_REST_TOKEN
+        sync: false
+      - key: FIREBASE_PROJECT_ID
+        sync: false
+      - key: FIREBASE_CLIENT_EMAIL
+        sync: false
+      - key: FIREBASE_PRIVATE_KEY
+        sync: false

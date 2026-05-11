@@ -13,14 +13,25 @@ import {
     ListTodo,
     Zap,
     Footprints,
-    FastForward
+    FastForward,
+    Paperclip,
+    FileText,
+    X
 } from 'lucide-react';
 import ProcrastinationCoach from '../components/ProcrastinationCoach';
+import { usePageShortcuts } from '../utils/keyboardShortcutHook';
 import '../styles/Tasks.css';
 
 const Tasks = () => {
     const { tasks, addTask, updateTask, toggleTaskCompletion, deleteTask, unlockedCategories, startRitual } = useTasks();
     const [selectedProcrastinationTask, setSelectedProcrastinationTask] = useState(null);
+
+    // New Task Form Ref for focus
+    const titleInputRef = React.useRef(null);
+
+    usePageShortcuts({
+        onNew: () => titleInputRef.current?.focus()
+    });
 
     // ── Live Clock ──
     const [now, setNow] = useState(new Date());
@@ -80,9 +91,36 @@ const Tasks = () => {
             project: newProject,
             energyType: newEnergyType,
             date: now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-            isFocus: false
+            isFocus: false,
+            attachments: []
         });
         setNewTitle('');
+    };
+
+    const handleFileUpload = (taskId, e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const task = tasks.find(t => t.id === taskId);
+        if (!task) return;
+
+        const newAttachment = {
+            id: Date.now().toString(),
+            name: file.name,
+            size: (file.size / 1024).toFixed(1) + ' KB',
+            type: file.type
+        };
+
+        const updatedAttachments = [...(task.attachments || []), newAttachment];
+        updateTask(taskId, { attachments: updatedAttachments });
+    };
+
+    const removeAttachment = (taskId, attachmentId) => {
+        const task = tasks.find(t => t.id === taskId);
+        if (!task) return;
+
+        const updatedAttachments = task.attachments.filter(a => a.id !== attachmentId);
+        updateTask(taskId, { attachments: updatedAttachments });
     };
 
     const filteredTasks = tasks.filter(t => {
@@ -217,8 +255,35 @@ const Tasks = () => {
                                     <span className="task-project">{task.project}</span>
                                     {task.energyType && <span className="task-energy-tag" data-energy={task.energyType}>{task.energyType}</span>}
                                 </div>
+                                {task.attachments && task.attachments.length > 0 && (
+                                    <div className="task-attachments">
+                                        {task.attachments.map(att => (
+                                            <div key={att.id} className="attachment-pill">
+                                                <FileText size={12} />
+                                                <span className="att-name" title={att.name}>{att.name}</span>
+                                                <button 
+                                                    className="att-remove" 
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        removeAttachment(task.id, att.id);
+                                                    }}
+                                                >
+                                                    <X size={10} />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                             <div className="task-actions">
+                                <label className="task-attach-btn" title="Attach document">
+                                    <Paperclip size={16} />
+                                    <input 
+                                        type="file" 
+                                        className="hidden-file-input" 
+                                        onChange={(e) => handleFileUpload(task.id, e)} 
+                                    />
+                                </label>
                                 {task.rescheduleCount > 0 && !task.completed && (
                                     <button 
                                         className={`task-coach-trigger ${task.rescheduleCount >= 3 ? 'high-alert' : ''}`}
@@ -271,6 +336,7 @@ const Tasks = () => {
                     <h3><Plus size={18} /> New Task</h3>
                     <form onSubmit={handleAddTask} className="new-task-form">
                         <input
+                            ref={titleInputRef}
                             type="text"
                             placeholder="What needs to be done?"
                             value={newTitle}

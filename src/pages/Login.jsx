@@ -215,7 +215,6 @@ const Login = () => {
       <div className={`auth-wrapper ${showTutorial ? 'with-tutorial' : ''}`}>
         <div className="login-card glass-panel">
           <img src="/aura-logo.png" alt="Aura" className="login-logo" />
-          <h1 className="login-title">Aura</h1>
 
           {/* ── Google Sign-In Button ── */}
           {(mode === 'login' || mode === 'signup') && (

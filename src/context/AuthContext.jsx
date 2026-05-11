@@ -28,9 +28,14 @@ const generateAuraUID = () => {
 
 /** Check if an AURA-XXXX code is already taken in the global index */
 const isAuraUIDTaken = async (code) => {
-  const indexRef = doc(db, 'aura_uid_index', code);
-  const snap = await getDoc(indexRef);
-  return snap.exists();
+  try {
+    const indexRef = doc(db, 'aura_uid_index', code);
+    const snap = await getDoc(indexRef);
+    return snap.exists();
+  } catch (e) {
+    console.error('[Auth] Error checking UID index:', e.message);
+    return false; // Fallback to not taken (risk of collision but avoids hang)
+  }
 };
 
 /** Generate a unique AURA-XXXX code with collision checking */
@@ -46,52 +51,75 @@ const createUniqueAuraUID = async () => {
 
 /** Register in global aura_uid_index */
 const registerAuraUIDIndex = async (auraUID, uid, displayName, photoURL) => {
-  const indexRef = doc(db, 'aura_uid_index', auraUID);
-  await setDoc(indexRef, { uid, displayName: displayName || 'User', photoURL: photoURL || null, auraUID });
+  try {
+    const indexRef = doc(db, 'aura_uid_index', auraUID);
+    await setDoc(indexRef, { uid, displayName: displayName || 'User', photoURL: photoURL || null, auraUID });
+  } catch (e) {
+    console.error('[Auth] Error registering UID index:', e.message);
+  }
 };
 
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [googleAccessToken, setGoogleAccessToken] = useState(null);
+  const [googleAccessToken, setGoogleAccessToken] = useState(() => {
+    return sessionStorage.getItem('aura_google_token') || null;
+  });
+
+  useEffect(() => {
+    if (googleAccessToken) {
+      sessionStorage.setItem('aura_google_token', googleAccessToken);
+    } else {
+      sessionStorage.removeItem('aura_google_token');
+    }
+  }, [googleAccessToken]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        const userDocRef = doc(db, 'users', firebaseUser.uid, 'settings', 'profile');
-        const userSnap = await getDoc(userDocRef);
-        let profileData = userSnap.exists() ? userSnap.data() : {};
+      try {
+        if (firebaseUser) {
+          const userDocRef = doc(db, 'users', firebaseUser.uid, 'settings', 'profile');
+          const userSnap = await getDoc(userDocRef).catch(err => {
+            console.warn('[Auth] Firestore profile fetch failed:', err.message);
+            return { exists: () => false };
+          });
 
-        // If user exists but lacks an auraUID, generate and save it
-        if (!profileData.auraUID) {
-          const newAuraUID = await createUniqueAuraUID();
-          const updates = {
-            auraUID: newAuraUID,
-            name: profileData.name || firebaseUser.displayName || 'User',
-            email: profileData.email || firebaseUser.email,
+          let profileData = userSnap.exists() ? userSnap.data() : {};
+
+          // If user exists but lacks an auraUID, generate and save it
+          if (!profileData.auraUID) {
+            const newAuraUID = await createUniqueAuraUID();
+            const updates = {
+              auraUID: newAuraUID,
+              name: profileData.name || firebaseUser.displayName || 'User',
+              email: profileData.email || firebaseUser.email,
+              status: profileData.status || 'Active',
+              role: profileData.role || 'admin',
+            };
+            await setDoc(userDocRef, updates, { merge: true }).catch(e => console.error('[Auth] setDoc failed:', e));
+            await registerAuraUIDIndex(newAuraUID, firebaseUser.uid, updates.name, firebaseUser.photoURL).catch(e => console.error('[Auth] registerIndex failed:', e));
+            profileData = { ...profileData, ...updates };
+          }
+
+          setCurrentUser({
+            uid: firebaseUser.uid,
+            email: firebaseUser.email,
+            name: firebaseUser.displayName || profileData.name || 'User',
+            photoURL: firebaseUser.photoURL || profileData.photoURL || null,
             status: profileData.status || 'Active',
             role: profileData.role || 'admin',
-          };
-          await setDoc(userDocRef, updates, { merge: true });
-          await registerAuraUIDIndex(newAuraUID, firebaseUser.uid, updates.name, firebaseUser.photoURL);
-          profileData = { ...profileData, ...updates };
+            auraUID: profileData.auraUID,
+            ...profileData,
+          });
+        } else {
+          setCurrentUser(null);
+          setGoogleAccessToken(null);
         }
-
-        setCurrentUser({
-          uid: firebaseUser.uid,
-          email: firebaseUser.email,
-          name: firebaseUser.displayName || profileData.name || 'User',
-          photoURL: firebaseUser.photoURL || profileData.photoURL || null,
-          status: profileData.status || 'Active',
-          role: profileData.role || 'admin',
-          auraUID: profileData.auraUID,
-          ...profileData,
-        });
-      } else {
-        setCurrentUser(null);
-        setGoogleAccessToken(null);
+      } catch (err) {
+        console.error('[Auth] Initialization error:', err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     });
     return unsubscribe;
   }, []);
@@ -190,6 +218,7 @@ export const AuthProvider = ({ children }) => {
     await signOut(auth);
     setCurrentUser(null);
     setGoogleAccessToken(null);
+    sessionStorage.removeItem('aura_google_token');
   };
 
   /* ─── Reset Password ─── */
