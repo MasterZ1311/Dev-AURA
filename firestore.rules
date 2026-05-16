@@ -38,11 +38,17 @@ service cloud.firestore {
     //  Aura codes index (read-only for lookup during sign-in)
     //  users_by_aura_code/{auraCode} → { uid }
     // ─────────────────────────────────────────────────
-    match /users_by_aura_code/{auraCode} {
-      // Anyone authenticated can look up an aura code (for inviting team members)
-      allow read: if isAuth();
-      // Only the system (via Admin SDK or the owning user) can write
-      allow write: if isAuth() && resource == null; // Only create, no update/delete from client
+    match /aura_uid_index/{auraCode} {
+      allow read, write: if isAuth();
+    }
+    
+    // Conversations and messages
+    match /conversations/{conversationId} {
+      allow read, write: if isAuth();
+      
+      match /messages/{messageId} {
+        allow read, write: if isAuth();
+      }
     }
 
     // ─────────────────────────────────────────────────

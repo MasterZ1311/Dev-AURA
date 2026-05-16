@@ -106,8 +106,8 @@ app.get('/ping', (_req, res) => res.send('pong'));
 // Mount Modular Routes
 app.use('/api/user', userRouter);
 app.use('/api/ai', aiRouter);
-app.use('/api/tasks', authenticateUser, taskRouter(prisma));
-app.use('/api/messages', authenticateUser, messageRouter(prisma));
+// app.use('/api/tasks', authenticateUser, taskRouter(prisma));
+// app.use('/api/messages', authenticateUser, messageRouter(prisma));
 app.use('/api/upload', authenticateUser, uploadRouter(storage.bucket()));
 app.use('/api', crudRouter);
 

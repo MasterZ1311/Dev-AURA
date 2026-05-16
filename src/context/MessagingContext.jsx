@@ -1,10 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import {
-  collection, doc, addDoc, getDoc, setDoc, updateDoc,
-  onSnapshot, query, where, orderBy, serverTimestamp, arrayUnion
-} from 'firebase/firestore';
-import { db } from '../firebase';
+import { api } from '../utils/apiClient';
 import { useAuth } from './AuthContext';
 
 const MessagingContext = createContext();
@@ -25,41 +21,41 @@ export const MessagingProvider = ({ children }) => {
   useEffect(() => {
     if (!uid) { setConversations([]); return; }
 
-    const q = query(
-      collection(db, 'conversations'),
-      where('participants', 'array-contains', uid),
-      orderBy('lastAt', 'desc')
-    );
+    const fetchConvos = async () => {
+      try {
+        const data = await api.get('/global/conversations?whereField=participants&whereOp=array-contains&whereVal=req.uid');
+        // Sort by lastAt desc
+        setConversations(data.sort((a, b) => (b.lastAt || 0) - (a.lastAt || 0)));
+      } catch (err) {
+        console.error('[Messaging] conversations error:', err);
+      }
+    };
 
-    const unsub = onSnapshot(q, (snap) => {
-      setConversations(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    }, (err) => {
-      console.error('[Messaging] conversations error:', err);
-    });
-
-    return unsub;
+    fetchConvos();
+    const intv = setInterval(fetchConvos, 3000);
+    return () => clearInterval(intv);
   }, [uid]);
 
   /* ─── Subscribe to messages in active conversation ─── */
   useEffect(() => {
     if (!activeConvoId) { setMessages([]); return; }
 
-    const q = query(
-      collection(db, 'conversations', activeConvoId, 'messages'),
-      orderBy('time', 'asc')
-    );
+    const fetchMessages = async () => {
+      try {
+        const data = await api.get(`/global/conversations/${activeConvoId}/messages`);
+        setMessages(data);
+      } catch (err) { }
+    };
 
-    const unsub = onSnapshot(q, (snap) => {
-      setMessages(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    });
+    fetchMessages();
+    const intv = setInterval(fetchMessages, 2000);
 
     // Mark as read when opening a conversation
     if (uid) {
-      const convoRef = doc(db, 'conversations', activeConvoId);
-      updateDoc(convoRef, { [`unreadBy.${uid}`]: 0 }).catch(() => {});
+      api.patch(`/global/conversations/${activeConvoId}`, { [`unreadBy.${uid}`]: 0 }).catch(() => {});
     }
 
-    return unsub;
+    return () => clearInterval(intv);
   }, [activeConvoId, uid]);
 
   /* ─── Find user by AURA-XXXX code ─── */
@@ -109,11 +105,11 @@ export const MessagingProvider = ({ children }) => {
         [theirUID]: theirProfile?.photoURL || null,
       },
       lastMessage: '',
-      lastAt: serverTimestamp(),
+      lastAt: Date.now(),
       unreadBy: { [uid]: 0, [theirUID]: 0 },
     };
 
-    const ref = await addDoc(collection(db, 'conversations'), convoData);
+    const ref = await api.post('/global/conversations', convoData);
     setActiveConvoId(ref.id);
     return ref.id;
   }, [uid, conversations, currentUser]);
@@ -127,7 +123,7 @@ export const MessagingProvider = ({ children }) => {
       const recipientUID = convo?.participants?.find(p => p !== uid);
 
       // Add message to subcollection
-      await addDoc(collection(db, 'conversations', convoId, 'messages'), {
+      await api.post(`/global/conversations/${convoId}/messages`, {
         from: uid,
         fromName: currentUser?.name || 'You',
         text: text.trim(),
@@ -138,12 +134,12 @@ export const MessagingProvider = ({ children }) => {
       // Update conversation metadata
       const updates = {
         lastMessage: text.trim().slice(0, 80),
-        lastAt: serverTimestamp(),
+        lastAt: Date.now(),
       };
       if (recipientUID) {
         updates[`unreadBy.${recipientUID}`] = (convo?.unreadBy?.[recipientUID] || 0) + 1;
       }
-      await updateDoc(doc(db, 'conversations', convoId), updates);
+      await api.patch(`/global/conversations/${convoId}`, updates);
     } finally {
       setSending(false);
     }

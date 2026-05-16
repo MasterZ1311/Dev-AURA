@@ -27,21 +27,28 @@ export const getUserDoc = (uid, collectionName, docId) =>
     doc(db, 'users', uid, collectionName, docId);
 
 export const subscribeToCollection = (uid, collectionName, setState, options = {}) => {
-    const colRef = getUserCollection(uid, collectionName);
-    const constraints = [];
-    if (options.orderByField) {
-        constraints.push(orderBy(options.orderByField, options.orderDir || 'desc'));
-    }
-    if (options.limitTo) {
-        constraints.push(limit(options.limitTo));
-    }
-    const q = constraints.length > 0 ? query(colRef, ...constraints) : colRef;
-    return onSnapshot(q, (snapshot) => {
-        const data = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-        setState(data);
-    }, (error) => {
-        console.error(`[Firestore] onSnapshot error on ${collectionName}:`, error.message);
-    });
+    let isActive = true;
+
+    const fetchIt = async () => {
+        try {
+            const data = await api.list(collectionName, {
+                orderBy: options.orderByField,
+                orderDir: options.orderDir,
+                limitTo: options.limitTo
+            });
+            if (isActive) setState(data);
+        } catch (error) {
+            console.error(`[Firestore Helpers] Poll error on ${collectionName}:`, error.message);
+        }
+    };
+
+    fetchIt();
+    const interval = setInterval(fetchIt, 3000); // Poll every 3 seconds
+
+    return () => {
+        isActive = false;
+        clearInterval(interval);
+    };
 };
 
 // ─────────────────────────────────────────────────────────────────────────────

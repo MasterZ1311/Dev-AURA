@@ -110,4 +110,65 @@ router.delete('/:collection', validateCollection, async (req, res) => {
     }
 });
 
+// ─── GLOBAL COLLECTIONS (Admin bypassing rules) ─────────────────────────────
+const GLOBAL_COLLECTIONS = new Set(['conversations', 'messages']);
+
+router.post('/global/:collection', async (req, res) => {
+    if (!GLOBAL_COLLECTIONS.has(req.params.collection)) return res.status(400).json({ error: 'Not allowed' });
+    try {
+        const payload = { ...req.body, createdAt: req.body.createdAt ?? Date.now(), updatedAt: Date.now() };
+        const docRef = await db.collection(req.params.collection).add(payload);
+        res.status(201).json({ id: docRef.id, ...payload });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.patch('/global/:collection/:id', async (req, res) => {
+    if (!GLOBAL_COLLECTIONS.has(req.params.collection)) return res.status(400).json({ error: 'Not allowed' });
+    try {
+        await db.collection(req.params.collection).doc(req.params.id).update({ ...req.body, updatedAt: Date.now() });
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.get('/global/:collection', async (req, res) => {
+    if (!GLOBAL_COLLECTIONS.has(req.params.collection)) return res.status(400).json({ error: 'Not allowed' });
+    try {
+        let q = db.collection(req.params.collection);
+        if (req.query.whereField && req.query.whereOp && req.query.whereVal) {
+            let val = req.query.whereVal;
+            if (val === 'req.uid') val = req.uid;
+            q = q.where(req.query.whereField, req.query.whereOp, val);
+        }
+        const snapshot = await q.get();
+        const data = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        res.json(data);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.post('/global/conversations/:id/messages', async (req, res) => {
+    try {
+        const payload = { ...req.body, time: req.body.time ?? Date.now() };
+        const docRef = await db.collection('conversations').doc(req.params.id).collection('messages').add(payload);
+        res.status(201).json({ id: docRef.id, ...payload });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.get('/global/conversations/:id/messages', async (req, res) => {
+    try {
+        const snapshot = await db.collection('conversations').doc(req.params.id).collection('messages').orderBy('time', 'asc').get();
+        const data = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        res.json(data);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 export default router;

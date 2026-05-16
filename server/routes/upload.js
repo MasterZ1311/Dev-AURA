@@ -6,7 +6,7 @@ export default (bucket) => {
   router.post('/signed-url', async (req, res) => {
     try {
       const { fileName, fileType, folder = 'documents' } = req.body;
-      const uid = req.user.uid;
+      const uid = req.uid;
       
       const safeName = fileName.replace(/[^a-zA-Z0-9.-]/g, '_');
       const filePath = `${folder}/${uid}/${Date.now()}_${safeName}`;

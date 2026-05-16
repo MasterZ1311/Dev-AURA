@@ -69,4 +69,15 @@ router.get('/aura-code/:code', async (req, res) => {
     }
 });
 
+router.post('/aura-code', async (req, res) => {
+    try {
+        const { auraUID, displayName, photoURL } = req.body;
+        const ref = db.collection('users_by_aura_code').doc(auraUID);
+        await ref.set({ uid: req.uid, displayName: displayName || 'User', photoURL: photoURL || null, auraUID });
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 export default router;

@@ -80,12 +80,6 @@ export const AdminProvider = ({ children }) => {
                     }
                 }
             }
-<<<<<<< Updated upstream
-            await batch.commit();
-        } catch (err) {
-            console.error('[AdminContext] Import failed:', err);
-            throw new Error('Invalid backup file — could not parse JSON.');
-=======
 
             if (count > 0) {
                 await batch.commit();
@@ -95,7 +89,6 @@ export const AdminProvider = ({ children }) => {
         } catch (error) {
             console.error('[Admin] Import failed:', error);
             alert('Invalid backup file or import failed.');
->>>>>>> Stashed changes
         }
     };
 

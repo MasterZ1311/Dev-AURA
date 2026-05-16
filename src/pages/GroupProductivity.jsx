@@ -69,8 +69,9 @@ const GroupProductivity = () => {
         const handleSubmit = (e) => {
             e.preventDefault();
             if (!form.name) return;
-            if (editId) { ctx.updateProject(editId, form); }
-            else { ctx.addProject({ name: form.name, description: form.description || '', status: form.status || 'not-started', color: form.color || '#4f46e5', deadline: form.deadline || '', members: form.members ? form.members.split(',').map(m => m.trim()) : [] }); }
+            const parsedMembers = typeof form.members === 'string' ? form.members.split(',').map(m => m.trim()).filter(m => m) : (form.members || []);
+            if (editId) { ctx.updateProject(editId, { ...form, members: parsedMembers }); }
+            else { ctx.addProject({ name: form.name, description: form.description || '', status: form.status || 'not-started', color: form.color || '#4f46e5', deadline: form.deadline || '', members: parsedMembers }); }
             resetForm();
         };
 
@@ -151,8 +152,9 @@ const GroupProductivity = () => {
         const handleSubmit = (e) => {
             e.preventDefault();
             if (!form.name) return;
-            const members = form.membersRaw ? form.membersRaw.split(',').map(m => {
-                const name = m.trim();
+            const members = form.membersRaw !== undefined ? form.membersRaw.split(',').map(m => m.trim()).filter(m => m).map(name => {
+                const existing = (form.members || []).find(em => em.name === name);
+                if (existing) return existing;
                 return { name, role: 'member', initials: name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2), status: 'active' };
             }) : (form.members || []);
             if (editId) { ctx.updateTeam(editId, { ...form, members }); }

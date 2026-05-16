@@ -26,15 +26,15 @@ const generateAuraUID = () => {
   return code;
 };
 
+import { api } from '../utils/apiClient';
+
 /** Check if an AURA-XXXX code is already taken in the global index */
 const isAuraUIDTaken = async (code) => {
   try {
-    const indexRef = doc(db, 'aura_uid_index', code);
-    const snap = await getDoc(indexRef);
-    return snap.exists();
+    await api.get(`/user/aura-code/${code}`);
+    return true;
   } catch (e) {
-    console.error('[Auth] Error checking UID index:', e.message);
-    return false; // Fallback to not taken (risk of collision but avoids hang)
+    return false; // 404 means it's available
   }
 };
 
@@ -52,8 +52,7 @@ const createUniqueAuraUID = async () => {
 /** Register in global aura_uid_index */
 const registerAuraUIDIndex = async (auraUID, uid, displayName, photoURL) => {
   try {
-    const indexRef = doc(db, 'aura_uid_index', auraUID);
-    await setDoc(indexRef, { uid, displayName: displayName || 'User', photoURL: photoURL || null, auraUID });
+    await api.post('/user/aura-code', { auraUID, displayName, photoURL });
   } catch (e) {
     console.error('[Auth] Error registering UID index:', e.message);
   }
@@ -78,13 +77,13 @@ export const AuthProvider = ({ children }) => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       try {
         if (firebaseUser) {
-          const userDocRef = doc(db, 'users', firebaseUser.uid, 'settings', 'profile');
-          const userSnap = await getDoc(userDocRef).catch(err => {
-            console.warn('[Auth] Firestore profile fetch failed:', err.message);
-            return { exists: () => false };
-          });
-
-          let profileData = userSnap.exists() ? userSnap.data() : {};
+          let profileData = {};
+          try {
+            const res = await api.get('/user/settings/profile');
+            if (res) profileData = res;
+          } catch (e) {
+            console.warn('[Auth] Profile fetch failed via API:', e.message);
+          }
 
           // If user exists but lacks an auraUID, generate and save it
           if (!profileData.auraUID) {
@@ -96,7 +95,7 @@ export const AuthProvider = ({ children }) => {
               status: profileData.status || 'Active',
               role: profileData.role || 'admin',
             };
-            await setDoc(userDocRef, updates, { merge: true }).catch(e => console.error('[Auth] setDoc failed:', e));
+            await api.post('/user/settings/profile', updates).catch(e => console.error('[Auth] API post profile failed:', e));
             await registerAuraUIDIndex(newAuraUID, firebaseUser.uid, updates.name, firebaseUser.photoURL).catch(e => console.error('[Auth] registerIndex failed:', e));
             profileData = { ...profileData, ...updates };
           }
@@ -139,8 +138,7 @@ export const AuthProvider = ({ children }) => {
     // Generate unique AURA-XXXX
     const auraUID = await createUniqueAuraUID();
 
-    const profileRef = doc(db, 'users', cred.user.uid, 'settings', 'profile');
-    await setDoc(profileRef, {
+    await api.post('/user/settings/profile', {
       name,
       email,
       status: 'Active',
@@ -171,13 +169,18 @@ export const AuthProvider = ({ children }) => {
     if (accessToken) setGoogleAccessToken(accessToken);
 
     // Check if this is a first-time user
-    const profileRef = doc(db, 'users', user.uid, 'settings', 'profile');
-    const profileSnap = await getDoc(profileRef);
+    let profileData = null;
+    try {
+      const res = await api.get('/user/settings/profile');
+      if (res && res.id) profileData = res;
+    } catch (e) {
+      // 404 means first-time user
+    }
 
-    if (!profileSnap.exists()) {
+    if (!profileData) {
       // First-time Google user — create profile + AURA-XXXX
       const auraUID = await createUniqueAuraUID();
-      await setDoc(profileRef, {
+      await api.post('/user/settings/profile', {
         name: user.displayName || 'User',
         email: user.email,
         photoURL: user.photoURL || null,
@@ -190,9 +193,9 @@ export const AuthProvider = ({ children }) => {
       await registerAuraUIDIndex(auraUID, user.uid, user.displayName, user.photoURL);
     } else {
       // Existing user — just mark Google as connected
-      await updateDoc(profileRef, {
+      await api.post('/user/settings/profile', {
         googleConnected: true,
-        photoURL: user.photoURL || profileSnap.data().photoURL || null,
+        photoURL: user.photoURL || profileData.photoURL || null,
       });
     }
 
@@ -232,9 +235,8 @@ export const AuthProvider = ({ children }) => {
     if (updates.name && auth.currentUser) {
       await fbUpdateProfile(auth.currentUser, { displayName: updates.name });
     }
-    const profileRef = doc(db, 'users', currentUser.uid, 'settings', 'profile');
-    await updateDoc(profileRef, updates).catch(async () => {
-      await setDoc(profileRef, { ...currentUser, ...updates });
+    await api.post('/user/settings/profile', updates).catch(e => {
+        console.error('[Auth] Failed to update profile', e);
     });
     setCurrentUser(prev => ({ ...prev, ...updates }));
   };
@@ -242,10 +244,11 @@ export const AuthProvider = ({ children }) => {
   /* ─── Find user by AURA-XXXX code ─── */
   const findUserByAuraUID = async (auraUID) => {
     const code = auraUID.trim().toUpperCase();
-    const indexRef = doc(db, 'aura_uid_index', code);
-    const snap = await getDoc(indexRef);
-    if (!snap.exists()) return null;
-    return snap.data(); // { uid, displayName, photoURL, auraUID }
+    try {
+      return await api.get(`/user/aura-code/${code}`);
+    } catch (e) {
+      return null;
+    }
   };
 
   const value = {
