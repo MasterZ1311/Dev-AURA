@@ -28,10 +28,10 @@ export const GroupProvider = ({ children }) => {
         let loadCount = 0;
         const checkLoaded = () => { loadCount++; if (loadCount >= 4) setLoaded(true); };
 
-        const unsub1 = subscribeToCollection(uid, 'projects', (d) => { setProjects(d); checkLoaded(); }, { orderByField: 'createdAt', orderDir: 'desc' });
-        const unsub2 = subscribeToCollection(uid, 'teams', (d) => { setTeams(d); checkLoaded(); }, { orderByField: 'createdAt', orderDir: 'desc' });
-        const unsub3 = subscribeToCollection(uid, 'users', (d) => { setUsers(d); checkLoaded(); }, { orderByField: 'joinedAt', orderDir: 'desc' });
-        const unsub4 = subscribeToCollection(uid, 'goals', (d) => { setGoals(d); checkLoaded(); }, { orderByField: 'createdAt', orderDir: 'desc' });
+        const unsub1 = subscribeToCollection(uid, 'global/projects', (d) => { setProjects(d); checkLoaded(); }, { orderByField: 'createdAt', orderDir: 'desc' });
+        const unsub2 = subscribeToCollection(uid, 'global/teams', (d) => { setTeams(d); checkLoaded(); }, { orderByField: 'createdAt', orderDir: 'desc' });
+        const unsub3 = subscribeToCollection(uid, 'global/users', (d) => { setUsers(d); checkLoaded(); }, { orderByField: 'joinedAt', orderDir: 'desc' });
+        const unsub4 = subscribeToCollection(uid, 'global/goals', (d) => { setGoals(d); checkLoaded(); }, { orderByField: 'createdAt', orderDir: 'desc' });
 
         return () => { unsub1(); unsub2(); unsub3(); unsub4(); };
     }, [uid]);
@@ -39,12 +39,12 @@ export const GroupProvider = ({ children }) => {
     // ── Projects ──
     const addProject = async (p) => {
         if (!uid) return;
-        await addToCollection(uid, 'projects', { createdAt: Date.now(), progress: 0, tasks: 0, members: [], ...p });
+        await addToCollection(uid, 'global/projects', { createdAt: Date.now(), progress: 0, tasks: 0, members: [], ...p });
         logActivity(uid, `Created project: "${p.name || 'Untitled'}"`, 'group');
     };
-    const updateProject = async (id, u) => { if (uid) await updateInCollection(uid, 'projects', id, u); };
+    const updateProject = async (id, u) => { if (uid) await updateInCollection(uid, 'global/projects', id, u); };
     const deleteProject = async (id) => {
-        if (uid) await deleteFromCollection(uid, 'projects', id);
+        if (uid) await deleteFromCollection(uid, 'global/projects', id);
         logActivity(uid, `Deleted a project`, 'group');
     };
 
@@ -55,12 +55,12 @@ export const GroupProvider = ({ children }) => {
             ...m,
             vibrationalState: m.vibrationalState || 'Calm'
         }));
-        await addToCollection(uid, 'teams', { createdAt: Date.now(), ...t, members });
+        await addToCollection(uid, 'global/teams', { createdAt: Date.now(), ...t, members });
         logActivity(uid, `Created team: "${t.name || 'Untitled'}"`, 'group');
     };
-    const updateTeam = async (id, u) => { if (uid) await updateInCollection(uid, 'teams', id, u); };
+    const updateTeam = async (id, u) => { if (uid) await updateInCollection(uid, 'global/teams', id, u); };
     const deleteTeam = async (id) => {
-        if (uid) await deleteFromCollection(uid, 'teams', id);
+        if (uid) await deleteFromCollection(uid, 'global/teams', id);
         logActivity(uid, `Deleted a team`, 'group');
     };
 
@@ -68,20 +68,20 @@ export const GroupProvider = ({ children }) => {
     const addUser = async (u) => {
         if (!uid) return;
         const initials = (u.name || '').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-        await addToCollection(uid, 'users', { joinedAt: Date.now(), initials, status: 'active', ...u });
+        await addToCollection(uid, 'global/users', { joinedAt: Date.now(), initials, status: 'active', ...u });
     };
-    const updateUser = async (id, u) => { if (uid) await updateInCollection(uid, 'users', id, u); };
-    const deleteUser = async (id) => { if (uid) await deleteFromCollection(uid, 'users', id); };
+    const updateUser = async (id, u) => { if (uid) await updateInCollection(uid, 'global/users', id, u); };
+    const deleteUser = async (id) => { if (uid) await deleteFromCollection(uid, 'global/users', id); };
 
     // ── Goals ──
     const addGoal = async (g) => {
         if (!uid) return;
-        await addToCollection(uid, 'goals', { createdAt: Date.now(), progress: 0, keyResults: [], ...g });
+        await addToCollection(uid, 'global/goals', { createdAt: Date.now(), progress: 0, keyResults: [], ...g });
         logActivity(uid, `Created goal: "${g.title || 'Untitled'}"`, 'group');
     };
-    const updateGoal = async (id, u) => { if (uid) await updateInCollection(uid, 'goals', id, u); };
+    const updateGoal = async (id, u) => { if (uid) await updateInCollection(uid, 'global/goals', id, u); };
     const deleteGoal = async (id) => {
-        if (uid) await deleteFromCollection(uid, 'goals', id);
+        if (uid) await deleteFromCollection(uid, 'global/goals', id);
         logActivity(uid, `Deleted a goal`, 'group');
     };
     const toggleKeyResult = async (goalId, krIdx) => {
@@ -91,7 +91,7 @@ export const GroupProvider = ({ children }) => {
         const krs = goal.keyResults.map((kr, i) => i === krIdx ? { ...kr, completed: !kr.completed } : kr);
         const done = krs.filter(kr => kr.completed).length;
         const progress = krs.length ? Math.round((done / krs.length) * 100) : 0;
-        await updateInCollection(uid, 'goals', goalId, { keyResults: krs, progress });
+        await updateInCollection(uid, 'global/goals', goalId, { keyResults: krs, progress });
     };
 
     // ── Harmony Logic ──

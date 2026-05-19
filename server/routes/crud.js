@@ -111,7 +111,7 @@ router.delete('/:collection', validateCollection, async (req, res) => {
 });
 
 // ─── GLOBAL COLLECTIONS (Admin bypassing rules) ─────────────────────────────
-const GLOBAL_COLLECTIONS = new Set(['conversations', 'messages']);
+const GLOBAL_COLLECTIONS = new Set(['conversations', 'messages', 'projects', 'teams', 'goals', 'workflows', 'users']);
 
 router.post('/global/:collection', async (req, res) => {
     if (!GLOBAL_COLLECTIONS.has(req.params.collection)) return res.status(400).json({ error: 'Not allowed' });
@@ -128,6 +128,16 @@ router.patch('/global/:collection/:id', async (req, res) => {
     if (!GLOBAL_COLLECTIONS.has(req.params.collection)) return res.status(400).json({ error: 'Not allowed' });
     try {
         await db.collection(req.params.collection).doc(req.params.id).update({ ...req.body, updatedAt: Date.now() });
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.delete('/global/:collection/:id', async (req, res) => {
+    if (!GLOBAL_COLLECTIONS.has(req.params.collection)) return res.status(400).json({ error: 'Not allowed' });
+    try {
+        await db.collection(req.params.collection).doc(req.params.id).delete();
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ error: err.message });
