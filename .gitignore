@@ -1,42 +1,26 @@
-# Logs
-logs
+# OS Metadata
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Node / Build Artifacts
+node_modules/
+dist/
+build/
+coverage/
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
+# IDE & Local configs
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
 
-# Environment variables — keep secrets out of git
+# Environment & Secrets
 .env
 .env.local
 .env.*.local
-
-# Server environment (contains Firebase private key)
-server/.env
-server/node_modules
-
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-
-# Sensitive files
-server/.env
-*-firebase-adminsdk-*.json
-database_schema.md
-backend_setup_plan.md
-backend_verification_report.md
-credentials_gathering_guide.md
-
+*.pem
+*.key

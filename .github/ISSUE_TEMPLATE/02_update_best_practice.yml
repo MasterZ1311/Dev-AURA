@@ -1,0 +1,38 @@
+name: "Update or Refine an Existing Practice"
+description: "Suggest an improvement, update an outdated command, or fix a flaw in an existing guide."
+title: "[Update]: <Guide Name or Topic>"
+labels: ["enhancement", "documentation"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        If a command, tool configuration, or practice in Aura requires refinement, submit your suggestion below.
+  - type: input
+    id: guide-path
+    attributes:
+      label: Guide Path
+      description: Exact file path in the repository
+      placeholder: "docs/02-git-and-github-craft/git-workflow-and-branching.md"
+    validations:
+      required: true
+  - type: textarea
+    id: current-state
+    attributes:
+      label: Current Content / Issue
+      description: What is currently outdated or suboptimal?
+    validations:
+      required: true
+  - type: textarea
+    id: proposed-change
+    attributes:
+      label: Proposed Solution / Updated Practice
+      description: Provide the updated command, configuration, or explanation.
+    validations:
+      required: true
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Verification
+      options:
+        - label: I have verified this updated command/practice in a working environment.
+          required: true

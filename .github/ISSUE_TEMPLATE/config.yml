@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Community Discussions
+    url: https://github.com/MasterZ1311/Aura/discussions
+    about: Technical discussions, architecture questions, and environment configurations.
+  - name: Repository Rules and Standards
+    url: https://github.com/MasterZ1311/Aura/blob/main/RULES.md
+    about: Read mandatory quality criteria for guides and pull requests.

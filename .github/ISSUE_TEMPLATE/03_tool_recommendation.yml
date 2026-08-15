@@ -1,0 +1,43 @@
+name: "Recommend a Tool or Utility"
+description: "Propose a modern CLI tool, IDE extension, or developer productivity utility."
+title: "[Tool Spotlight]: <Tool Name>"
+labels: ["tool-spotlight", "community-suggestion"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Recommend a developer tool that measurably improves workflow speed, ergonomics, or system performance.
+  - type: input
+    id: tool-name
+    attributes:
+      label: Tool Name and URL
+      placeholder: "e.g., zoxide (https://github.com/ajeetdsouza/zoxide)"
+    validations:
+      required: true
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      options:
+        - "CLI / Terminal Utility"
+        - "IDE / Editor Extension"
+        - "Git & GitHub Productivity"
+        - "DevOps & Local Development"
+        - "Database & API Tool"
+        - "Observability & Profiling"
+    validations:
+      required: true
+  - type: textarea
+    id: why-it-matters
+    attributes:
+      label: Value Proposition
+      description: Explain the performance or workflow improvements over traditional alternatives (e.g., zoxide vs cd, ripgrep vs grep).
+    validations:
+      required: true
+  - type: textarea
+    id: installation-and-usage
+    attributes:
+      label: Installation & Configuration Blueprint
+      placeholder: "e.g., `brew install zoxide` or `cargo install zoxide`"
+    validations:
+      required: true

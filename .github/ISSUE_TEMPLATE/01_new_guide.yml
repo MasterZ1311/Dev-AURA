@@ -1,0 +1,52 @@
+name: "Propose a New Guide"
+description: "Propose a new guide, tutorial, or technical document for one of the 7 curriculum tracks."
+title: "[Guide Proposal]: <Short descriptive title>"
+labels: ["guide-proposal", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form to propose new technical content for the **Aura** knowledge base.
+  - type: dropdown
+    id: track
+    attributes:
+      label: Target Track
+      description: Which track does this guide belong to?
+      options:
+        - "Track 01: Foundations & Setup"
+        - "Track 02: Git & GitHub Craft"
+        - "Track 03: Code Craft & Architecture"
+        - "Track 04: Fullstack & API Engineering"
+        - "Track 05: DevOps, CI/CD & Cloud"
+        - "Track 06: Observability, Security & Reliability"
+        - "Track 07: Dev Aura & Soft Skills"
+    validations:
+      required: true
+  - type: input
+    id: topic-title
+    attributes:
+      label: Proposed Guide Title
+      placeholder: "e.g., Multi-Stage Docker Development Environments with Dev Containers"
+    validations:
+      required: true
+  - type: textarea
+    id: outline
+    attributes:
+      label: Guide Outline and Key Takeaways
+      description: What specific engineering problems will this guide address? Outline the sections.
+      placeholder: |
+        1. Overview and Problem Definition
+        2. Prerequisites and Tool Requirements
+        3. Step-by-Step Architecture and Configuration
+        4. Production Gotchas and Anti-Patterns
+    validations:
+      required: true
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Quality Agreement
+      options:
+        - label: I will provide actionable, tested configurations and avoid unverified generic content.
+          required: true
+        - label: I have reviewed the repository standards in RULES.md.
+          required: true
