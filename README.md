@@ -35,6 +35,8 @@ It encompasses the entire lifecycle of an engineer's growth:
 
 This handbook is designed for public collaboration. It establishes authoritative standards and practical guides from initial workstation configuration to complex distributed systems engineering.
 
+For an exhaustive synthesis of engineering principles, architectural patterns, and lessons learned across our software portfolio, read the [Architecture Principles & Engineering Retrospective](./docs/ARCHITECTURAL_PRINCIPLES_AND_RETROSPECTIVE.md).
+
 ---
 
 ## The 7 Core Tracks
