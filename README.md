@@ -33,13 +33,15 @@ It encompasses the entire lifecycle of an engineer's growth:
 - **Craftsmanship**: Clean, self-documenting code, strict type safety, test-driven reliability, and pragmatic design patterns.
 - **Leadership and Collaboration**: Rigorous and constructive code reviews, structured technical RFCs, and open-source contribution.
 
-This handbook is designed for public collaboration. It establishes authoritative standards and practical guides from initial workstation configuration to complex distributed systems engineering.
+This handbook is designed for public collaboration. It establishes authoritative standards, practical guides, and architectural case studies from initial workstation configuration to complex distributed systems engineering.
 
-For an exhaustive synthesis of engineering principles, architectural patterns, and lessons learned across our software portfolio, read the [Architecture Principles & Engineering Retrospective](./docs/ARCHITECTURAL_PRINCIPLES_AND_RETROSPECTIVE.md).
+- [**Engineering Principles Hub**](./docs/engineering-principles/README.md): 8 core architectural principles (Sovereign Computing, Post-Quantum Cryptography, Invariant State Machines, Client WASM, Multi-Agent Systems, and more).
+- [**Project Case Studies Hub**](./docs/project-case-studies/README.md): Production architectures and retrospectives across our software systems (*CodexOS*, *Kryptyx*, *ErgonPDF*, *Rheo*, *VTO*, *Parkly*, *PinkPulse*, *Calypso*, *Zeus*).
+- [**Master Architecture Synthesis**](./docs/ARCHITECTURAL_PRINCIPLES_AND_RETROSPECTIVE.md): Exhaustive retrospective and technical playbook.
 
 ---
 
-## The 7 Core Tracks
+## The Curriculum Tracks and Reference Architecture
 
 ```text
 Aura/
@@ -51,6 +53,8 @@ Aura/
     ├── 05-devops-cicd-and-cloud/             # Containers, Pipelines, IaC, Zero-Downtime Releases
     ├── 06-observability-security-reliability/# Security Standards, Telemetry, Incident Response
     ├── 07-dev-aura-and-soft-skills/          # Technical Writing, RFCs, Code Reviews, Career Growth
+    ├── engineering-principles/               # 8 Core Architectural Principle Modules
+    ├── project-case-studies/                 # Real-World System Architectures & Blueprints
     └── templates/                            # Standard Blueprints for New Contributions
 ```
 
