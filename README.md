@@ -9,9 +9,11 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-Welcome-brightgreen.svg?style=flat-square)](./CONTRIBUTING.md)
 [![Rules](https://img.shields.io/badge/Repository-Rules-purple.svg?style=flat-square)](./RULES.md)
 [![Tracks](https://img.shields.io/badge/Tracks-7%20Curriculum%20Modules-orange.svg?style=flat-square)](#the-7-core-tracks)
+[![Quality Gate: Certified](https://img.shields.io/badge/Quality%20Gate-100%25%20Certified-success.svg?style=flat-square)](./docs/REPOSITORY_AUDIT_REPORT.md)
 
 <p align="center">
   <a href="./docs/BEGINNER_ONBOARDING_FLOW.md">Beginner Roadmap (Start Here)</a> &bull;
+  <a href="./docs/REPOSITORY_AUDIT_REPORT.md">Audit Report</a> &bull;
   <a href="#the-philosophy-of-developer-aura">Philosophy</a> &bull;
   <a href="#the-7-core-tracks">Curriculum Tracks</a> &bull;
   <a href="#the-developer-progression-matrix">Progression Matrix</a> &bull;
@@ -41,6 +43,7 @@ This handbook is designed for public collaboration. It establishes authoritative
 - [**Engineering Principles Hub**](./docs/engineering-principles/README.md): 8 core architectural principles (Sovereign Computing, Post-Quantum Cryptography, Invariant State Machines, Client WASM, Multi-Agent Systems, and more).
 - [**Project Case Studies Hub**](./docs/project-case-studies/README.md): Production architectures and retrospectives across our software systems (*CodexOS*, *Kryptyx*, *ErgonPDF*, *Rheo*, *VTO*, *Parkly*, *PinkPulse*, *Calypso*, *Zeus*, *RuView*, *NuTorrent*, *NOVA*, *MeshLink*, *College Recommendation System*).
 - [**Master Architecture Synthesis**](./docs/ARCHITECTURAL_PRINCIPLES_AND_RETROSPECTIVE.md): Exhaustive retrospective and technical playbook.
+- [**Repository Quality Audit Report**](./docs/REPOSITORY_AUDIT_REPORT.md): Formal verification report certifying 100% blueprint conformance, 0 broken links, 0 emojis, and diagram density across all modules.
 
 ---
 

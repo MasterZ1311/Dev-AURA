@@ -20,7 +20,7 @@ This curriculum is distilled directly from the production architectures and hard
 
 It takes you step-by-step from beginner workstation foundations to building sovereign, resilient, high-agency software systems.
 
-> **New to the repository?** Follow the dedicated chronological roadmap: [**The Beginner Onboarding Flow (Start Here)**](../BEGINNER_ONBOARDING_FLOW.md) for an exact 11-phase, day-by-day learning schedule.
+> **New to the repository?** Follow the dedicated chronological roadmap: [**The Beginner Onboarding Flow (Start Here)**](../BEGINNER_ONBOARDING_FLOW.md) for an exact 11-phase, day-by-day learning schedule. Review our certified [**Repository Quality Audit Report**](../REPOSITORY_AUDIT_REPORT.md).
 
 ---
 

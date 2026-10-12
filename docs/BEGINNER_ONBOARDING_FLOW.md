@@ -358,6 +358,7 @@ Build a zero-cloud local vector retrieval system (RAG) in pure Python or TypeScr
 5. [Track 07: Technical Writing and RFC Design Documents](./07-dev-aura-and-soft-skills/technical-writing-and-rfcs.md)
 6. [Track 07: The Art of Constructive Code Review](./07-dev-aura-and-soft-skills/the-art-of-code-review.md)
 7. [Master Retrospective: Architectural Principles and Systems Synthesis](./ARCHITECTURAL_PRINCIPLES_AND_RETROSPECTIVE.md)
+8. [Repository Quality Audit Report: Quality Invariants & Verification](./REPOSITORY_AUDIT_REPORT.md)
 
 #### Capstone Project to Build
 Author a comprehensive Request for Comments (RFC) technical design document for a sovereign, air-gapped system. Package the system with Docker multi-stage builds, automated GitHub Actions CI/CD pipelines, OpenTelemetry instrumentation, and blameless postmortem runbooks.
