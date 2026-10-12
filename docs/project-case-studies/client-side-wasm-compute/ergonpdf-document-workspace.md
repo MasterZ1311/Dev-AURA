@@ -134,4 +134,4 @@ Build a client-side document protection utility using `pdf-lib` and React or Van
 3. **Scenario**: Why should large PDF modifications run inside a Web Worker?  
    *Answer*: To prevent CPU-heavy binary parsing from blocking the main thread, keeping user interactions and animations responsive at 60 FPS.
 
-Next Case Study: [Rheo: Sovereign Neural Speech Engine](../../sovereign-ai-and-neural-speech/rheo-neural-speech-engine.md)
+Next Case Study: [Rheo: Sovereign Neural Speech Engine](../sovereign-ai-and-neural-speech/rheo-neural-speech-engine.md)

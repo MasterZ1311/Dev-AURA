@@ -136,4 +136,4 @@ Build a web application that sends files directly between two browser tabs witho
 3. **Scenario**: What is the purpose of a STUN server in WebRTC?  
    *Answer*: A STUN server allows a device behind a NAT router to discover its own public IP address and port so it can share them with peers.
 
-Next Case Study: [ErgonPDF: Client-Side Document Workspace](../../client-side-wasm-compute/ergonpdf-document-workspace.md)
+Next Case Study: [ErgonPDF: Client-Side Document Workspace](../client-side-wasm-compute/ergonpdf-document-workspace.md)

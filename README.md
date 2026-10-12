@@ -11,6 +11,7 @@
 [![Tracks](https://img.shields.io/badge/Tracks-7%20Curriculum%20Modules-orange.svg?style=flat-square)](#the-7-core-tracks)
 
 <p align="center">
+  <a href="./docs/BEGINNER_ONBOARDING_FLOW.md">Beginner Roadmap (Start Here)</a> &bull;
   <a href="#the-philosophy-of-developer-aura">Philosophy</a> &bull;
   <a href="#the-7-core-tracks">Curriculum Tracks</a> &bull;
   <a href="#the-developer-progression-matrix">Progression Matrix</a> &bull;
@@ -35,6 +36,7 @@ It encompasses the entire lifecycle of an engineer's growth:
 
 This handbook is designed for public collaboration. It establishes authoritative standards, practical guides, and architectural case studies from initial workstation configuration to complex distributed systems engineering.
 
+- [**Beginner Onboarding Flow (Start Here)**](./docs/BEGINNER_ONBOARDING_FLOW.md): The step-by-step 11-phase chronological curriculum roadmap for learners starting from scratch.
 - [**The Sovereign Developer Learning Path**](./docs/learning-paths/README.md): Step-by-step masterclass taking you from zero to building sovereign systems across 7 specialized stages.
 - [**Engineering Principles Hub**](./docs/engineering-principles/README.md): 8 core architectural principles (Sovereign Computing, Post-Quantum Cryptography, Invariant State Machines, Client WASM, Multi-Agent Systems, and more).
 - [**Project Case Studies Hub**](./docs/project-case-studies/README.md): Production architectures and retrospectives across our software systems (*CodexOS*, *Kryptyx*, *ErgonPDF*, *Rheo*, *VTO*, *Parkly*, *PinkPulse*, *Calypso*, *Zeus*, *RuView*, *NuTorrent*, *NOVA*, *MeshLink*, *College Recommendation System*).

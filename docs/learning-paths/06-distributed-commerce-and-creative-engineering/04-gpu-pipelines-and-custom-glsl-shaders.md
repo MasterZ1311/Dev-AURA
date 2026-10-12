@@ -366,4 +366,4 @@ Build an interactive, performant 3D hero experience for your personal developer 
 3. **Scenario**: How does the `IntersectionObserver` improve battery life in web applications with 3D graphics?  
    *Answer*: It detects when the 3D canvas is scrolled out of the user's view, allowing the application to cancel the `requestAnimationFrame` loop and reduce CPU/GPU consumption to 0% while the user reads the rest of the page.
 
-Return to: [Curriculum Track Index](../../README.md)
+Return to: [Sovereign Developer Learning Path Index](../README.md)

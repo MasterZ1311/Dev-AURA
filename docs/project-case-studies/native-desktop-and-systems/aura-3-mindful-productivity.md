@@ -177,4 +177,4 @@ Build a distraction-free desktop or web application for reflective journaling.
 3. **Scenario**: What makes atomic file renaming safer than direct file overwrites?  
    *Answer*: Atomic renaming (`fs.rename`) is guaranteed by the OS filesystem to either fully succeed or fail, preventing half-written corrupted files during unexpected crashes.
 
-Next Case Study: [Kryptyx: Post-Quantum Password Fortress](../../cryptography-and-zero-knowledge/kryptyx-password-fortress.md)
+Next Case Study: [Kryptyx: Post-Quantum Password Fortress](../cryptography-and-zero-knowledge/kryptyx-password-fortress.md)

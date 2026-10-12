@@ -192,4 +192,4 @@ Build a web application for scoring multi-team battle royale tournaments.
 3. **Scenario**: What is the standard tiebreaker sequence in competitive Battle Royale?  
    *Answer*: Higher total points -> higher total placement points -> most match victories (Chicken Dinners) -> best single-match placement.
 
-Next Case Study: [Parkly: Autonomous Smart Parking Marketplace](../../distributed-commerce-and-marketplaces/parkly-smart-parking-marketplace.md)
+Next Case Study: [Parkly: Autonomous Smart Parking Marketplace](../distributed-commerce-and-marketplaces/parkly-smart-parking-marketplace.md)

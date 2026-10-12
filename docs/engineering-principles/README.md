@@ -28,6 +28,8 @@ graph TD
 
 This directory documents the 8 foundational engineering principles that guide our technical decisions across systems programming, cryptography, distributed computing, state machines, and human-computer interaction.
 
+> **Recommended Learning Flow:** To see how these 8 principles align with hands-on implementation modules and production case studies, follow the [**Beginner Onboarding Flow**](../BEGINNER_ONBOARDING_FLOW.md).
+
 | Principle Module | Directory | Core Focus |
 | :--- | :--- | :--- |
 | **01. Sovereign & Local-First Computing** | [`01-sovereign-and-local-first-computing/`](./01-sovereign-and-local-first-computing/README.md) | Zero-cloud dependence, host hardware compute, offline persistence |

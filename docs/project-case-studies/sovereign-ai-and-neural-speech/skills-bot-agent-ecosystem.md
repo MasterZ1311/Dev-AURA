@@ -156,4 +156,4 @@ Build an extensible tool registry for an autonomous terminal assistant.
 3. **Scenario**: Why must tool execution handlers enforce parameter validation?  
    *Answer*: LLMs are probabilistic text generators and may pass parameters with invalid types or missing required fields.
 
-Next Track: [Project Case Studies: Realtime Operations & Esports](../../realtime-operations-and-esports/README.md)
+Next Track: [Project Case Studies: Realtime Operations & Esports](../realtime-operations-and-esports/README.md)
