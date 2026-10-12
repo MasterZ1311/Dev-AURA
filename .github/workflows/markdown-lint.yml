@@ -20,4 +20,4 @@ jobs:
 
       - name: Run markdownlint
         run: |
-          npx -y markdownlint-cli "**/*.md" --ignore node_modules
+          npx -y markdownlint-cli "**/*.md" ".github/**/*.md" --ignore node_modules

@@ -10,6 +10,7 @@
 ## What You Will Master
 
 A concise summary defining the architectural or practical takeaways:
+
 - Master X to eliminate manual overhead.
 - Learn industry standard configuration patterns for Z.
 - Understand production trade-offs and anti-patterns.
@@ -30,6 +31,7 @@ example-cli install --flag production
 ## Step-by-Step Implementation
 
 ### Step 1: Conceptual Foundation
+
 Explain the technical motivation and architectural rationale.
 
 ```mermaid
@@ -39,6 +41,7 @@ flowchart LR
 ```
 
 ### Step 2: Practical Setup and Configuration
+
 Provide clean, reproducible instructions with commented configuration files.
 
 ```json
@@ -50,7 +53,9 @@ Provide clean, reproducible instructions with commented configuration files.
 ```
 
 ### Step 3: High-Efficiency Workflows
+
 Keybindings, aliases, or automation hooks that optimize operational throughput:
+
 - **Optimization 1**: Shell alias definition.
 - **Optimization 2**: Direct editor keybinding.
 
@@ -68,6 +73,7 @@ Keybindings, aliases, or automation hooks that optimize operational throughput:
 ## Contributor Challenges / Future Extensions
 
 Open extension tasks for subsequent contributors:
+
 - [ ] Add platform-specific instructions for macOS / Windows WSL.
 - [ ] Provide benchmark comparison against alternative tooling.
 

@@ -24,3 +24,6 @@ coverage/
 .env.*.local
 *.pem
 *.key
+
+# Agent Workspace & Scratch
+.agents/

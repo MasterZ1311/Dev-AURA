@@ -12,11 +12,13 @@
 When developers decide to build a desktop application today, the default choice is almost always Electron. It is easy to see why: you write standard React or web code, and it runs in a native-looking window.
 
 Here is the hidden price you pay:
+
 - Electron bundles an entire instance of Google Chromium and Node.js with every application window.
 - Open VS Code, Slack, Discord, and Spotify on your computer, and you have four separate Chromium instances consuming 3GB to 5GB of system RAM before you even compile a single line of code.
 - If you are building developer tools—where users are simultaneously running heavy compilers, Docker containers, or AI models—your tool will feel sluggish and resource-heavy.
 
 **CodexOS** takes a different approach:
+
 - It replaces Electron with **Tauri 2.0 (Rust)**, leveraging the operating system's native Webview (WebKit on macOS, WebView2 on Windows, WebKitGTK on Linux).
 - Baseline idle RAM drops from **650MB+ down to ~45MB**.
 - Critical systems tasks—such as spawning terminal pseudo-terminals (PTYs), managing process signals, and monitoring local hardware—are handled in high-speed, memory-safe Rust.
@@ -26,6 +28,7 @@ Here is the hidden price you pay:
 ## 2. The Mental Model: Intuitive Analogy & Visual Topology
 
 ### The Private Jet vs. The Commercial Airliner
+
 - **Electron** is like chartering an entire commercial Boeing 777 every time you want to go to the grocery store. It is spacious and familiar, but moving it requires massive fuel and runway space.
 - **Tauri 2.0** is like driving a lightweight sports car that uses the city's existing highway infrastructure (the OS native webview). It starts instantly, uses minimal fuel, and reaches top speeds quickly.
 
@@ -54,7 +57,9 @@ graph TD
 ## 3. Deep Dive: Under the Hood
 
 ### How PTY Terminals Actually Work
+
 When you type a command into a terminal like `xterm.js`, it does not simply call `child_process.exec()`. Executing shell commands requires a **Pseudo-Terminal (PTY)**:
+
 - A PTY is a bidirectional character device provided by the OS kernel (POSIX `/dev/pts` or Windows ConPTY).
 - It emulates an interactive teletypewriter, handling ANSI escape sequences (colors, cursor jumps, screen clears), signals (`Ctrl+C` sends `SIGINT`), and raw keyboard input.
 - In CodexOS, the Rust backend uses the `portable-pty` crate to spawn a background shell thread and streams input/output bytes across Tauri's IPC boundary to `xterm.js` in real time.
@@ -76,6 +81,7 @@ When you type a command into a terminal like `xterm.js`, it does not simply call
 Let us build a minimal working prototype of a native terminal and system monitoring service using Rust and Tauri concepts.
 
 ### Step 1: Rust Backend Command (`src-tauri/src/main.rs`)
+
 In a Tauri 2.0 application, backend capabilities are exposed as typed Rust functions annotated with `#[tauri::command]`:
 
 ```rust
@@ -128,6 +134,7 @@ fn main() {
 ```
 
 ### Step 2: React Frontend Consumer (`SystemMonitor.tsx`)
+
 In the React frontend, invoke the native Rust command with complete type safety:
 
 ```typescript
@@ -176,6 +183,7 @@ export const SystemMonitor: React.FC = () => {
 ## 5. Battle Scars: What Breaks in Production & How to Debug It
 
 ### Top 3 Hard-Won Lessons from CodexOS
+
 1. **Windows PTY Terminal Crashes**: Windows handles pseudo-terminals via the `ConPTY` subsystem introduced in Windows 10. Attempting to spawn shells on older Windows builds without fallback pipes causes crashes. Always verify `conpty.dll` availability before initializing.
 2. **Terminal Text Buffer Floods**: Running a command that outputs 100,000 lines of log output in one second (like `cat large.log`) will choke the webview if every line triggers an individual IPC message. Solution: Buffer terminal output in Rust and dispatch chunks every 16ms to align with monitor refresh rates.
 3. **Rust Thread Deadlocks with Mutexes**: Holding a `MutexGuard` across an asynchronous `await` boundary can lead to deadlocks. Keep mutex lock scopes strictly synchronous and short.
@@ -185,6 +193,7 @@ export const SystemMonitor: React.FC = () => {
 ## 6. The Weekend Hackathon Challenge: Your Turn to Build
 
 ### Challenge: The Minimal Native Developer Dashboard
+
 Build a custom native desktop utility using Tauri 2.0 and React.
 
 - **Level 1 (Core)**: Display real-time CPU, RAM, and Disk space usage updated every second via a Rust backend command.

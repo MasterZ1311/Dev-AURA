@@ -87,6 +87,177 @@ Every tool contract defines:
 }
 ```
 
+### Authentic Model Context Protocol (MCP) JSON-RPC 2.0 Wire Messages
+
+The official Model Context Protocol (MCP) specification defines communication between hosts (such as Claude Desktop or custom agents) and local tool servers using **JSON-RPC 2.0** framing over two primary transport channels:
+
+1. **`stdio` Transport**: Messages are sent as single-line UTF-8 JSON objects delimited by newlines (`\n`) over standard input (`stdin`) and standard output (`stdout`). This is the default transport for local subprocesses and command-line agents.
+2. **`HTTP with SSE` Transport**: The host issues HTTP POST requests containing JSON-RPC payloads to the server, and listens for server notifications and responses via a persistent Server-Sent Events (`text/event-stream`) connection.
+
+#### 1. Lifecycle Handshake: `initialize`
+Before discovering or invoking tools, host and server establish protocol capabilities:
+
+**Host Request (`stdio` -> Server `stdin`)**:
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "initialize",
+  "params": {
+    "protocolVersion": "2024-11-05",
+    "capabilities": {
+      "roots": { "listChanged": true },
+      "sampling": {}
+    },
+    "clientInfo": {
+      "name": "AuraSovereignHost",
+      "version": "1.0.0"
+    }
+  }
+}
+```
+
+**Server Response (Server `stdout` -> Host)**:
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "protocolVersion": "2024-11-05",
+    "capabilities": {
+      "tools": { "listChanged": false },
+      "resources": { "subscribe": false }
+    },
+    "serverInfo": {
+      "name": "AuraLocalDiagnosticsServer",
+      "version": "1.0.0"
+    }
+  }
+}
+```
+
+Upon receipt, the host sends an unacknowledged notification confirming readiness:
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "notifications/initialized"
+}
+```
+
+#### 2. Tool Discovery: `tools/list`
+The host queries available tools to inject their declarative JSON Schemas into the LLM system prompt.
+
+**Host Request**:
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "method": "tools/list",
+  "params": {}
+}
+```
+
+**Server Response**:
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "result": {
+    "tools": [
+      {
+        "name": "check_station_health",
+        "description": "Verifies physical operational PC count and network VLAN integrity for a LAN esports station.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "stationId": {
+              "type": "string",
+              "description": "Identifier of the tournament hardware station (e.g. station-main-01)"
+            }
+          },
+          "required": ["stationId"]
+        }
+      }
+    ]
+  }
+}
+```
+
+#### 3. Tool Execution: `tools/call`
+When the LLM decides to invoke an external capability, the host translates the model's function call into a wire request.
+
+**Host Request**:
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 3,
+  "method": "tools/call",
+  "params": {
+    "name": "check_station_health",
+    "arguments": {
+      "stationId": "station-main-01"
+    }
+  }
+}
+```
+
+**Server Success Response**:
+The tool output is returned in a standard `content` array of multimodal items:
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 3,
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"stationId\":\"station-main-01\",\"operationalPcs\":10,\"networkVlan\":\"10.200.4.0/24\",\"usbPollingRateHz\":8000,\"isReady\":true}"
+      }
+    ],
+    "isError": false
+  }
+}
+```
+
+#### 4. Structured Error Wire Formatting
+The MCP wire protocol differentiates between two classes of errors:
+
+1. **Protocol-Level JSON-RPC Errors**: Used when parsing fails, the method does not exist, or the JSON-RPC envelope is malformed. The server returns a top-level `error` object with standard error codes:
+   - `-32700`: Parse error (invalid JSON)
+   - `-32600`: Invalid Request (missing jsonrpc version or method)
+   - `-32601`: Method not found
+   - `-32602`: Invalid params (arguments do not conform to schema)
+   - `-32603`: Internal server error
+
+   ```json
+   {
+     "jsonrpc": "2.0",
+     "id": 4,
+     "error": {
+       "code": -32601,
+       "message": "Method 'delete_entire_database' not found on this MCP server."
+     }
+   }
+   ```
+
+2. **Tool Execution Errors**: When the tool itself encounters a runtime failure (such as a database query timeout or missing file), the server returns a successful JSON-RPC envelope with `isError: true` inside `result`:
+   ```json
+   {
+     "jsonrpc": "2.0",
+     "id": 5,
+     "result": {
+       "content": [
+         {
+           "type": "text",
+           "text": "Hardware Pre-Flight Check Failed: Station station-lab-b has only 9/10 operational PCs."
+         }
+       ],
+       "isError": true
+     }
+   }
+   ```
+   *Why this invariant matters*: Returning application errors inside `result.isError` allows the LLM to inspect the error message and attempt self-correction without terminating the host transport connection.
+
 ---
 
 ## 4. Zero-to-One Interactive Playground: Build It From Scratch
@@ -107,6 +278,24 @@ npm install typescript @types/node tsx
 Create `mcp-tool-registry.ts`:
 
 ```typescript
+export interface JsonRpcRequest {
+  jsonrpc: '2.0';
+  id?: string | number | null;
+  method: string;
+  params?: Record<string, any>;
+}
+
+export interface JsonRpcResponse {
+  jsonrpc: '2.0';
+  id: string | number | null;
+  result?: any;
+  error?: {
+    code: number;
+    message: string;
+    data?: any;
+  };
+}
+
 export interface McpToolDefinition {
   name: string;
   description: string;
@@ -118,143 +307,242 @@ export interface McpToolDefinition {
   handler: (args: Record<string, any>) => Promise<any>;
 }
 
-export class McpToolRegistry {
+export class McpJsonRpcServer {
   private tools: Map<string, McpToolDefinition> = new Map();
+  private isInitialized = false;
 
-  /**
-   * Registers a new tool with a declarative contract.
-   */
   public registerTool(tool: McpToolDefinition): void {
     if (this.tools.has(tool.name)) {
       throw new Error(`Tool ${tool.name} is already registered`);
     }
     this.tools.set(tool.name, tool);
-    console.log(`[MCP SERVER] Registered Tool: '${tool.name}'`);
   }
 
   /**
-   * Returns list of tool schemas for AI model discovery (tools/list).
+   * Processes an incoming raw JSON-RPC 2.0 string over stdio or SSE transport.
+   * Returns a spec-compliant JSON-RPC 2.0 response string.
    */
-  public listTools(): Array<Omit<McpToolDefinition, 'handler'>> {
-    return Array.from(this.tools.values()).map(({ name, description, inputSchema }) => ({
-      name,
-      description,
-      inputSchema,
-    }));
-  }
+  public async handleWireMessage(rawJson: string): Promise<string> {
+    let request: JsonRpcRequest;
 
-  /**
-   * Executes a tool with runtime schema validation (tools/call).
-   */
-  public async callTool(name: string, args: Record<string, any>): Promise<any> {
-    const tool = this.tools.get(name);
-    if (!tool) {
-      throw new Error(`McpToolNotFound: Tool '${name}' does not exist on this server`);
+    // 1. JSON-RPC Syntax / Parse Error (-32700)
+    try {
+      request = JSON.parse(rawJson);
+    } catch {
+      return JSON.stringify({
+        jsonrpc: '2.0',
+        id: null,
+        error: { code: -32700, message: 'Parse error: Invalid JSON string' },
+      });
     }
 
-    // 1. Validate Required Fields
-    const required = tool.inputSchema.required ?? [];
-    for (const reqField of required) {
-      if (args[reqField] === undefined || args[reqField] === null) {
-        throw new Error(
-          `McpSchemaValidationError: Missing required parameter '${reqField}' for tool '${name}'`
+    // 2. Validate JSON-RPC 2.0 Envelope (-32600)
+    if (request.jsonrpc !== '2.0' || typeof request.method !== 'string') {
+      return JSON.stringify({
+        jsonrpc: '2.0',
+        id: request.id ?? null,
+        error: { code: -32600, message: 'Invalid Request: Missing jsonrpc version or method' },
+      });
+    }
+
+    // Handle Unacknowledged Notifications
+    if (request.id === undefined || request.id === null) {
+      if (request.method === 'notifications/initialized') {
+        this.isInitialized = true;
+      }
+      return ''; // Notifications do not generate wire responses
+    }
+
+    const id = request.id;
+
+    // 3. Dispatch Methods
+    switch (request.method) {
+      case 'initialize': {
+        return JSON.stringify({
+          jsonrpc: '2.0',
+          id,
+          result: {
+            protocolVersion: '2024-11-05',
+            capabilities: { tools: { listChanged: false } },
+            serverInfo: { name: 'AuraLocalDiagnosticsServer', version: '1.0.0' },
+          },
+        });
+      }
+
+      case 'tools/list': {
+        const toolList = Array.from(this.tools.values()).map(
+          ({ name, description, inputSchema }) => ({ name, description, inputSchema })
         );
+        return JSON.stringify({
+          jsonrpc: '2.0',
+          id,
+          result: { tools: toolList },
+        });
+      }
+
+      case 'tools/call': {
+        const { name, arguments: toolArgs } = request.params ?? {};
+        if (!name || typeof name !== 'string') {
+          return JSON.stringify({
+            jsonrpc: '2.0',
+            id,
+            error: { code: -32602, message: 'Invalid params: Missing tool name' },
+          });
+        }
+
+        const tool = this.tools.get(name);
+        if (!tool) {
+          return JSON.stringify({
+            jsonrpc: '2.0',
+            id,
+            error: { code: -32601, message: `Method not found: Tool '${name}' does not exist` },
+          });
+        }
+
+        // Validate Required Parameters
+        const required = tool.inputSchema.required ?? [];
+        const actualArgs = toolArgs ?? {};
+        for (const reqField of required) {
+          if (actualArgs[reqField] === undefined || actualArgs[reqField] === null) {
+            return JSON.stringify({
+              jsonrpc: '2.0',
+              id,
+              error: {
+                code: -32602,
+                message: `Invalid params: Missing required parameter '${reqField}' for tool '${name}'`,
+              },
+            });
+          }
+        }
+
+        // Execute Handler with Structured Tool Content
+        try {
+          const handlerOutput = await tool.handler(actualArgs);
+          return JSON.stringify({
+            jsonrpc: '2.0',
+            id,
+            result: {
+              content: [
+                {
+                  type: 'text',
+                  text: typeof handlerOutput === 'string' ? handlerOutput : JSON.stringify(handlerOutput),
+                },
+              ],
+              isError: false,
+            },
+          });
+        } catch (execErr: any) {
+          // Application-level tool error preserved in result.isError
+          return JSON.stringify({
+            jsonrpc: '2.0',
+            id,
+            result: {
+              content: [{ type: 'text', text: `Tool Execution Failure: ${execErr.message}` }],
+              isError: true,
+            },
+          });
+        }
+      }
+
+      default: {
+        return JSON.stringify({
+          jsonrpc: '2.0',
+          id,
+          error: { code: -32601, message: `Method not found: '${request.method}'` },
+        });
       }
     }
-
-    // 2. Validate Primitive Types
-    for (const [key, value] of Object.entries(args)) {
-      const expectedProp = tool.inputSchema.properties[key];
-      if (expectedProp) {
-        const actualType = typeof value;
-        if (expectedProp.type === 'number' && actualType !== 'number') {
-          throw new Error(`McpTypeError: Field '${key}' must be a number, got ${actualType}`);
-        }
-        if (expectedProp.type === 'string' && actualType !== 'string') {
-          throw new Error(`McpTypeError: Field '${key}' must be a string, got ${actualType}`);
-        }
-      }
-    }
-
-    // 3. Execute Handler safely
-    console.log(`[MCP EXECUTE] Executing '${name}' with arguments:`, args);
-    return await tool.handler(args);
   }
 }
 
 // ---------------------------------------------------------------------------
-// Verification Simulation: Registering Tools & Simulating AI Invocations
+// Verification Simulation: JSON-RPC 2.0 Stdio Wire Protocol Exchange
 // ---------------------------------------------------------------------------
-async function runMcpDemo() {
-  const registry = new McpToolRegistry();
+async function runMcpWireDemo() {
+  const server = new McpJsonRpcServer();
 
-  // Register Tool 1: Tournament Station Checker
-  registry.registerTool({
+  // Register Tournament Station Health Tool
+  server.registerTool({
     name: 'check_station_health',
     description: 'Checks the operational PC and network status of a physical LAN station.',
     inputSchema: {
       type: 'object',
       properties: {
-        stationId: { type: 'string', description: 'ID of the station, e.g. station-01' },
+        stationId: { type: 'string', description: 'ID of the station, e.g. station-main-01' },
       },
       required: ['stationId'],
     },
     handler: async (args) => {
+      if (args.stationId === 'station-broken-02') {
+        throw new Error('Station has only 8/10 operational PCs (Hardware Quorum Failure)');
+      }
       return {
         stationId: args.stationId,
         operationalPcs: 10,
         networkVlan: '10.200.4.0/24 (Healthy)',
+        usbPollingRateHz: 8000,
         isReady: true,
       };
     },
   });
 
-  // Register Tool 2: Local Audio Synthesizer
-  registry.registerTool({
-    name: 'synthesize_speech_pcm',
-    description: 'Synthesizes spoken audio from text using local neural models.',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        text: { type: 'string', description: 'Text prompt to convert to speech' },
-        voiceTone: { type: 'string', description: 'Warm / Authoritative / Neutral' },
-      },
-      required: ['text'],
-    },
-    handler: async (args) => {
-      return {
-        sampleRate: 24000,
-        chunkCount: 8,
-        bytesGenerated: 38400,
-        status: 'DISPATCHED_TO_LOCAL_SPEAKERS',
-      };
-    },
+  console.log('=== Step 1: Handshake (initialize) ===');
+  const initMsg = JSON.stringify({
+    jsonrpc: '2.0',
+    id: 1,
+    method: 'initialize',
+    params: { protocolVersion: '2024-11-05' },
   });
+  console.log('Host -> Wire:', initMsg);
+  console.log('Server -> Wire:', await server.handleWireMessage(initMsg));
 
-  console.log('\n--- Step 1: AI Model queries available tools (tools/list) ---');
-  const availableTools = registry.listTools();
-  console.log(JSON.stringify(availableTools, null, 2));
+  console.log('\n=== Step 2: Tool Discovery (tools/list) ===');
+  const listMsg = JSON.stringify({ jsonrpc: '2.0', id: 2, method: 'tools/list', params: {} });
+  console.log('Host -> Wire:', listMsg);
+  console.log('Server -> Wire:', await server.handleWireMessage(listMsg));
 
-  console.log('\n--- Step 2: AI Model executes valid tool call (tools/call) ---');
-  const result = await registry.callTool('check_station_health', { stationId: 'station-main-01' });
-  console.log('Tool Result returned to model:\n', result);
+  console.log('\n=== Step 3: Valid Tool Call (tools/call) ===');
+  const callMsg = JSON.stringify({
+    jsonrpc: '2.0',
+    id: 3,
+    method: 'tools/call',
+    params: { name: 'check_station_health', arguments: { stationId: 'station-main-01' } },
+  });
+  console.log('Host -> Wire:', callMsg);
+  console.log('Server -> Wire:', await server.handleWireMessage(callMsg));
 
-  console.log('\n--- Step 3: AI Model sends invalid parameters (Missing required field) ---');
-  try {
-    await registry.callTool('check_station_health', {}); // Missing stationId!
-  } catch (err: any) {
-    console.log('Caught Expected Error:', err.message);
-  }
+  console.log('\n=== Step 4: Schema Validation Error (-32602) ===');
+  const badParamMsg = JSON.stringify({
+    jsonrpc: '2.0',
+    id: 4,
+    method: 'tools/call',
+    params: { name: 'check_station_health', arguments: {} },
+  });
+  console.log('Host -> Wire:', badParamMsg);
+  console.log('Server -> Wire:', await server.handleWireMessage(badParamMsg));
 
-  console.log('\n--- Step 4: AI Model attempts to invoke non-existent tool ---');
-  try {
-    await registry.callTool('delete_entire_database', { confirm: true });
-  } catch (err: any) {
-    console.log('Caught Expected Error:', err.message);
-  }
+  console.log('\n=== Step 5: Application-Level Tool Execution Error (isError: true) ===');
+  const appErrorMsg = JSON.stringify({
+    jsonrpc: '2.0',
+    id: 5,
+    method: 'tools/call',
+    params: { name: 'check_station_health', arguments: { stationId: 'station-broken-02' } },
+  });
+  console.log('Host -> Wire:', appErrorMsg);
+  console.log('Server -> Wire:', await server.handleWireMessage(appErrorMsg));
+
+  console.log('\n=== Step 6: Non-Existent Method (-32601) ===');
+  const unknownMethodMsg = JSON.stringify({
+    jsonrpc: '2.0',
+    id: 6,
+    method: 'drop_database_tables',
+    params: {},
+  });
+  console.log('Host -> Wire:', unknownMethodMsg);
+  console.log('Server -> Wire:', await server.handleWireMessage(unknownMethodMsg));
 }
 
-runMcpDemo();
+runMcpWireDemo();
 ```
 
 ### Step 3: Run and Test Instructions
@@ -266,38 +554,29 @@ npx tsx mcp-tool-registry.ts
 
 Expected terminal output:
 ```text
-[MCP SERVER] Registered Tool: 'check_station_health'
-[MCP SERVER] Registered Tool: 'synthesize_speech_pcm'
+=== Step 1: Handshake (initialize) ===
+Host -> Wire: {"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05"}}
+Server -> Wire: {"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2024-11-05","capabilities":{"tools":{"listChanged":false}},"serverInfo":{"name":"AuraLocalDiagnosticsServer","version":"1.0.0"}}}
 
---- Step 1: AI Model queries available tools (tools/list) ---
-[
-  {
-    "name": "check_station_health",
-    "description": "Checks the operational PC and network status of a physical LAN station.",
-    "inputSchema": { ... }
-  },
-  {
-    "name": "synthesize_speech_pcm",
-    "description": "Synthesizes spoken audio from text using local neural models.",
-    "inputSchema": { ... }
-  }
-]
+=== Step 2: Tool Discovery (tools/list) ===
+Host -> Wire: {"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}
+Server -> Wire: {"jsonrpc":"2.0","id":2,"result":{"tools":[{"name":"check_station_health","description":"Checks the operational PC and network status of a physical LAN station.","inputSchema":{"type":"object","properties":{"stationId":{"type":"string","description":"ID of the station, e.g. station-main-01"}},"required":["stationId"]}}]}}
 
---- Step 2: AI Model executes valid tool call (tools/call) ---
-[MCP EXECUTE] Executing 'check_station_health' with arguments: { stationId: 'station-main-01' }
-Tool Result returned to model:
- {
-  stationId: 'station-main-01',
-  operationalPcs: 10,
-  networkVlan: '10.200.4.0/24 (Healthy)',
-  isReady: true
-}
+=== Step 3: Valid Tool Call (tools/call) ===
+Host -> Wire: {"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"check_station_health","arguments":{"stationId":"station-main-01"}}}
+Server -> Wire: {"jsonrpc":"2.0","id":3,"result":{"content":[{"type":"text","text":"{\"stationId\":\"station-main-01\",\"operationalPcs\":10,\"networkVlan\":\"10.200.4.0/24 (Healthy)\",\"usbPollingRateHz\":8000,\"isReady\":true}"}],"isError":false}}
 
---- Step 3: AI Model sends invalid parameters (Missing required field) ---
-Caught Expected Error: McpSchemaValidationError: Missing required parameter 'stationId' for tool 'check_station_health'
+=== Step 4: Schema Validation Error (-32602) ===
+Host -> Wire: {"jsonrpc":"2.0","id":4,"method":"tools/call","params":{"name":"check_station_health","arguments":{}}}
+Server -> Wire: {"jsonrpc":"2.0","id":4,"error":{"code":-32602,"message":"Invalid params: Missing required parameter 'stationId' for tool 'check_station_health'"}}
 
---- Step 4: AI Model attempts to invoke non-existent tool ---
-Caught Expected Error: McpToolNotFound: Tool 'delete_entire_database' does not exist on this server
+=== Step 5: Application-Level Tool Execution Error (isError: true) ===
+Host -> Wire: {"jsonrpc":"2.0","id":5,"method":"tools/call","params":{"name":"check_station_health","arguments":{"stationId":"station-broken-02"}}}
+Server -> Wire: {"jsonrpc":"2.0","id":5,"result":{"content":[{"type":"text","text":"Tool Execution Failure: Station has only 8/10 operational PCs (Hardware Quorum Failure)"}],"isError":true}}
+
+=== Step 6: Non-Existent Method (-32601) ===
+Host -> Wire: {"jsonrpc":"2.0","id":6,"method":"drop_database_tables","params":{}}
+Server -> Wire: {"jsonrpc":"2.0","id":6,"error":{"code":-32601,"message":"Method not found: 'drop_database_tables'"}}
 ```
 
 ---

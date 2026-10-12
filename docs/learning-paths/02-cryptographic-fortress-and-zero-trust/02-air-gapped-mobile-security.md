@@ -13,6 +13,7 @@ Every major password manager on the market today (1Password, Bitwarden, LastPass
 Yet, all of them require network permissions to sync your encrypted vault to their cloud servers.
 
 What happens when:
+
 - A malicious SDK update is injected into the mobile application bundle?
 - A rogue employee pushes an update that logs passwords during memory decryption?
 - The cloud provider's API infrastructure is breached or subjected to government subpoenas?
@@ -21,6 +22,7 @@ In **Kryptyx**, our mobile password fortress, we asked a radical question:
 **Why does a password manager need an internet connection at all?**
 
 By explicitly excluding the `android.permission.INTERNET` flag from the `AndroidManifest.xml`:
+
 - The operating system kernel enforces a physical sandbox boundary.
 - Even if a dependency contains malicious malware or a zero-day exploit, the operating system physically refuses to open network sockets.
 - The user is granted mathematical proof of sovereign data air-gapping.
@@ -30,6 +32,7 @@ By explicitly excluding the `android.permission.INTERNET` flag from the `Android
 ## 2. The Mental Model: Intuitive Analogy & Visual Topology
 
 ### The Safe with No Windows vs. The Cloud Storage Locker
+
 - **Cloud Vault**: A storage locker in a public warehouse. You lock it with your key, but the warehouse has roads, security guards, delivery trucks, and Wi-Fi antennas. Someone could potentially tamper with the doors or intercept packages.
 - **Air-Gapped Fortress**: A solid titanium safe buried 50 feet underground in your basement with zero electrical cables, zero radio antennas, and zero doors to the outside world. To put something in or take something out, you must be physically standing in front of it.
 
@@ -53,20 +56,25 @@ graph TD
 ## 3. Deep Dive: Under the Hood
 
 ### The Android Manifest Air-Gap Guarantee
+
 In Android development, accessing the network requires declaring the permission:
+
 ```xml
 <!-- In naive mobile applications -->
 <uses-permission android:name="android.permission.INTERNET" />
 ```
 
 When this line is omitted:
+
 1. The Linux kernel assigns the application a unique Linux UID (User Identifier).
 2. The kernel's networking stack (`iptables` and socket filters) drops any `socket()` or `connect()` syscall from that UID.
 3. Attempting to call `fetch()`, `HttpURLConnection`, or OkHttp throws a fatal `SecurityException` at the kernel level.
 4. Security researchers can decompile the APK and verify in 5 seconds that data exfiltration is physically impossible.
 
 ### Hardware-Backed Keystores & StrongBox Keymaster
+
 Where do cryptographic keys live?
+
 - **Software Keystore**: Keys are stored on regular flash memory encrypted by an OS password. Susceptible to memory extraction on rooted devices.
 - **Hardware-Backed Keystore (TEE / Secure Enclave)**: Keys are generated and stored inside an isolated physical processor core (Trusted Execution Environment).
 - **StrongBox Keymaster**: A dedicated tamper-resistant hardware chip (Secure Element) with its own CPU and storage, providing physical resistance against side-channel analysis and cold-boot memory freezing attacks.
@@ -87,6 +95,7 @@ Where do cryptographic keys live?
 Let us write a TypeScript simulator of an air-gapped security runtime. This simulator inspects the runtime environment, validates that all network requests are blocked, and binds secrets to a simulated hardware keystore with biometric authorization.
 
 ### Step 1: Environment Setup
+
 Create a playground directory:
 
 ```bash
@@ -97,6 +106,7 @@ npm install typescript @types/node tsx
 ```
 
 ### Step 2: Implementation (`airgap-runtime.ts`)
+
 Create `airgap-runtime.ts`:
 
 ```typescript
@@ -197,6 +207,7 @@ console.log('Sovereign Security: Data encrypted at rest via hardware-bound keys 
 ```
 
 ### Step 3: Run and Test Instructions
+
 Execute the script using `tsx`:
 
 ```bash
@@ -204,6 +215,7 @@ npx tsx airgap-runtime.ts
 ```
 
 Expected terminal output:
+
 ```text
 --- Step 1: Initializing Sovereign Air-Gapped Engine (0 Permissions) ---
 
@@ -224,11 +236,14 @@ Sovereign Security: Data encrypted at rest via hardware-bound keys with zero net
 ## 5. Battle Scars: What Breaks in Production & How to Debug It
 
 ### Top 3 Mistakes Beginners Make
+
 1. **Accidental Network Permissions Injected by Third-Party Libraries**: A developer installs a benign UI library whose internal `AndroidManifest.xml` contains `<uses-permission android:name="android.permission.INTERNET" />`. Gradle merges manifests during build time, silently granting internet access.  
    **Remediation**: Use manifest node removal in your main app manifest:
+
    ```xml
    <uses-permission android:name="android.permission.INTERNET" tools:node="remove" />
    ```
+
 2. **Storing Keystore Keys in RAM as Unmanaged Strings**: In Java/Kotlin, converting passwords to `String` objects puts them in immutable string pools that cannot be zeroed out.  
    **Remediation**: Always handle credentials as primitive `CharArray` or byte arrays (`ByteArray`) and overwrite with zeros immediately after use.
 3. **Failing to Handle Hardware Sensor Unavailability**: Assuming every user device has a working fingerprint or Face Unlock sensor.  
@@ -239,6 +254,7 @@ Sovereign Security: Data encrypted at rest via hardware-bound keys with zero net
 ## 6. The Weekend Hackathon Challenge: Your Turn to Build
 
 ### Challenge: The Air-Gapped QR Vault
+
 Build an air-gapped data bridge using animated QR codes.
 
 - **Level 1 (Core)**: Create a mobile or web app with zero network permissions that encrypts a secret into AES-GCM and displays the encrypted payload as a static QR code on screen.

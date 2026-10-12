@@ -12,6 +12,7 @@
 Imagine building a developer desktop application (like *CodexOS* with terminal logs, or *BGMI TCC* displaying 25 esports squads and 5,000 match kill events).
 
 In a naive React or JavaScript frontend, developers write:
+
 ```tsx
 // The Naive DOM Suicide Pattern
 {logs.map((log) => (
@@ -20,6 +21,7 @@ In a naive React or JavaScript frontend, developers write:
 ```
 
 If `logs` contains 10,000 items:
+
 - The browser allocates **10,000 physical DOM nodes**.
 - The browser style recalculation and layout engine must compute bounding boxes for 10,000 elements.
 - Scrolling down triggers severe layout thrashing: frame rates plummet to **8 FPS**.
@@ -33,6 +35,7 @@ A user's monitor can only physically display about 20 to 30 rows at any given mo
 ## 2. The Mental Model: Intuitive Analogy & Visual Topology
 
 ### The Conveyor Belt vs. The Infinite Wallpaper
+
 - **Naive Rendering**: Printing a 10-mile-long roll of paper containing 100,000 lines of text and trying to hold the entire 10-mile paper roll in the air at once.
 - **Virtualized Windowing**: A fixed wooden picture frame (the viewport). Behind the frame is a conveyor belt. You only pin 20 index cards inside the frame. As you scroll, cards that exit the top are recycled and placed at the bottom with new text.
 
@@ -53,7 +56,9 @@ graph TD
 ## 3. Deep Dive: Under the Hood
 
 ### The Mathematical Invariants of Virtual Windowing
+
 Given:
+
 - Total items: $N = 100,000$
 - Uniform row height: $H = 40\text{ px}$
 - Total phantom scroll height: $S = N \times H = 4,000,000\text{ px}$
@@ -87,6 +92,7 @@ Each mounted element is placed using CSS `transform: translateY(index * H px)` o
 Let us build a minimal virtualized windowing calculator in TypeScript that demonstrates the exact sliding-window math used by libraries like `@tanstack/react-virtual`.
 
 ### Step 1: Environment Setup
+
 Create a playground directory:
 
 ```bash
@@ -97,6 +103,7 @@ npm install typescript @types/node tsx
 ```
 
 ### Step 2: Implementation (`virtual-window.ts`)
+
 Create `virtual-window.ts`:
 
 ```typescript
@@ -195,6 +202,7 @@ console.log('Zero layout thrashing. Instantaneous 60 FPS scrolling.');
 ```
 
 ### Step 3: Run and Test Instructions
+
 Execute the script using `tsx`:
 
 ```bash
@@ -202,6 +210,7 @@ npx tsx virtual-window.ts
 ```
 
 Expected terminal output:
+
 ```text
 Total Records:          100,000
 Phantom Container Height: 4,000,000 px
@@ -228,6 +237,7 @@ Zero layout thrashing. Instantaneous 60 FPS scrolling.
 ## 5. Battle Scars: What Breaks in Production & How to Debug It
 
 ### Top 3 Mistakes Beginners Make
+
 1. **Omitting the Overscan Buffer**: Setting overscan to 0. When the user scrolls fast with a trackpad or mouse wheel, white blank flashes appear at the edges of the screen because new DOM nodes take 1 frame to mount.  
    **Remediation**: Always set an overscan buffer of 3 to 5 items to pre-render rows slightly before they enter the viewport.
 2. **Keying Items by Dynamic Array Index**: Writing `key={index}` on virtualized rows. When scrolling, row indices are recycled. If your row contains internal state (e.g. an expanded accordion or form input), state bleeds into unrelated records.  
@@ -240,6 +250,7 @@ Zero layout thrashing. Instantaneous 60 FPS scrolling.
 ## 6. The Weekend Hackathon Challenge: Your Turn to Build
 
 ### Challenge: The 100,000-Row Terminal Log Viewer
+
 Build a high-performance log viewer capable of displaying 100,000 log events.
 
 - **Level 1 (Core)**: Create a React or vanilla JS virtualized list that renders 10,000 dummy logs with uniform 35px height, keeping DOM nodes under 25.

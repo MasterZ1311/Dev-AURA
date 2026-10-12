@@ -1,0 +1,15 @@
+{
+  "name": "aura",
+  "version": "1.0.0",
+  "description": "The Open-Source Developer Handbook and Engineering Standard",
+  "private": true,
+  "scripts": {
+    "test": "npm run verify:invariants && npm run lint:md",
+    "verify:invariants": "python scripts/verify-invariants.py",
+    "lint:md": "npx -y markdownlint-cli \"**/*.md\" \".github/**/*.md\" --ignore node_modules --ignore .agents",
+    "lint:md:fix": "npx -y markdownlint-cli --fix \"**/*.md\" \".github/**/*.md\" --ignore node_modules --ignore .agents"
+  },
+  "devDependencies": {
+    "markdownlint-cli": "^0.42.0"
+  }
+}

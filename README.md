@@ -1,24 +1,25 @@
 <div align="center">
 
 # Aura
-### The Open-Source Developer Handbook and Engineering Standard
+
+## The Open-Source Developer Handbook and Engineering Standard
 
 **From Initial Environment Setup to Production-Grade Architecture and Engineering Leadership.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](./LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-Welcome-brightgreen.svg?style=flat-square)](./CONTRIBUTING.md)
 [![Rules](https://img.shields.io/badge/Repository-Rules-purple.svg?style=flat-square)](./RULES.md)
-[![Tracks](https://img.shields.io/badge/Tracks-7%20Curriculum%20Modules-orange.svg?style=flat-square)](#the-7-core-tracks)
+[![Tracks](https://img.shields.io/badge/Tracks-7%20Curriculum%20Modules-orange.svg?style=flat-square)](#the-curriculum-tracks-and-reference-architecture)
 [![Quality Gate: Certified](https://img.shields.io/badge/Quality%20Gate-100%25%20Certified-success.svg?style=flat-square)](./docs/REPOSITORY_AUDIT_REPORT.md)
 
 <p align="center">
   <a href="./docs/BEGINNER_ONBOARDING_FLOW.md">Beginner Roadmap (Start Here)</a> &bull;
   <a href="./docs/REPOSITORY_AUDIT_REPORT.md">Audit Report</a> &bull;
   <a href="#the-philosophy-of-developer-aura">Philosophy</a> &bull;
-  <a href="#the-7-core-tracks">Curriculum Tracks</a> &bull;
+  <a href="#the-curriculum-tracks-and-reference-architecture">Curriculum Tracks</a> &bull;
   <a href="#the-developer-progression-matrix">Progression Matrix</a> &bull;
   <a href="#how-to-contribute">How to Contribute</a> &bull;
-  <a href="#repository-rules-and-standards">Rules</a>
+  <a href="#repository-rules--standards">Rules</a>
 </p>
 
 ---
@@ -87,7 +88,9 @@ Aura/
 ---
 
 ### [Track 01: Foundations & Setup](./docs/01-foundations-and-setup/README.md)
+>
 > *Foundational development environments, editors, typography, shell configurations, and toolchains.*
+
 - [x] [IDE & Editor Mastery: VS Code, Cursor, and Typography](./docs/01-foundations-and-setup/ide-and-editor-mastery.md)
 - [x] [Terminal & Shell Configuration: Starship, Zsh, and Modern CLI Utilities](./docs/01-foundations-and-setup/terminal-and-shell-alchemy.md)
 - [x] [Operating System & Toolchain Setup: macOS, Linux, and Windows WSL2](./docs/01-foundations-and-setup/os-and-toolchain-setup.md)
@@ -95,7 +98,9 @@ Aura/
 - [ ] `[TODO: Open for Contribution]` GPU-Accelerated Terminal Setup (Ghostty / WezTerm)
 
 ### [Track 02: Git & GitHub Craft](./docs/02-git-and-github-craft/README.md)
+>
 > *Version control discipline, linear commit histories, PR etiquette, and cryptographic verification.*
+
 - [x] [Git Workflows & Branching Strategies](./docs/02-git-and-github-craft/git-workflow-and-branching.md)
 - [x] [Conventional Commits & History Management via Interactive Rebase](./docs/02-git-and-github-craft/conventional-commits-and-history.md)
 - [x] [Pull Request Etiquette & GitHub CLI (`gh`) Workflows](./docs/02-git-and-github-craft/pr-etiquette-and-code-reviews.md)
@@ -103,7 +108,9 @@ Aura/
 - [ ] `[TODO: Open for Contribution]` Advanced Git Operations (`git bisect`, `git reflog`, `git worktree`)
 
 ### [Track 03: Code Craft & Architecture](./docs/03-code-craft-and-architecture/README.md)
+>
 > *Maintainable software design, SOLID principles, testing pyramids, and strong type contracts.*
+
 - [x] [Clean Code & SOLID Principles in Practice](./docs/03-code-craft-and-architecture/clean-code-and-solid.md)
 - [x] [The Testing Pyramid & Test-Driven Development (TDD)](./docs/03-code-craft-and-architecture/testing-pyramid-and-tdd.md)
 - [x] [Production Design Patterns (Strategy, Repository, Middleware)](./docs/03-code-craft-and-architecture/design-patterns-in-practice.md)
@@ -111,7 +118,9 @@ Aura/
 - [ ] `[TODO: Open for Contribution]` Hexagonal Architecture and Clean Boundaries
 
 ### [Track 04: Fullstack & API Engineering](./docs/04-fullstack-and-api-engineering/README.md)
+>
 > *Predictable REST/RPC API architecture, database query optimization, and frontend performance.*
+
 - [x] [Production API Design Standards & Error Envelopes](./docs/04-fullstack-and-api-engineering/backend-and-api-design.md)
 - [x] [Frontend Performance & State Architecture](./docs/04-fullstack-and-api-engineering/frontend-performance-and-state.md)
 - [x] [Database Indexing, Query Optimization, and EXPLAIN ANALYZE](./docs/04-fullstack-and-api-engineering/database-mastery-and-indexing.md)
@@ -119,7 +128,9 @@ Aura/
 - [ ] `[TODO: Open for Contribution]` Distributed Caching Topologies and Redis Patterns
 
 ### [Track 05: DevOps, CI/CD & Cloud](./docs/05-devops-cicd-and-cloud/README.md)
+>
 > *Automated build pipelines, minimal containerization, infrastructure as code, and deployment strategies.*
+
 - [x] [Docker & Multi-Stage Production Containerization](./docs/05-devops-cicd-and-cloud/docker-and-containerization.md)
 - [x] [Production CI/CD Pipelines with GitHub Actions](./docs/05-devops-cicd-and-cloud/cicd-pipelines-and-automation.md)
 - [x] [Infrastructure as Code with Terraform and OpenTofu](./docs/05-devops-cicd-and-cloud/infrastructure-as-code.md)
@@ -127,7 +138,9 @@ Aura/
 - [ ] `[TODO: Open for Contribution]` Kubernetes Production Deployment Essentials
 
 ### [Track 06: Observability, Security & Reliability](./docs/06-observability-security-reliability/README.md)
+>
 > *OWASP security mitigation, distributed telemetry, performance profiling, and incident response.*
+
 - [x] [Application Hardening & OWASP Security Playbook](./docs/06-observability-security-reliability/security-and-owasp-playbook.md)
 - [x] [Observability: Structured Logging, Metrics, and OpenTelemetry](./docs/06-observability-security-reliability/observability-metrics-tracing.md)
 - [x] [Incident Management & Blameless Postmortems](./docs/06-observability-security-reliability/incident-response-and-postmortems.md)
@@ -135,7 +148,9 @@ Aura/
 - [ ] `[TODO: Open for Contribution]` Chaos Engineering and Fault Injection
 
 ### [Track 07: Dev Aura & Soft Skills](./docs/07-dev-aura-and-soft-skills/README.md)
+>
 > *Technical RFC writing, constructive code reviews, open-source citizenship, and high-agency engineering.*
+
 - [x] [Technical Writing, Architecture Decision Records, and RFCs](./docs/07-dev-aura-and-soft-skills/technical-writing-and-rfcs.md)
 - [x] [The Standard of Constructive Code Reviews](./docs/07-dev-aura-and-soft-skills/the-art-of-code-review.md)
 - [x] [Open Source Citizenship & Collaboration Etiquette](./docs/07-dev-aura-and-soft-skills/open-source-citizenship.md)

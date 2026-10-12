@@ -77,6 +77,38 @@ If the answer cannot be determined strictly from the context, state: "The reques
 User Question: Which college has a lower cutoff?
 ```
 
+### Autoregressive Local LLM Inference Dynamics in Sovereign RAG
+
+Once top-$k$ relevant context chunks are retrieved and assembled into the defensive system prompt, the final generation step executes on a local autoregressive LLM (such as `Ollama` running Gemma 3 or Llama 3 via `llama.cpp`). Understanding the hardware dynamics of local inference ensures the RAG pipeline does not bottleneck on context sizing.
+
+#### 1. GGUF Quantization: Balancing Perplexity and Context Capacity
+Local inference executes models packaged in **GGUF (GPT-Generated Unified Format)**:
+- **Q4_K_M (4-bit Medium K-Quantization)**: Uses 4-bit weights with 6-bit scales on critical attention tensors. For an 8B model (e.g. Llama 3 or Gemma 3), the model weight size in VRAM is ~4.9 GB, leaving ample room in unified RAM or GPU VRAM for the KV cache of lengthy RAG contexts.
+- **Q8_0 (8-bit Quantization)**: Preserves full FP16 precision ($< 0.01$ perplexity delta) at ~8.5 GB for 8B parameters. While reasoning accuracy is maximal, Q8_0 cuts available KV cache headroom in half on consumer GPUs with 12GB to 16GB of VRAM.
+
+#### 2. Runtime Execution Architecture: llama.cpp and Ollama
+Local RAG runtimes bypass Python interpreter overhead:
+- **Zero-Copy Memory Mapping (`mmap`)**: Ollama loads models via `llama.cpp` using `mmap()`. Weights are mapped directly from NVMe storage into virtual address space, eliminating multi-second cold-start stalls.
+- **Hardware Shader Dispatch**: On Apple Silicon, attention and GEMM operations run on Metal Performance Shaders (`ggml-metal.metal`). On NVIDIA workstations, FlashAttention and cuBLAS kernels accelerate matrix operations.
+
+#### 3. KV Cache Allocation and Context Sizing
+In autoregressive decoding, each generated token attends to all previous prompt and generation tokens. The **KV Cache** retains Key and Value projections so historical tokens do not need to be recomputed at each generation step.
+
+As RAG injects $k$ reference documents, prompt token count expands. The memory allocated to the KV cache scales linearly with total context length:
+
+$$\text{Memory}_{\text{KVCache}} = 2 \times n_{\text{layers}} \times n_{\text{kv\_heads}} \times d_{\text{head}} \times \text{seq\_len} \times \text{bytes\_per\_element}$$
+
+When injecting 4 retrieved documents into an 8,192-token context on an 8B model (32 layers, 8 KV heads, head dimension 128), the KV cache consumes approximately **1.07 GB** of VRAM in FP16. If GPU VRAM is exhausted by an oversized model (e.g., Q8_0 on an 8GB VRAM card), the runtime falls back to swapping context to system RAM, causing generation speed to collapse.
+
+#### 4. Memory Bandwidth vs. Compute Bound Dynamics
+Local RAG generation exhibits two distinct performance profiles:
+1. **Prompt Prefill Phase (Compute-Bound)**: Processing the injected prompt and reference chunks runs in parallel via GEMM. Arithmetic intensity is high ($\gg 10\ \text{FLOPs/byte}$), making performance dependent on raw GPU TFLOPs.
+2. **Autoregressive Decode Phase (Memory-Bandwidth Bound)**: Generating answer tokens occurs one token at a time via GEMV. Every single token generated requires streaming all 4.9 GB of model weights from memory into GPU registers. Arithmetic intensity is low ($\approx 2\ \text{FLOPs/byte}$), meaning token output speed is strictly bound by memory bandwidth:
+
+$$\text{Generation Speed} \approx \frac{\text{Memory Bandwidth (GB/s)}}{\text{Model Size in VRAM (GB)}}$$
+
+On an Apple M-series Max chip ($400\text{ GB/s}$), generation reaches ~80 tokens/sec, whereas on dual-channel desktop RAM ($64\text{ GB/s}$), throughput drops to ~13 tokens/sec. Keeping RAG context concise and using Q4_K_M quantization directly maximizes decoding throughput.
+
 ---
 
 ## 4. Zero-to-One Interactive Playground: Build It From Scratch

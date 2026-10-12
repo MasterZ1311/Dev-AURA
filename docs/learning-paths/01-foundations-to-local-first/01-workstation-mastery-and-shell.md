@@ -12,6 +12,7 @@
 Beginner developers spend up to 40% of their workday clicking through operating system file menus, dragging folders with mice, hunting through nested dialog boxes, and manually typing the same 30-character terminal commands dozens of times.
 
 When an application crashes in production:
+
 - A novice engineer opens a cloud web console, waits 30 seconds for the dashboard to load, and clicks randomly through pages hoping to spot an error.
 - A sovereign engineer opens a terminal, runs `ssh -t server 'journalctl -u app.service -n 50 -f | jq .'`, identifies the failing SQL transaction within 4 seconds, and executes a hotfix.
 
@@ -22,6 +23,7 @@ Terminal fluency is not aesthetic elitism; it is the fundamental multiplier of e
 ## 2. The Mental Model: Intuitive Analogy & Visual Topology
 
 ### The Surgical Tray vs. The Junk Drawer
+
 Think of a standard operating system GUI as a large junk drawer: to find a screwdriver, you have to dig past old envelopes, tape, and scissors.
 A finely tuned terminal environment is a surgeon's instrument tray: every tool has an exact slot, can be retrieved with blind muscle memory, and can be combined with other tools instantaneously via the Unix Pipeline.
 
@@ -39,6 +41,7 @@ graph LR
 ```
 
 The core Unix philosophy:
+
 1. Write programs that do one thing and do it well.
 2. Write programs that work together.
 3. Write programs to handle text streams, because that is a universal interface.
@@ -48,7 +51,9 @@ The core Unix philosophy:
 ## 3. Deep Dive: Under the Hood
 
 ### The Anatomy of the Terminal Emulator vs. The Shell
+
 Many developers confuse the *Terminal Emulator* with the *Shell*:
+
 - **The Terminal Emulator** (Alacritty, Ghostty, WezTerm, iTerm2, Windows Terminal): The graphical window that renders fonts, manages GPU acceleration, and captures keystrokes.
 - **The Shell** (Zsh, Bash, Fish): The command language interpreter that runs inside the terminal, evaluates variables, manages process job control, and searches the `$PATH` to execute binaries.
 - **The PTY (Pseudoterminal)**: The kernel-level bidirectional IPC pipe connecting the terminal emulator to the shell process via `stdin`, `stdout`, and `stderr`.
@@ -69,6 +74,7 @@ Many developers confuse the *Terminal Emulator* with the *Shell*:
 Let us build an automated diagnostic script that inspects your local system's toolchain, verifies required binaries, measures shell startup latency, and outputs a formatted status report.
 
 ### Step 1: Environment Setup
+
 Open your terminal and create a scratch directory:
 
 ```bash
@@ -77,6 +83,7 @@ cd ~/aura-sandbox/workstation
 ```
 
 ### Step 2: Implementation (`audit-toolchain.sh`)
+
 Create `audit-toolchain.sh`:
 
 ```bash
@@ -143,6 +150,7 @@ echo "Audit complete."
 ```
 
 ### Step 3: Run and Test Instructions
+
 Make the script executable and run it:
 
 ```bash
@@ -151,6 +159,7 @@ chmod +x audit-toolchain.sh
 ```
 
 Expected terminal output:
+
 ```text
 ==========================================
     AURA WORKSTATION TOOLCHAIN AUDIT      
@@ -185,6 +194,7 @@ Audit complete.
 ## 5. Battle Scars: What Breaks in Production & How to Debug It
 
 ### Top 3 Mistakes Beginners Make
+
 1. **The NVM / Oh-My-Zsh Startup Freeze**: Installing 20 Oh-My-Zsh plugins and un-optimized Node Version Manager (`nvm`) loading scripts that run synchronously on every terminal split. The shell takes 2.5 seconds to open.  
    **Remediation**: Use lazy-loading hooks or switch to fast Rust-based version managers like `fnm` (`Fast Node Manager`) or `mise`.
 2. **Hardcoding Paths in Dotfiles**: Putting `/Users/john/bin` in your `.zshrc`. When you clone your dotfiles to a Linux server or work machine, half your scripts fail silently with `command not found`.  
@@ -197,6 +207,7 @@ Audit complete.
 ## 6. The Weekend Hackathon Challenge: Your Turn to Build
 
 ### Challenge: The Reproducible Dotfiles Vault
+
 Build a clean, personal dotfiles repository that configures a new machine with a single command.
 
 - **Level 1 (Core)**: Create a `.dotfiles` directory with your `.zshrc` (or `.bashrc`), Git config (`.gitconfig`), and a custom set of 10 daily aliases (e.g., `gco`, `gst`, `gl`, `dc`).

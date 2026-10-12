@@ -12,6 +12,7 @@
 JavaScript is notoriously single-threaded. The thread that renders buttons, handles mouse clicks, and updates CSS animations is the exact same thread that executes your application code.
 
 Consider what happens when a user uploads a 50MB CSV or attempts to calculate statistical risk across 500,000 records on the main thread:
+
 ```javascript
 // THE FATAL JAVASCRIPT EVENT-LOOP FREEZE
 for (let i = 0; i < 50_000_000; i++) {
@@ -20,6 +21,7 @@ for (let i = 0; i < 50_000_000; i++) {
 ```
 
 The moment this loop executes:
+
 - The browser window completely freezes.
 - Input fields stop responding to keystrokes.
 - CSS spinner animations lock up solid.
@@ -32,6 +34,7 @@ In professional software systems (such as *ErgonPDF* and *CodexOS*), the main th
 ## 2. The Mental Model: Intuitive Analogy & Visual Topology
 
 ### The Restaurant Host vs. The Line Cook
+
 - **The Naive Single-Threaded Restaurant**: The host greeting customers at the front door suddenly runs back to the kitchen, starts chopping 50 pounds of onions, and cooks a multi-course dinner. While cooking, nobody greets arriving customers, phones go unanswered, and people leave in frustration.
 - **The Multi-Worker Architecture**: The host stays at the front door, greeting guests and collecting orders. The moment an order arrives, they slide the ticket to dedicated line cooks (Web Workers) in the kitchen. When a dish is ready, the cook hands it back. The front door never waits.
 
@@ -58,7 +61,9 @@ sequenceDiagram
 ## 3. Deep Dive: Under the Hood
 
 ### Structured Clone vs. Transferable Memory
+
 When you send data to a Web Worker via standard `postMessage(data)`:
+
 1. **The Structured Clone Algorithm**: The browser deep-copies every object, array, and string in the message.
    - Sending a 100MB array creates a second 100MB copy in memory.
    - Cloning takes 150ms of CPU time on the main thread, still causing visible frame drops!
@@ -83,6 +88,7 @@ When you send data to a Web Worker via standard `postMessage(data)`:
 Let us write a complete multi-threaded compute simulator using Node's native `worker_threads` module. We will allocate 500,000 float numbers in a TypedArray, transfer memory ownership with zero cloning, crunch the data in background threads, and transfer the results back.
 
 ### Step 1: Environment Setup
+
 Create a playground directory:
 
 ```bash
@@ -93,6 +99,7 @@ npm install typescript @types/node tsx
 ```
 
 ### Step 2: Implementation (`worker-compute.ts`)
+
 Create `worker-compute.ts`:
 
 ```typescript
@@ -186,6 +193,7 @@ if (isMainThread) {
 ```
 
 ### Step 3: Run and Test Instructions
+
 Execute the script using `tsx`:
 
 ```bash
@@ -193,6 +201,7 @@ npx tsx worker-compute.ts
 ```
 
 Expected terminal output:
+
 ```text
 --- Step 1: Allocating TypedArray for 500,000 Records ---
 Initial ArrayBuffer ByteLength: 4,000,000 bytes
@@ -216,6 +225,7 @@ Notice that transferring 4 megabytes of data took **0.045 milliseconds** because
 ## 5. Battle Scars: What Breaks in Production & How to Debug It
 
 ### Top 3 Mistakes Beginners Make
+
 1. **Accessing a Detached Buffer after Transfer**: Calling `floatArray[0]` on the main thread after transferring `floatArray.buffer`. The buffer is detached, throwing a `TypeError: Cannot perform operation on detached ArrayBuffer`.  
    **Remediation**: Understand that transfer is an irreversible ownership move. Never read from a buffer after transferring it.
 2. **Forgetting to Pass the Transfer List**: Calling `worker.postMessage({ buffer: array.buffer })` without the second argument `[array.buffer]`. Without the transfer list, the browser silently falls back to the structured clone algorithm, deep-copying all 4MB of RAM!  
@@ -228,6 +238,7 @@ Notice that transferring 4 megabytes of data took **0.045 milliseconds** because
 ## 6. The Weekend Hackathon Challenge: Your Turn to Build
 
 ### Challenge: The 60 FPS Client-Side Image Filter
+
 Build an in-browser image manipulation tool using Web Workers.
 
 - **Level 1 (Core)**: Load an image into an HTML canvas, extract its raw RGBA pixels via `ctx.getImageData()`, and transfer the underlying `Uint8ClampedArray.buffer` to a Web Worker.

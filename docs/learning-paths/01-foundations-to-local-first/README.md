@@ -9,6 +9,7 @@
 Most software engineering education pushes students immediately toward cloud-hosted web apps, third-party authentication services, and hosted databases. This breeds developers who cannot build when disconnected from the internet, and who cannot inspect the operating system on which their code runs.
 
 In Stage 1, you will reclaim the host system:
+
 1. Transition from slow GUI mouse navigation to keyboard-driven terminal workflows.
 2. Replace fragile remote database dependencies with embedded, sovereign SQLite and SQLCipher engines.
 3. Understand why heavy runtimes like Electron exhaust system resources, and learn to build native, low-latency desktop applications using Rust and Tauri 2.0 (as engineered in *CodexOS*).
@@ -54,5 +55,6 @@ graph TD
 ---
 
 ## Prerequisites
+
 - Basic familiarity with at least one programming language (JavaScript, TypeScript, Python, or Rust).
 - A Unix-like environment (macOS, Linux, or Windows WSL2).

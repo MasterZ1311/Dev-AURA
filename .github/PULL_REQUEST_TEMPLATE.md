@@ -4,6 +4,7 @@
 <!-- Provide a concise explanation of what guide, improvement, or fix this PR introduces. -->
 
 ### Track and Topic
+
 - **Track**: `docs/0X-<track-name>`
 - **Topic / File**: <!-- e.g., `docs/01-foundations-and-setup/terminal-and-shell-alchemy.md` -->
 
@@ -25,6 +26,6 @@ Please verify each of the following before requesting review:
 ## Verification and Output (If Applicable)
 <!-- If adding an architectural diagram, terminal output, or screenshot, provide details below -->
 
-```
+```text
 <!-- Verification details or test outputs -->
 ```

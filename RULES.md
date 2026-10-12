@@ -15,18 +15,22 @@
 ## Contribution Rules
 
 ### 1. Atomic Pull Requests
+
 - Keep PRs scoped to **one logical topic, guide, or fix**.
 - Do not combine multiple unrelated changes (for example, updating VS Code configurations and editing a Docker guide) in a single pull request.
 - Keep pull request diffs focused, readable, and easy to review.
 
 ### 2. Conventional Commit Messages
+
 All commit messages must follow the [Conventional Commits](https://www.conventionalcommits.org/) specification:
+
 - `feat(track)`: New guide, topic, or reference document added.
 - `docs(track)`: Clarification, typo fix, or formatting update to an existing guide.
 - `fix(track)`: Correction of an outdated command, broken link, or syntax error.
 - `chore`: Repository maintenance, configuration, or workflow updates.
 
 **Examples:**
+
 ```bash
 git commit -m "feat(01-setup): add comprehensive Neovim Lua kickstart guide"
 git commit -m "docs(05-devops): add zero-downtime blue-green deployment architecture"
@@ -34,21 +38,25 @@ git commit -m "fix(02-git): correct interactive rebase command syntax"
 ```
 
 ### 3. File & Directory Conventions
+
 - **File Naming**: All files must use lowercase kebab-case (for example: `modern-cli-tools.md`, `testing-pyramid-and-tdd.md`).
 - **Standard Hierarchy**: Follow the 7 core tracks inside `/docs/`. Do not introduce arbitrary top-level directories without an approved Issue discussion.
 - **Templates**: When creating new guides or checklists, base them on the templates located in [`docs/templates/`](./docs/templates/).
 
 ### 4. Markdown & Formatting Standards
+
 - **Clean Headings**: Use `#` for title (one per file), `##` for major sections, and `###` for sub-sections. Never skip heading levels.
 - **Code Fences**: Always specify the language identifier for code blocks (for example: ````bash````, ````typescript````, ````yaml````, ````dockerfile````).
 - **No Broken Links**: Relative links must point to existing files in the repository. Web links must use HTTPS and point to active, reliable sources.
 - **Diagrams**: Use Mermaid diagrams (````mermaid````) or ASCII flows for architectural illustrations.
 
 ### 5. Verified Code and Commands
+
 - Any shell command, script, or configuration (`.zshrc`, `Dockerfile`, `settings.json`, etc.) must be verified in a working environment prior to submission.
 - Provide OS-specific instructions where relevant (macOS, Linux, Windows/WSL).
 
 ### 6. Attributions and Integrity
+
 - Never submit proprietary, copyrighted, or plagiarized materials.
 - When referencing external research, tools, or articles, provide explicit source links and credit original authors.
 

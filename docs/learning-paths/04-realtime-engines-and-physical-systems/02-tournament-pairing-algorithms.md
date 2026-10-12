@@ -31,27 +31,45 @@ It guarantees that in every single round, **every team plays exactly once**, wit
 
 ## 2. The Mental Model: Intuitive Analogy & Visual Topology
 
-### The Rotating Round Table
-Imagine 8 chess players sitting around a long rectangular conference table:
-- Player 1 sits permanently at the head of the table in Chair 1 and never moves.
-- All other 7 players (Chairs 2 through 8) stand up after each round and rotate one seat clockwise.
-- Across the table, each person plays the person sitting directly opposite them.
-- Because everyone rotates systematically, every player faces every other opponent exactly once across 7 rounds.
+### The Geometric Polygon Rotation Model
+Imagine placing $N$ teams on a geometric circle or regular $(N-1)$-sided polygon:
+- **Fixed Pivot**: Team 1 sits at the center or top apex of the system and remains stationary throughout all rounds.
+- **Rotating Polygon Perimeter**: Teams 2 through $N$ are positioned around the perimeter of the polygon.
+- **Pairing Chords**: In each round, horizontal chord lines are drawn across the polygon connecting opposite vertices. Team 1 pairs with the vertex directly opposite it, while the remaining teams pair along parallel horizontal chords.
+- **Cyclic Shift**: For each successive round, the polygon vertices rotate clockwise by $\frac{360^\circ}{N-1}$, while Team 1 remains anchored. Because the perimeter rotates cyclically through all $N-1$ positions, every team connects with every other team exactly once.
 
 ```mermaid
-graph TD
-    subgraph Round 1: Fixed Position 1 + Clockwise Ring
-        P1[Team 1: FIXED] --- P8[Team 8]
-        P2[Team 2] --- P7[Team 7]
-        P3[Team 3] --- P6[Team 6]
-        P4[Team 4] --- P5[Team 5]
-    end
-    
-    subgraph Round 2: Teams 2-8 Rotate Clockwise
-        R1[Team 1: FIXED] --- R7[Team 7]
-        R8[Team 8] --- R6[Team 6]
-        R2[Team 2] --- R5[Team 5]
-        R3[Team 3] --- R4[Team 4]
+flowchart TB
+    subgraph PolygonModel["Berger Regular Heptagon Rotation Model (N=8 Teams)"]
+        direction TB
+        PivotNode["[Fixed Pivot Node] Team 1 (Stationary Anchor)"]
+        
+        subgraph CyclicRing["Rotating Perimeter Polygon (Teams 2 to 8)"]
+            direction TB
+            T2["Node 2"] -->|Clockwise Step| T3["Node 3"]
+            T3 -->|Clockwise Step| T4["Node 4"]
+            T4 -->|Clockwise Step| T5["Node 5"]
+            T5 -->|Clockwise Step| T6["Node 6"]
+            T6 -->|Clockwise Step| T7["Node 7"]
+            T7 -->|Clockwise Step| T8["Node 8"]
+            T8 -->|Clockwise Step| T2
+        end
+        
+        subgraph Round1Chords["Round 1 Pairing Chords (Fixed + Chords)"]
+            direction LR
+            C1["Team 1 <==> Team 8 (Pivot Match)"]
+            C2["Team 2 <==> Team 7 (Chord A)"]
+            C3["Team 3 <==> Team 6 (Chord B)"]
+            C4["Team 4 <==> Team 5 (Chord C)"]
+        end
+        
+        subgraph Round2Chords["Round 2 Chords (Rotated 1 Step Clockwise)"]
+            direction LR
+            D1["Team 1 <==> Team 7 (Pivot Match)"]
+            D2["Team 8 <==> Team 6 (Chord A)"]
+            D3["Team 2 <==> Team 5 (Chord B)"]
+            D4["Team 3 <==> Team 4 (Chord C)"]
+        end
     end
 ```
 
@@ -73,6 +91,32 @@ This mathematical formulation guarantees:
 - Every team plays exactly $\frac{N}{2}$ home matches and $\frac{N}{2} - 1$ away matches (or vice versa).
 - No team is ever scheduled twice in the same round.
 - The entire group stage completes in the minimum mathematically possible number of time slots ($N - 1$).
+
+### Sub-Millisecond Input Polling & High-Frequency Telemetry Invariants
+
+While the Berger algorithm guarantees fixture fairness mathematically, physical LAN tournament execution requires deterministic real-time input and telemetry synchronization. A scheduled match cannot be permitted to launch unless client hardware and network telemetry meet sub-millisecond tolerances:
+
+1. **1000Hz vs 8000Hz USB HID Polling**: Standard USB mice report at 125Hz ($8\text{ ms}$ interval). Modern esports mice report at 1000Hz ($1.0\text{ ms}$) or 8000Hz ($125\ \mu\text{s}$). The tournament referee console monitors client driver interrupt rates; polling rates below 1000Hz indicate USB controller bottlenecks or faulty hub passthroughs.
+2. **Microsecond Timestamping via `performance.now()`**: In the tournament observer server, client tick events must be stamped with microsecond-resolution monotonic timers (`performance.now()` or platform high-precision counters). This avoids the coarse $15.6\text{ ms}$ clock quantization of standard system time.
+3. **PTP Clock Drift Compensation**: Over a 60-minute match, client hardware timers drift relative to the tournament controller due to crystal oscillator temperature shifts. Precision Time Protocol (PTP IEEE 1588) maintains client-server clock offset $|\Delta t| \le 1.0\text{ ms}$ across venue switches.
+4. **Jitter Buffer Mitigation**: Network packet arrival variance on the spectator stream is smoothed by a fixed playout buffer ($D_{\text{playout}} = \bar{D} + 3\sigma_D$), preventing spectator camera hitches without delaying the authoritative referee match log.
+
+### The 10-Point Pre-Flight Verification Gate
+
+Before any match generated by the Berger engine transitions from `STAGED` to `IN_PROGRESS`, the system evaluates the **10-Point Pre-Flight Verification Gate**. If any invariant evaluates to false, the tournament controller locks the stage:
+
+| Gate # | Invariant Name | Validation Target | Verification Rule / Condition | Failure Action |
+| :--- | :--- | :--- | :--- | :--- |
+| **01** | Physical Station PC Quorum | 10 Client PCs per stage | $\text{count}(\text{PCs}_{\text{operational}}) = 10$ ($5\text{ Home} + 5\text{ Away}$) | Stage locked; transition to `STAGED` blocked; dispatch alert to hardware ops |
+| **02** | Display Refresh & G-Sync Lock | 10 Tournament Monitors | $\forall m \in \text{Monitors}: \text{RefreshRate}(m) \ge 240\text{ Hz} \land \text{G-Sync} = \text{Active}$ | Match launch blocked; display EDID reset triggered |
+| **03** | High-Frequency USB HID Polling | 20 Input Devices (Mice/Keyboards) | $\forall d \in \text{HID}: \text{PollingRate}(d) \ge 1000\text{ Hz}$ ($1\text{ ms}$ interval) | Device driver flagged; referee inspection required |
+| **04** | Sub-Millisecond PTP/NTP Clock Sync | Client vs Server Clock Offset | $\lvert \Delta t \rvert = \left\lvert \frac{(T_2 - T_1) + (T_3 - T_4)}{2} \right\rvert \le 1.0\text{ ms}$ | Re-synchronize client daemon via PTP slew rate adjustment |
+| **05** | Isolated Tournament VLAN Health | Stage Switch Port Health | $\text{PacketLoss} = 0.0\% \land \text{GatewayRTT} \le 2.0\text{ ms}$ over 50 ICMP probes | Port quarantined; match diverted to secondary backup VLAN |
+| **06** | Anti-Cheat Kernel Attestation | Vanguard / Anti-Cheat Daemon | $\forall p \in \text{PCs}: \text{DriverState}(p) = \text{TRUSTED} \land \text{SecureBoot} = \text{Enabled}$ | Station locked; referee manual verification before launch |
+| **07** | Roster Identification & Verification | 10 Player Riot Account IDs | $\forall i \in [1, 10]: \text{AccountID}(i) \in \text{RegisteredRoster}(\text{Team}_i)$ | Lobby start button disabled; referee flags roster mismatch |
+| **08** | Deterministic Berger Pairings | Bracket Fixture Matrix | $\text{Fixture}(H, A) \in \text{BergerSchedule} \land \text{SimultaneousMatches} \le 1$ | Pairing rejected; scheduler regenerates deterministic round table |
+| **09** | Referee & Observer Console Authentication | 2 Independent Observers | $\text{count}(\text{Refs}_{\text{authenticated}}) \ge 2 \land \text{Tokens} = \text{Valid}$ | Stage blocked in `WARMUP`; referee sign-in mandated |
+| **10** | Telemetry Ingestion Jitter Buffer | Live Spectator Telemetry Queue | $\text{BufferJitter} \le 0.25\text{ ms} \land \text{BufferUnderflowCount} = 0$ | Telemetry stream paused; replay tick buffer resized |
 
 ### Trade-Off Matrix: Tournament Formats
 

@@ -79,6 +79,50 @@ $$\text{CanLaunch} = (\text{operationalPcs} \ge 10) \land (\text{isNetworkVerifi
 
 If any condition fails, the state transition is rejected at both the type level and the runtime level.
 
+### Sub-Millisecond Input Polling & High-Frequency Telemetry
+
+In premier esports titles such as VALORANT, Counter-Strike 2, and Overwatch, the competitive integrity of a LAN tournament depends on microsecond-level determinism. Physical station modeling cannot stop at verifying whether a PC turns on; it must guarantee real-time input pipeline and telemetry fidelity.
+
+#### 1. 1000Hz vs 8000Hz USB HID Polling Dynamics
+Standard consumer peripherals poll over USB Human Interface Device (HID) protocols at 125Hz ($8\text{ ms}$ interval). Competitive esports equipment operates at:
+- **1000Hz Polling**: 1 report every $1.0\text{ ms}$ ($1000\text{ packets/sec}$).
+- **8000Hz Polling**: 1 report every $125\ \mu\text{s}$ ($0.125\text{ ms}$, $8000\text{ packets/sec}$).
+
+At 8000Hz, each connected peripheral fires 8,000 hardware interrupts per second per device. On a 10-PC tournament stage with 10 mice, 10 keyboards, and audio interfaces, unoptimized kernel scheduling triggers Deferred Procedure Call (DPC) and Interrupt Service Routine (ISR) spikes. When an operating system core spends excessive cycles handling interrupt storms, render threads experience micro-stutters and dropped frames.
+
+Tournament workstations enforce core affinity pinning, dedicating CPU cores 0-1 exclusively to kernel interrupts while game simulation and client tick loops run isolated on higher-index performance cores.
+
+#### 2. Microsecond Timestamping and Clock Drift
+JavaScript standard `Date.now()` resolution is coarse (typically $1\text{ ms}$ to $15.6\text{ ms}$ on Windows due to default OS timer tick resolution of 64Hz). For physical input telemetry and tick reconstruction, coarse timestamps cause catastrophic aliasing and synthetic jitter.
+
+Real-time telemetry systems mandate monotonic, high-resolution microsecond clocks:
+- **Web / Node.js**: `performance.now()`, which returns fractional milliseconds with sub-millisecond (microsecond-level) precision referenced from process start (`timeOrigin`).
+- **Native OS (Windows)**: `QueryPerformanceCounter` (QPC) backed by the CPU Hardware Invariant Time Stamp Counter (TSC), delivering sub-microsecond resolution ($< 100\text{ ns}$).
+
+Between client PCs and the central LAN tournament observer controller, physical oscillators drift over time due to ambient stage temperature variations and quartz crystal tolerances (typically 10-50 parts per million, causing 1-5 milliseconds of drift every 100 seconds).
+
+LAN tournament engines calculate instantaneous clock offset $\Delta t$ and round-trip time (RTT) using symmetric packet exchange:
+
+$$\text{RTT} = (T_4 - T_1) - (T_3 - T_2)$$
+
+$$\Delta t = \frac{(T_2 - T_1) + (T_3 - T_4)}{2}$$
+
+Where:
+- $T_1$: Client send timestamp (monotonic)
+- $T_2$: Server receive timestamp
+- $T_3$: Server reply timestamp
+- $T_4$: Client receive timestamp
+
+The client clock phase is adjusted via linear slew rates rather than abrupt time steps to prevent temporal backward jumps in simulation state.
+
+#### 3. Jitter Buffer Mitigation
+High-frequency telemetry packets traversing local venue network switches encounter queuing variance, resulting in packet arrival jitter. If a telemetry observer renders events immediately upon receipt, uneven inter-arrival intervals cause visible stutter.
+
+The station telemetry receiver implements an adaptive jitter buffer:
+1. Telemetry samples are buffered into an ordered circular queue indexed by monotonic sequence number.
+2. The buffer maintains a target playout delay $D_{\text{playout}} = \bar{D} + 3\sigma_D$, where $\bar{D}$ is mean one-way transit delay and $\sigma_D$ is standard deviation (jitter).
+3. Telemetry values between discrete ticks are evaluated using Hermite spline interpolation for continuous camera angles and linear interpolation for coordinate telemetry, eliminating observer hitching while preserving exact tournament state invariants.
+
 ### Trade-Off Matrix: Scheduling Architectures
 
 | Approach | Hardware Modeling | Real-World Resilience | Implementation Complexity | Best Use Case |
@@ -115,6 +159,8 @@ export interface PhysicalStation {
   operationalPcs: number;
   isNetworkVlanHealthy: boolean;
   isOccupied: boolean;
+  usbPollingRateHz: number;
+  telemetryJitterMs: number;
 }
 
 export interface EsportsMatch {
@@ -139,7 +185,7 @@ export class TournamentStationDispatcher {
 
   /**
    * Pre-flight gate: assigns a physical station to a staged match.
-   * Enforces that station has at least 10 operational PCs and healthy network.
+   * Enforces 10 operational PCs, healthy VLAN, >=1000Hz USB polling, and jitter < 0.25ms.
    */
   public assignStationToMatch(matchId: string, stationId: string): void {
     const match = this.matches.get(matchId);
@@ -165,6 +211,19 @@ export class TournamentStationDispatcher {
       );
     }
 
+    // Sub-millisecond Telemetry Invariant Gate
+    if (station.usbPollingRateHz < 1000) {
+      throw new Error(
+        `PRE-FLIGHT TELEMETRY REJECTION: ${station.name} USB HID polling rate ${station.usbPollingRateHz}Hz is below the 1000Hz esports minimum.`
+      );
+    }
+
+    if (station.telemetryJitterMs > 0.25) {
+      throw new Error(
+        `PRE-FLIGHT JITTER REJECTION: ${station.name} telemetry jitter ${station.telemetryJitterMs}ms exceeds 0.25ms threshold.`
+      );
+    }
+
     if (station.isOccupied) {
       throw new Error(`CONCURRENCY REJECTION: ${station.name} is currently occupied by another match.`);
     }
@@ -174,7 +233,10 @@ export class TournamentStationDispatcher {
     match.assignedStationId = station.id;
     match.status = 'STAGED';
 
-    console.log(`[DISPATCH] Match ${match.homeTeam} vs ${match.awayTeam} staged at ${station.name}`);
+    console.log(
+      `[DISPATCH] Match ${match.homeTeam} vs ${match.awayTeam} staged at ${station.name} ` +
+      `(${station.usbPollingRateHz}Hz HID, ${station.telemetryJitterMs}ms jitter)`
+    );
   }
 
   /**
@@ -209,7 +271,7 @@ export class TournamentStationDispatcher {
 }
 
 // ---------------------------------------------------------------------------
-// Verification Simulation: Testing Physical Constraints
+// Verification Simulation: Testing Physical Constraints & Telemetry Gates
 // ---------------------------------------------------------------------------
 const dispatcher = new TournamentStationDispatcher();
 
@@ -220,6 +282,8 @@ dispatcher.registerStation({
   operationalPcs: 10,
   isNetworkVlanHealthy: true,
   isOccupied: false,
+  usbPollingRateHz: 8000,
+  telemetryJitterMs: 0.08,
 });
 
 dispatcher.registerStation({
@@ -228,6 +292,8 @@ dispatcher.registerStation({
   operationalPcs: 9, // One PC has a broken monitor!
   isNetworkVlanHealthy: true,
   isOccupied: false,
+  usbPollingRateHz: 1000,
+  telemetryJitterMs: 0.12,
 });
 
 dispatcher.registerMatch({
@@ -245,7 +311,7 @@ try {
   console.log('Caught Expected Error:', err.message);
 }
 
-console.log('\n--- Step 2: Assigning match to verified Main Arena Stage (10 PCs) ---');
+console.log('\n--- Step 2: Assigning match to verified Main Arena Stage (10 PCs, 8000Hz HID) ---');
 dispatcher.assignStationToMatch('match-01', 'station-main-stage');
 
 console.log('\n--- Step 3: Starting Match on Physical Hardware ---');
@@ -267,8 +333,8 @@ Expected terminal output:
 --- Step 1: Attempting to assign match to broken Station (Lab B: 9 PCs) ---
 Caught Expected Error: PRE-FLIGHT HARDWARE REJECTION: Lab B (Backup Stage) has only 9/10 operational PCs. Match cannot proceed.
 
---- Step 2: Assigning match to verified Main Arena Stage (10 PCs) ---
-[DISPATCH] Match Sentinels vs Fnatic staged at Main Arena Stage
+--- Step 2: Assigning match to verified Main Arena Stage (10 PCs, 8000Hz HID) ---
+[DISPATCH] Match Sentinels vs Fnatic staged at Main Arena Stage (8000Hz HID, 0.08ms jitter)
 
 --- Step 3: Starting Match on Physical Hardware ---
 [LIVE] Match Sentinels vs Fnatic is now LIVE on physical hardware.

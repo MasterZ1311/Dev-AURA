@@ -55,6 +55,30 @@ $$\text{For } N \text{ teams and round } r: \quad \text{Rotate positions } 2 \te
 
 If $N$ is odd, a dummy "bye" team is added. Every round has exactly $N/2$ simultaneous matches, with zero double-booking and zero scheduling bias.
 
+### The 10-Point Pre-Flight Verification Gate Matrix
+
+In production LAN tournaments, the transition from `STAGED` to `IN_PROGRESS` is guarded by the **10-Point Pre-Flight Verification Gate**. Every physical asset, network route, account identifier, and telemetry channel is verified automatically against mathematical invariants before players enter the live server lobby:
+
+| Gate # | Invariant Name | Validation Target | Verification Rule / Condition | Failure Action |
+| :--- | :--- | :--- | :--- | :--- |
+| **01** | Physical Station PC Quorum | 10 Client PCs per stage | $\text{count}(\text{PCs}_{\text{operational}}) = 10$ ($5\text{ Home} + 5\text{ Away}$) | Stage locked; transition to `STAGED` blocked; dispatch alert to hardware ops |
+| **02** | Display Refresh & G-Sync Lock | 10 Tournament Monitors | $\forall m \in \text{Monitors}: \text{RefreshRate}(m) \ge 240\text{ Hz} \land \text{G-Sync} = \text{Active}$ | Match launch blocked; display EDID reset triggered |
+| **03** | High-Frequency USB HID Polling | 20 Input Devices (Mice/Keyboards) | $\forall d \in \text{HID}: \text{PollingRate}(d) \ge 1000\text{ Hz}$ ($1\text{ ms}$ interval) | Device driver flagged; referee inspection required |
+| **04** | Sub-Millisecond PTP/NTP Clock Sync | Client vs Server Clock Offset | $\lvert \Delta t \rvert = \left\lvert \frac{(T_2 - T_1) + (T_3 - T_4)}{2} \right\rvert \le 1.0\text{ ms}$ | Re-synchronize client daemon via PTP slew rate adjustment |
+| **05** | Isolated Tournament VLAN Health | Stage Switch Port Health | $\text{PacketLoss} = 0.0\% \land \text{GatewayRTT} \le 2.0\text{ ms}$ over 50 ICMP probes | Port quarantined; match diverted to secondary backup VLAN |
+| **06** | Anti-Cheat Kernel Attestation | Vanguard / Anti-Cheat Daemon | $\forall p \in \text{PCs}: \text{DriverState}(p) = \text{TRUSTED} \land \text{SecureBoot} = \text{Enabled}$ | Station locked; referee manual verification before launch |
+| **07** | Roster Identification & Verification | 10 Player Riot Account IDs | $\forall i \in [1, 10]: \text{AccountID}(i) \in \text{RegisteredRoster}(\text{Team}_i)$ | Lobby start button disabled; referee flags roster mismatch |
+| **08** | Deterministic Berger Pairings | Bracket Fixture Matrix | $\text{Fixture}(H, A) \in \text{BergerSchedule} \land \text{SimultaneousMatches} \le 1$ | Pairing rejected; scheduler regenerates deterministic round table |
+| **09** | Referee & Observer Console Authentication | 2 Independent Observers | $\text{count}(\text{Refs}_{\text{authenticated}}) \ge 2 \land \text{Tokens} = \text{Valid}$ | Stage blocked in `WARMUP`; referee sign-in mandated |
+| **10** | Telemetry Ingestion Jitter Buffer | Live Spectator Telemetry Queue | $\text{BufferJitter} \le 0.25\text{ ms} \land \text{BufferUnderflowCount} = 0$ | Telemetry stream paused; replay tick buffer resized |
+
+### Sub-Millisecond Input Polling & High-Frequency Telemetry Invariants
+Competitive integrity on 10-PC stages mandates microsecond precision:
+1. **USB HID Polling (1000Hz/8000Hz)**: 8000Hz gaming mice generate interrupts every $125\ \mu\text{s}$. VTO stations use core pinning to dedicate CPU cores 0-1 to hardware interrupts, preventing game engine render stutters.
+2. **Microsecond Timestamps**: Tick events are recorded using monotonic microsecond timers (`performance.now()`), avoiding Windows standard $15.6\text{ ms}$ timer granularity.
+3. **PTP Clock Drift Control**: Hardware clock drift across 10 stage PCs is tracked continuously using Precision Time Protocol (PTP IEEE 1588), keeping client-server time skew under $1.0\text{ ms}$.
+4. **Spectator Jitter Buffers**: Replay observers smooth packet variance using a dynamic playout buffer ($D_{\text{playout}} = \bar{D} + 3\sigma_D$), eliminating spectator video stutter without compromising referee validation.
+
 ---
 
 ## 4. Zero-to-One Interactive Playground: Build It From Scratch

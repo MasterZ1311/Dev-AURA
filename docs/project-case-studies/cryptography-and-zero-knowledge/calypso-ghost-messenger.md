@@ -12,11 +12,13 @@
 Most mainstream encrypted messaging apps (WhatsApp, Telegram, iMessage) advertise "End-to-End Encryption". While the message text itself is encrypted, these platforms rely on centralized company servers to route every packet.
 
 Here is the privacy problem:
+
 - **Metadata is often more revealing than content**. Even if the server cannot read your text, it logs who you talk to, what time you talk, your physical IP address, and how frequently you communicate.
 - In legal subpoenas or infrastructure breaches, these metadata communication graphs are readily extracted.
 - Account identities are tied to centralized telephone numbers or email addresses, linking real-world identities to messaging activity.
 
 **Ghost Messenger (Calypso)** was engineered to eliminate communication metadata:
+
 - Messages travel directly between peer devices over encrypted **WebRTC DataChannels**.
 - The signaling server is purely ephemeral: it brokers the initial WebRTC connection (SDP offers/answers) and immediately disconnects without logging traffic.
 - User identities are derived from **BIP-39 mnemonic seed phrases**—no telephone numbers, email addresses, or central accounts exist.
@@ -26,6 +28,7 @@ Here is the privacy problem:
 ## 2. The Mental Model: Intuitive Analogy & Visual Topology
 
 ### The Central Post Office vs. Direct Walkie-Talkies
+
 - **Centralized Messaging** is like sending sealed letters through a single central post office. Even if the letters are written in a secret code, the postmaster sees who sent the envelope to whom and keeps a logbook of every delivery.
 - **Calypso** is like two people using direct, encrypted walkie-talkies. The server only acts as a matchmaker who introduces the two frequencies. Once connected, they talk directly across the airwaves with no intermediate recording.
 
@@ -50,11 +53,14 @@ sequenceDiagram
 ## 3. Deep Dive: Under the Hood
 
 ### The Double Ratchet Algorithm
+
 The Signal Protocol's **Double Ratchet** algorithm combines two distinct cryptographic ratchets for every message exchange:
+
 1. **The Symmetric KDF Ratchet**: Every message sent or received advances a key derivation function (KDF) chain, deriving a fresh encryption key for that specific message and immediately destroying the previous key.
 2. **The Diffie-Hellman (DH) Ratchet**: Every time a reply is received, a new ephemeral Diffie-Hellman key exchange is completed, creating an entirely new root key.
 
-### Security Guarantees:
+### Security Guarantees
+
 - **Forward Secrecy**: If an attacker compromises your device today, they cannot decrypt messages sent in the past because past keys were permanently destroyed.
 - **Break-in Recovery (Post-Compromise Security)**: Even if an attacker temporarily accesses your current key, the next DH ratchet exchange generates a new root key, locking the attacker out of all future messages.
 
@@ -65,6 +71,7 @@ The Signal Protocol's **Double Ratchet** algorithm combines two distinct cryptog
 Let us review how to establish an in-memory WebRTC DataChannel connection between two peers in JavaScript.
 
 ### Peer Connection Playground (`p2p-channel.ts`)
+
 ```typescript
 // Example: Conceptual zero-metadata peer connection
 export class PeerChannel {
@@ -110,6 +117,7 @@ export class PeerChannel {
 ## 5. Battle Scars: What Breaks in Production & How to Debug It
 
 ### Top 3 Hard-Won Lessons from Calypso
+
 1. **Symmetric NAT Traversal**: Many mobile carriers and corporate firewalls place devices behind strict Symmetric NATs, preventing direct peer-to-peer UDP connections. While STUN servers help discover public IPs, strict NATs require a fallback TURN relay server.
 2. **Offline Message Queuing**: Pure peer-to-peer architectures cannot deliver a message if the recipient's phone is currently turned off. Calypso addresses this by storing encrypted, time-limited blobs in temporary peer caches or requiring real-time session availability.
 3. **WebRTC Signaling Message Collisions**: If both peers send simultaneous connection offers (Glare condition), the handshake can stall. Implement the standard "Perfect Negotiation" pattern using polite/impolite peer roles to resolve collisions cleanly.
@@ -119,6 +127,7 @@ export class PeerChannel {
 ## 6. The Weekend Hackathon Challenge: Your Turn to Build
 
 ### Challenge: The Serverless P2P File Dropper
+
 Build a web application that sends files directly between two browser tabs without uploading them to any backend server.
 
 - **Level 1 (Core)**: Exchange SDP offers and answers via a temporary WebSocket server, then send text messages peer-to-peer over WebRTC.

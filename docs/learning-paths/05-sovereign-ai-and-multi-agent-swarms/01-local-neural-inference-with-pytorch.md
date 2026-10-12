@@ -72,9 +72,79 @@ Standard audio APIs generate an entire 10-second `.wav` file, write the file hea
 **The Streaming PCM Invariant**:
 - Audio is synthesized as a continuous generator of raw 16-bit Pulse-Code Modulation (PCM) byte buffers.
 - As soon as the first 50 milliseconds of audio (e.g. 1,024 samples at 24kHz) are computed by the neural vocoder, that chunk is pushed directly to the audio speaker stream.
-- Synthesis of subsequent words runs concurrently while the first word is playing, eliminating perceptible latency.
+- The streaming PCM invariant ensures sub-50ms Time-To-First-Byte audio delivery.
 
-### Trade-Off Matrix: AI Speech Architectures
+### Autoregressive Local LLM Inference: Runtimes, Quantization & Memory Bounds
+
+Beyond neural speech synthesis, sovereign AI systems rely on local Large Language Model (LLM) execution engines (such as `llama.cpp` and `Ollama`) to run text comprehension and reasoning without cloud APIs. Understanding how transformer inference operates on physical silicon is essential for building low-latency local agents.
+
+#### 1. GGUF Quantization: Q4_K_M vs. Q8_0
+Neural model weights are trained in FP16 (16-bit floating point, 2 bytes/parameter) or BF16. An 8-billion parameter model requires $8 \times 10^9 \times 2 = 16\text{ GB}$ of VRAM simply to load weights, excluding activation and context memory.
+
+**GGUF (GPT-Generated Unified Format)** is the open standard binary format for sovereign model distribution. It packages model architecture metadata, tokenizer vocabulary, tensor mappings, and quantized weights into a single, memory-mappable (`mmap`) file:
+- **Block-Level Quantization**: Rather than quantizing parameters uniformly across the entire tensor, weights are divided into discrete blocks (typically 32 or 256 weights). Each block shares an FP16 scale factor and minimum value, preserving precision in dynamic ranges.
+- **Q4_K_M (4-bit Medium K-Quantization)**: Uses a hybrid block strategy where critical attention tensors (`attn.v` and `attn.output`) and feed-forward layers are quantized at 4 to 6 bits, averaging ~4.5 bits per parameter. An 8B parameter model shrinks from 16 GB down to **4.9 GB** with negligible perplexity loss ($< 0.1$ degradation).
+- **Q8_0 (8-bit Quantization)**: Uses 8-bit integers per weight with an FP16 scale per 32-weight block (~8.5 bits per parameter). Perplexity degradation is undetectable ($< 0.01$), requiring ~8.5 GB for an 8B model. While highly accurate, it requires almost double the memory bandwidth of Q4_K_M.
+
+| Quantization Format | Bits per Weight | 8B Model Weight Size | Perplexity Penalty | Minimum Recommended Hardware |
+| :--- | :--- | :--- | :--- | :--- |
+| **FP16 (Unquantized)** | 16.0 | 16.0 GB | 0.00 (Baseline) | 24GB VRAM (RTX 4090 / Mac Studio) |
+| **Q8_0 (Near-Lossless)** | ~8.5 | 8.5 GB | < 0.01 | 16GB Unified RAM / 12GB VRAM |
+| **Q4_K_M (Balanced)** | ~4.5 | 4.9 GB | < 0.08 | 8GB Unified RAM / 8GB VRAM |
+
+#### 2. Runtime Architecture: llama.cpp and Ollama
+Modern sovereign LLM engines eliminate heavy Python runtimes and the Global Interpreter Lock (GIL):
+- **C/C++ Bare-Metal Execution**: `llama.cpp` is written in pure C/C++ with zero external dependencies. Ollama packages `llama.cpp` into a daemon providing a local HTTP/REST JSON API (`http://localhost:11434`).
+- **Zero-Copy Memory Mapping (`mmap`)**: Instead of allocating heap memory and copying multi-gigabyte models byte-by-byte, the operating system kernel maps the GGUF file directly into virtual address space. Pages are loaded into RAM on-demand, enabling model initialization in under 50 milliseconds.
+- **Hardware Acceleration Kernels**: Matrix operations execute through hardware-specific compute shaders: Apple Metal Shaders (`ggml-metal.metal`) on Apple Silicon unified memory, cuBLAS and FlashAttention on NVIDIA GPUs, and AVX2/AVX-512 vector intrinsics on x86 CPUs.
+
+#### 3. The KV Cache & Autoregressive Generation Loop
+Transformer decoder inference is autoregressive: each new token $t_{n+1}$ attends to all previous tokens $t_1, \dots, t_n$.
+
+Without caching, computing self-attention at step $n$ requires re-projecting Key ($K$) and Value ($V$) matrices for all $n-1$ historical tokens, leading to quadratic computational complexity:
+
+$$\text{Naive Step Complexity} = O(N^2)$$
+
+The **KV Cache Invariant** stores historical Key and Value projections in pre-allocated contiguous memory buffers. During each generation step:
+1. The new token is projected into Query ($Q_{n+1}$), Key ($K_{n+1}$), and Value ($V_{n+1}$).
+2. $K_{n+1}$ and $V_{n+1}$ are appended to the KV cache in GPU memory.
+3. Attention is computed by multiplying $Q_{n+1}$ against the accumulated cached keys:
+
+$$\text{Attention}(Q_{n+1}, K_{\text{cached}}, V_{\text{cached}}) = \text{softmax}\left(\frac{Q_{n+1} K_{\text{cached}}^T}{\sqrt{d_k}}\right) V_{\text{cached}}$$
+
+This reduces autoregressive generation per step from $O(N^2)$ to **$O(1)$ amortized compute**.
+
+The memory footprint of the KV cache scales linearly with sequence length:
+
+$$\text{Memory}_{\text{KVCache}} = 2 \times n_{\text{layers}} \times n_{\text{kv\_heads}} \times d_{\text{head}} \times \text{seq\_len} \times \text{bytes\_per\_element}$$
+
+For Llama 3 8B with Grouped-Query Attention (GQA, 32 layers, 8 KV heads, head dimension 128) at an 8,192-token context in FP16 ($2\text{ bytes}$):
+
+$$\text{Memory}_{\text{KVCache}} = 2 \times 32 \times 8 \times 128 \times 8192 \times 2 \approx 1.07\text{ GB}$$
+
+#### 4. Memory Bandwidth vs. Compute Bound Dynamics
+The performance of local LLM inference is governed by two distinct execution phases:
+
+1. **Prompt Ingestion / Prefill Stage (Compute-Bound)**:
+   - When the user submits a prompt of $P$ tokens, all $P$ tokens are processed in parallel through General Matrix-Matrix Multiplication (GEMM).
+   - High arithmetic intensity ($\text{FLOPs} / \text{Byte} \gg 10$). The bottleneck is the raw tensor compute capacity of the GPU (TFLOPs).
+2. **Token Generation / Decode Stage (Memory-Bandwidth Bound)**:
+   - Tokens are generated sequentially, one token per forward pass, using General Matrix-Vector Multiplication (GEMV).
+   - For **every single token generated**, the compute hardware must stream ALL model weights (e.g. 4.9 GB for Q4_K_M) from RAM/VRAM into CPU/GPU execution registers.
+   - Low arithmetic intensity ($\approx 2\ \text{FLOPs} / \text{Byte}$). The execution units sit idle waiting for memory transfer.
+
+The theoretical maximum token generation throughput is strictly capped by memory bus bandwidth:
+
+$$\text{Generation Throughput} \approx \frac{\text{Memory Bandwidth (GB/s)}}{\text{Model Size in VRAM (GB)}}$$
+
+- **Apple Silicon M3 Max** ($400\text{ GB/s}$ unified memory bandwidth) running an 8B Q4_K_M model ($4.9\text{ GB}$):
+  $$\text{Throughput} \approx \frac{400\text{ GB/s}}{4.9\text{ GB}} \approx 81.6\text{ tokens/sec}$$
+- **Standard Desktop PC (Dual-Channel DDR5)** ($64\text{ GB/s}$ system RAM bandwidth):
+  $$\text{Throughput} \approx \frac{64\text{ GB/s}}{4.9\text{ GB}} \approx 13.0\text{ tokens/sec}$$
+
+This mathematical reality explains why unified high-bandwidth memory architectures (Apple Silicon and NVIDIA unified memory) deliver vastly superior local LLM performance compared to conventional CPU-RAM configurations.
+
+### Trade-Off Matrix: AI Speech & Local Neural Architectures
 
 | Vector | Commercial Cloud Voice API | Local Neural Voice (Rheo) | Local Rule-Based TTS (eSpeak) |
 | :--- | :--- | :--- | :--- |

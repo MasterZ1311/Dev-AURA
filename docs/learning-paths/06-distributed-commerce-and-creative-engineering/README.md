@@ -1,16 +1,16 @@
 # Stage 6: Distributed Commerce, Ledgers & Physical 3D Shaders
 
-> Production Rigor: Concurrency Controls, Double-Entry Invariants, Non-Extractive Verification, and 60 FPS WebGL Shaders.
+> Production Rigor: Concurrency Controls, Limit Order Books, Replicated Double-Entry Ledgers, Differential Privacy, Instanced Rendering, and WebGPU Pipelines.
 
 ---
 
 ## Overview
 
 The final stage of the Sovereign Developer Learning Path synthesizes high-concurrency systems, financial integrity, ethical data governance, and creative graphics engineering:
-1. Solving high-demand double-booking race conditions in decentralized marketplaces using **Optimistic Concurrency Control** (as built in *Parkly*).
-2. Preserving immutable financial integrity using **Double-Entry Bookkeeping** and integer cent arithmetic verified by property-based testing (as built in *COUNT*).
-3. Architecting sovereign clinical evaluation engines (*PinkPulse*) and document-only government identity gateways (*SDA Matrimony DigiLocker*) that explicitly reject biometric surveillance.
-4. Engineering visceral, hardware-accelerated 3D graphics on the web using custom **GLSL Shaders**, viewport throttling, DPR clamping, and zero-leak GPU memory disposal (as built in *ZEUS*).
+1. Solving high-demand continuous double auctions using an in-memory **Limit Order Book (LOB)** matching engine with price-time priority, level-2 depth, and cancellations.
+2. Preserving immutable financial integrity using **Double-Entry Bookkeeping** combined with **Deterministic State Machine Replication (SMR)** and Raft consensus log invariants.
+3. Architecting sovereign clinical evaluation engines (*PinkPulse*) and implementing **Differential Privacy** using the Laplace mechanism with strict privacy budget accounting.
+4. Engineering visceral, hardware-accelerated 3D graphics on the web using **Instanced Rendering (`THREE.InstancedMesh`)** to draw 10,000 animated particles in 1 draw call, hierarchical scene graphs, and explicit **WebGL 2.0 vs WebGPU** pipeline comparisons.
 
 ---
 
@@ -18,9 +18,9 @@ The final stage of the Sovereign Developer Learning Path synthesizes high-concur
 
 ```mermaid
 graph TD
-    M1["Module 01: Concurrency Control (Optimistic Version Counter Locking, Atomic Booking FSM)"] --> M2["Module 02: Double-Entry Ledger (Zero Float Drift, Sum Debits == Sum Credits Invariant)"]
-    M2 --> M3["Module 03: Ethical Ephemeral Identity (Client-Side Oncology Risk, DigiLocker OAuth Consent)"]
-    M3 --> M4["Module 04: 60 FPS GPU WebGL Pipelines (Custom GLSL Wave Shaders, DPR Clamping, VRAM Disposal)"]
+    M1["Module 01: Limit Order Book (Price-Time Priority, L2 Depth, Market/Limit Fills)"] --> M2["Module 02: Replicated Ledger (Double-Entry Invariants, Raft Quorum Logs)"]
+    M2 --> M3["Module 03: Differential Privacy (Laplace Mechanism, Sensitivity, Epsilon Budget)"]
+    M3 --> M4["Module 04: Instanced GPU Graphics (THREE.InstancedMesh, Scene Graphs, WebGPU)"]
     
     subgraph Enterprise Grade Sovereign Core
         M4 --> ProductionDeliverable["Mission-Critical Production Engineering: Scalable Financial Integrity, Zero Surveillance, 60 FPS 3D"]
@@ -34,17 +34,17 @@ graph TD
 ```text
 06-distributed-commerce-and-creative-engineering/
 ├── README.md                                         # Stage syllabus & roadmap
-├── 01-concurrency-control-and-marketplaces.md         # Optimistic locking & race conditions
-├── 02-double-entry-accounting-invariants.md          # Immutable ledgers & property tests
-├── 03-ethical-data-and-ephemeral-identity.md          # Zero-exposure health & DigiLocker
-└── 04-gpu-pipelines-and-custom-glsl-shaders.md       # 60 FPS WebGL, GLSL & GPU memory cleanup
+├── 01-concurrency-control-and-marketplaces.md         # Limit order book & price-time matching
+├── 02-double-entry-accounting-invariants.md          # Replicated ledgers & consensus invariants
+├── 03-ethical-data-and-ephemeral-identity.md          # Differential privacy & clinical ethics
+└── 04-gpu-pipelines-and-custom-glsl-shaders.md       # Instanced rendering, scene graphs & WebGPU
 ```
 
 ---
 
 ## Learning Objectives
 
-- **Concurrency Mastery**: Prevent distributed double-booking bugs under heavy concurrent load using atomic version counter checks.
-- **Financial Invariants**: Formulate double-entry balance equations ($\sum \text{Debits} = \sum \text{Credits}$) and eliminate floating-point currency drift.
-- **Ethical Data Engineering**: Execute client-side clinical risk calculations and implement ephemeral OAuth2 verification with immediate RAM zeroization.
-- **GPU Optimization**: Write custom vertex and fragment shaders in GLSL, clamp Device Pixel Ratios on mobile displays, and eliminate WebGL VRAM memory leaks.
+- **Order Book Matching**: Build an in-memory Limit Order Book matching engine supporting limit orders, market orders, partial fills, cancellations, and real-time depth visualization.
+- **Replicated Financial Invariants**: Formulate double-entry balance equations ($\sum \text{Debits} = \sum \text{Credits}$) replicated across a Raft consensus cluster with linearizable state machine commit invariants.
+- **Differential Privacy**: Implement the Laplace mechanism with global sensitivity $\Delta f$ and sequential privacy budget tracking ($\epsilon$) for sensitive clinical queries.
+- **GPU Optimization & WebGPU**: Render 10,000 animated particles in a single draw call via `THREE.InstancedMesh`, propagate world transforms across hierarchical scene graphs, and architect explicit WebGPU pipelines.

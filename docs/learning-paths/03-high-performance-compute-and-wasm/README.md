@@ -7,6 +7,7 @@
 ## Overview
 
 Traditional web development offloads all heavy computation to cloud servers:
+
 - Need to convert an image? Upload it to an AWS Lambda function.
 - Need to parse a 200MB CSV? Send it to a backend Python API.
 - Need to merge or encrypt a PDF? Pay a SaaS provider per API request.
@@ -14,6 +15,7 @@ Traditional web development offloads all heavy computation to cloud servers:
 This pattern introduces network upload latency, recurring server bills, and severe data privacy violations.
 
 In Stage 3, you will learn to turn the user's browser runtime into a sovereign, high-performance computing sandbox (as demonstrated in *ErgonPDF*):
+
 1. Overcoming the single-thread JavaScript bottleneck using dedicated Web Workers.
 2. Transferring hundreds of megabytes of raw memory in zero-copy constant time ($O(1)$) using transferable `ArrayBuffer` objects.
 3. Loading and manipulating binary file trees (such as PDF objects and fonts) in browser memory with `pdf-lib` and WebAssembly.

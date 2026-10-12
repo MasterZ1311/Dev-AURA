@@ -9,6 +9,7 @@
 In the cloud era, security is often outsourced to third-party services: Auth0, AWS KMS, or proprietary OAuth providers. When those providers suffer breaches or downtime, user data is compromised.
 
 Stage 2 teaches the principles of **Sovereign Applied Cryptography**:
+
 1. How to derive mathematically fortified encryption keys from human passphrases using memory-hard Argon2id.
 2. How to achieve absolute confidentiality with AES-256-GCM authenticated encryption and post-quantum lattice primitives.
 3. Why eliminating network permissions at the operating system level (0 network permissions in Android manifests) creates mathematically verifiable air-gapped security (as built in *Kryptyx*).
