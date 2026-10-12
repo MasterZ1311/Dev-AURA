@@ -346,22 +346,22 @@ export class MeshCryptoEndpoint {
     const rawSecret = this.ecdh.computeSecret(peerPublicKey);
 
     // Derive 256-bit AES key via HKDF
-    this.sessionKey = crypto.hkdfSync(
+    this.sessionKey = Buffer.from(crypto.hkdfSync(
       "sha256",
       rawSecret,
       Buffer.from("MESH-SALT"),
       Buffer.from("SESSION-KEY"),
       32
-    );
+    ));
 
     // Derive 4-word Short Authentication String (SAS)
-    const sasEntropy = crypto.hkdfSync(
+    const sasEntropy = Buffer.from(crypto.hkdfSync(
       "sha256",
       rawSecret,
       Buffer.from("SAS-SALT"),
       Buffer.from("SAS-VERIFY"),
       8
-    );
+    ));
     const w1 = SAS_WORDS[sasEntropy.readUInt16BE(0) % SAS_WORDS.length];
     const w2 = SAS_WORDS[sasEntropy.readUInt16BE(2) % SAS_WORDS.length];
     const w3 = SAS_WORDS[sasEntropy.readUInt16BE(4) % SAS_WORDS.length];
@@ -580,7 +580,7 @@ Expected Output:
 Parsed Multiaddr: /ip4/203.0.113.10/tcp/4001/p2p/QmYyQSo1c1Ym7orWxLYvCrM2EmxFTANf8wXmmE7DWjhx5N
 Extracted Peer ID: QmYyQSo1c1Ym7orWxLYvCrM2EmxFTANf8wXmmE7DWjhx5N
 Multistream header negotiation response: /multistream/1.0.0
-Multistream protocol negotiation response: /mesh/sync/1.0.0 (Agreed: true)
+Multistream protocol negotiation response: /mesh/sync/1.0.0 (Agreed: true )
 
 --- Part 2: NAT Traversal & UDP Hole-Punching (STUN/ICE) ---
 Alice Server-Reflexive STUN Endpoint:   203.0.113.10:20000

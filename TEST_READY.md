@@ -16,21 +16,21 @@ python scripts/verify-invariants.py
 
 *Expected Result*: Exits `0` with `100% PASS - ALL REPOSITORY INVARIANTS SATISFIED`.
 
-### NPM Test Runner
+### Project Test Runner (Combined Invariants + Governance Lint)
 
 ```bash
-npm run verify:invariants
+npm test
 ```
 
-*Expected Result*: Exits `0` and executes `python scripts/verify-invariants.py`.
+*Expected Result*: Exits `0` cleanly, executing both `verify:invariants` and `lint:governance`.
 
-### Repository Hygiene Linting (M1 Scope)
+### Governance Documentation Linting
 
 ```bash
-npx -y markdownlint-cli "README.md" "RULES.md" "docs/REPOSITORY_AUDIT_REPORT.md" "docs/templates/CHECKLIST_TEMPLATE.md" "docs/templates/GUIDE_TEMPLATE.md" ".github/PULL_REQUEST_TEMPLATE.md"
+npm run lint:governance
 ```
 
-*Expected Result*: Exits `0` with `0 errors`.
+*Expected Result*: Exits `0` with `0 errors` across governed documentation.
 
 ---
 

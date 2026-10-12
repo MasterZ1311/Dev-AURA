@@ -176,12 +176,24 @@ export class BlackboardMemory {
   public initialize(feature: string): void {
     this.state.feature = feature;
     this.state.scratchpad.push(`[INIT] Feature requested: "${feature}"`);
+    this.state.scratchpad.push(
+      '[SYSTEM THREAT MODEL] Air-gap policy: zero external network permissions in application manifest. Target environments: hardened mobile OS instances without cloud backup dependencies.'
+    );
+    this.state.scratchpad.push(
+      '[STORAGE CONSTRAINT] Bounded flash footprint (<128MB resident) with atomic durability during sudden battery power-loss.'
+    );
   }
 
   public setProposal(proposal: any): void {
     this.state.proposal = proposal;
     this.state.scratchpad.push(
-      `[PROPOSAL] Architect posted plan: Auth=${proposal.authStrategy}, DB=${proposal.database}`
+      `[PROPOSAL] Architect posted plan: Auth=${proposal.authStrategy}, DB=${proposal.database}, Net=${proposal.networkPolicy}`
+    );
+    this.state.scratchpad.push(
+      '[ARCHITECT DESIGN NOTES] Storage schema: AES-256 encrypted SQLite pages with 4096-byte page size. Credential vault schema isolates master key derivation from biometric unlock tokens. Local IPC uses Unix domain sockets with strict OS UID validation.'
+    );
+    this.state.scratchpad.push(
+      '[ARCHITECT CRYPTO SPEC] Key derivation: Argon2id with parameters m=64MB, t=3, p=4. Master key derivation yields 256-bit AES-GCM cipher keys. Initialization vectors generated from CSPRNG (/dev/urandom) per record.'
     );
   }
 
@@ -190,6 +202,10 @@ export class BlackboardMemory {
     this.state.scratchpad.push(
       `[AUDIT] ${finding.agentName} (Weight ${finding.domainWeight}) Vote=${finding.vote > 0 ? '+1' : '-1'}: ${finding.comment}`
     );
+  }
+
+  public appendDeliberationTrace(agentName: string, trace: string): void {
+    this.state.scratchpad.push(`[${agentName.toUpperCase()} TRACE] ${trace}`);
   }
 
   public getFindings(): ReviewFinding[] {
@@ -320,6 +336,10 @@ export class SecurityAdversaryAgent {
     };
 
     this.blackboard.addFinding(finding);
+    this.blackboard.appendDeliberationTrace(
+      'SecurityAdversary',
+      'Memory forensic scan: Inspecting process heap for credential remnants following unlock. Discovered that Node.js/V8 garbage collector leaves decrypted master passphrase buffers in volatile heap pages until nursery compaction occurs. Threat severity: CRITICAL. Remediation mandate: Implement explicit zeroization (key.fill(0)) in a finally block.'
+    );
     this.bus.publish({
       id: randomUUID(),
       correlationId: event.correlationId,
@@ -351,6 +371,10 @@ export class PerformanceAuditorAgent {
     };
 
     this.blackboard.addFinding(finding);
+    this.blackboard.appendDeliberationTrace(
+      'PerformanceAuditor',
+      'I/O contention benchmark: Stress-tested default SQLite rollback journal under 50 concurrent vault queries. Rollback journal acquires exclusive table lock during credential insert, causing UI stalls of 120ms-350ms on mobile flash controllers. Concurrency failure rate: 14% SQLITE_BUSY errors. Remediation mandate: Switch journal mode to Write-Ahead Logging (WAL) to enable non-blocking concurrent readers.'
+    );
     this.bus.publish({
       id: randomUUID(),
       correlationId: event.correlationId,
@@ -365,6 +389,8 @@ export class PerformanceAuditorAgent {
 // 4. Consensus Gatekeeper & Decision Engine
 // ---------------------------------------------------------------------------
 export class ConsensusGatekeeper {
+  private evaluated = false;
+
   constructor(private bus: AgentEventBus, private blackboard: BlackboardMemory) {
     this.bus.subscribe('SECURITY_AUDIT_COMPLETED', this.checkConsensus.bind(this));
     this.bus.subscribe('PERFORMANCE_AUDIT_COMPLETED', this.checkConsensus.bind(this));
@@ -372,7 +398,8 @@ export class ConsensusGatekeeper {
 
   private async checkConsensus(event: DomainEvent<any>): Promise<void> {
     const findings = this.blackboard.getFindings();
-    if (findings.length < 2) return; // Wait for both auditors to finish
+    if (findings.length < 2 || this.evaluated) return; // Wait for both auditors to finish
+    this.evaluated = true;
 
     console.log('\n--- Evaluating Multi-Agent Swarm Consensus ---');
 
@@ -462,8 +489,8 @@ Expected terminal output:
   -> Key material lingers in volatile RAM without explicit buffer zeroization.
 
 --- Triggering Semantic Scratchpad Context Compaction ---
-Raw Scratchpad Size:       ~112 tokens
-Compacted Snapshot Size:  ~28 tokens
+Raw Scratchpad Size:       ~511 tokens
+Compacted Snapshot Size:  ~128 tokens
 Context Window Savings:   75% token reduction
 
 === COMPACTED SEMANTIC SCRATCHPAD SNAPSHOT ===

@@ -104,7 +104,7 @@ Galois/Counter Mode (GCM) is an authenticated encryption with associated data (A
 
 ## 4. Zero-to-One Interactive Playground: Build It From Scratch
 
-Let us implement an authentic cryptographic vault in TypeScript. We will build an **Argon2id key derivation engine** configured with production parameters ($m=64\text{MB}, t=3, p=4$), compare it with `scrypt`, encrypt data using **AES-256-GCM**, verify tamper detection, and enforce volatile memory zeroization.
+Let us implement a cryptographic vault in TypeScript. Because the Node.js standard library `crypto` module does not expose native Argon2id bindings, we build an **instructional educational simulation of the Argon2id matrix architecture** configured with production parameters ($m=64\text{MB}, t=3, p=4$) in pure TypeScript. This allows us to inspect the 4-lane memory-hard mixing passes under the hood. For production environments, engineers should utilize native C/Rust bindings via packages such as `@node-rs/argon2` or `argon2`. We benchmark this against native `scrypt`, encrypt data using **AES-256-GCM**, verify tamper detection, and enforce volatile memory zeroization.
 
 ### Step 1: Environment Setup
 
@@ -141,8 +141,11 @@ export class Argon2idEngine {
   public static readonly KEY_LENGTH_BYTES = 32;  // 256 bits
 
   /**
-   * Authentic Argon2id Key Derivation implementation.
-   * Simulates the 64MB memory matrix allocation, 4-lane parallel lanes,
+   * Instructional Educational Simulation of the Argon2id Matrix Architecture.
+   * Note: This is an educational simulation for pedagogical walkthroughs.
+   * Node.js standard crypto lacks native Argon2id bindings; for production
+   * applications, always bind to compiled C/Rust libraries such as `@node-rs/argon2`.
+   * Simulates the memory matrix allocation, 4-lane parallel lanes,
    * and hybrid Argon2i/Argon2d block permutation mixing.
    */
   public static deriveKey(
@@ -225,7 +228,7 @@ export class ProductionCryptoVault {
 
       return {
         algorithm: this.ALGORITHM,
-        kdf: 'Argon2id (m=64MB, t=3, p=4)',
+        kdf: 'Argon2id Simulation (m=64MB, t=3, p=4)',
         saltHex: salt.toString('hex'),
         ivHex: iv.toString('hex'),
         tagHex: authTag.toString('hex'),
@@ -321,9 +324,10 @@ async function runVerification() {
   const scryptTime = (performance.now() - t1).toFixed(2);
   scryptKey.fill(0);
 
-  console.log(`Argon2id (m=64MB, t=3, p=4) Execution: ${argonTime} ms`);
-  console.log(`scrypt (N=16384, r=8, p=1) Execution:   ${scryptTime} ms`);
-  console.log('Both primitives confirm high memory-hardness; Argon2id provides superior GPU/ASIC TMTO resistance.');
+  console.log(`Argon2id Simulation (m=64MB, t=3, p=4) Execution: ${argonTime} ms (Educational Matrix Simulation)`);
+  console.log(`scrypt (N=16384, r=8, p=1) Execution:   ${scryptTime} ms (Native Node.js Crypto)`);
+  console.log('Educational Note: Node.js standard crypto does not provide native Argon2id bindings.');
+  console.log('For production systems requiring true 64MB memory-hard Argon2id, use @node-rs/argon2.');
 
   console.log('\n=== Step 4: Simulating Malicious Bit-Flipping in Ciphertext ===');
   try {
@@ -355,12 +359,12 @@ Expected terminal output:
 
 ```text
 === Step 1: Encrypting Payload with Argon2id + AES-256-GCM ===
-Encrypted in 12.35 ms
-KDF Used:     Argon2id (m=64MB, t=3, p=4)
-Ciphertext:   7f2b1a9c40e1...
-Salt (Hex):   c8f0...
-IV (Hex):     3a1e...
-Auth Tag:     9b4f...
+Encrypted in 2.15 ms
+KDF Used:     Argon2id Simulation (m=64MB, t=3, p=4)
+Ciphertext:   19ce50dcc4928b189ebe44d2b9f871ae3528043f727e66c6...
+Salt (Hex):   826ea71c49787ead9a5c01f41f8b5483
+IV (Hex):     ba8aed9140dc8aa757e04c78
+Auth Tag:     08c0222a19b9ca5e1faf6a9f0bd18052
 
 === Step 2: Decrypting with Correct Passphrase ===
 Decrypted successfully. Parsed content:
@@ -372,9 +376,10 @@ Decrypted successfully. Parsed content:
 }
 
 === Step 3: Benchmarking Argon2id vs scrypt Memory-Hard Derivation ===
-Argon2id (m=64MB, t=3, p=4) Execution: 11.85 ms
-scrypt (N=16384, r=8, p=1) Execution:   14.20 ms
-Both primitives confirm high memory-hardness; Argon2id provides superior GPU/ASIC TMTO resistance.
+Argon2id Simulation (m=64MB, t=3, p=4) Execution: 0.23 ms (Educational Matrix Simulation)
+scrypt (N=16384, r=8, p=1) Execution:   59.66 ms (Native Node.js Crypto)
+Educational Note: Node.js standard crypto does not provide native Argon2id bindings.
+For production systems requiring true 64MB memory-hard Argon2id, use @node-rs/argon2.
 
 === Step 4: Simulating Malicious Bit-Flipping in Ciphertext ===
 Verification Passed: Tamper detection succeeded.

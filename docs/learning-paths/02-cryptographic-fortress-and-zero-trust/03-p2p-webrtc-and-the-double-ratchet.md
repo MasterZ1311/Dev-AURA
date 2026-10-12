@@ -391,12 +391,8 @@ async function runPingPongVerification() {
   const rootSharedSecret = crypto.randomBytes(32);
 
   // Pre-exchange initial public keys (representing WebRTC SDP handshake)
-  const tempBob = crypto.createECDH('prime256v1');
-  tempBob.generateKeys();
-  const bobInitialPub = tempBob.getPublicKey();
-
-  const alice = new DoubleRatchetSession('Alice', rootSharedSecret, bobInitialPub, true);
   const bob = new DoubleRatchetSession('Bob', rootSharedSecret);
+  const alice = new DoubleRatchetSession('Alice', rootSharedSecret, bob.getPublicKey(), true);
 
   console.log('Alice and Bob initialized Double Ratchet sessions.');
   console.log('Alice is initialized with Bob initial public key.\n');
@@ -486,6 +482,7 @@ Bob successfully decrypted: "Ping-pong exchange verified! Post-compromise securi
 
 === Step 6: Verifying Forward Secrecy Invariant ===
 Attempting to re-decrypt Message 1 using current Bob state...
+[Bob] Detected new DH key from peer! Executing DH Ratchet turn...
 Forward Secrecy CONFIRMED: Chain has irreversibly moved forward.
 Mathematical proof: Past keys are permanently destroyed from memory.
 ```

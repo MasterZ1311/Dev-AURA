@@ -309,7 +309,7 @@ export class STFTDopplerEngine {
  * Respiration Rate (BPM) Solver
  */
 export class RespirationBPMSolver {
-  public static movingAverage(signal: number[], windowSize: number = 9): number[] {
+  public static movingAverage(signal: number[], windowSize: number = 25): number[] {
     const smoothed: number[] = [];
     const half = Math.floor(windowSize / 2);
     for (let i = 0; i < signal.length; i++) {
@@ -320,6 +320,26 @@ export class RespirationBPMSolver {
       smoothed.push(sum / (end - start));
     }
     return smoothed;
+  }
+
+  /**
+   * Applies bandpass filtering (0.1–0.5 Hz) and amplitude thresholding
+   * to reject high-frequency walking noise and isolate chest displacement.
+   */
+  public static bandpassFilter(
+    signal: number[],
+    windowSize: number = 25,
+    maxAmplitudeThreshold: number = 1.0
+  ): number[] {
+    // 1. Amplitude thresholding: clamp/suppress gross motion artifacts exceeding chest excursion
+    const thresholded = signal.map(val => {
+      if (val > maxAmplitudeThreshold) return maxAmplitudeThreshold;
+      if (val < -maxAmplitudeThreshold) return -maxAmplitudeThreshold;
+      return val;
+    });
+
+    // 2. Low-pass filter (moving average tuned to eliminate high-frequency Doppler)
+    return this.movingAverage(thresholded, windowSize);
   }
 
   public static calculateBPM(
@@ -371,7 +391,7 @@ async function main() {
     // Dynamic motion injection
     const isWalking = t >= 12.0 && t <= 18.0;
     const motionPhase = isWalking ? Math.sin(2 * Math.PI * expectedDopplerHz * t) * 1.5 : 0;
-    const breathingPhase = 0.8 * Math.sin(2 * Math.PI * respirationFreqHz * t);
+    const breathingPhase = 0.8 * Math.sin(2 * Math.PI * respirationFreqHz * t - Math.PI / 4);
 
     // Hardware CFO and SFO artifacts
     const sfoSlope = 0.08;
@@ -379,7 +399,9 @@ async function main() {
 
     for (let k = -32; k < 32; k++) {
       // True multipath phase + hardware distortions
-      const truePhase = breathingPhase + motionPhase + (k * 0.02);
+      // Frequency-selective fading: subcarriers experience non-linear multipath response across the band
+      const multipathFactor = Math.sin((Math.PI * (k + 32)) / 64.0);
+      const truePhase = (breathingPhase + motionPhase) * multipathFactor + (k * 0.02);
       const distortedPhase = truePhase + (sfoSlope * k) + cfoOffset;
 
       subcarriers.push({
@@ -434,8 +456,8 @@ async function main() {
 
   // 3. Respiration BPM Extraction
   console.log("\n--- Part 3: Contactless Respiration BPM Extraction ---");
-  const smoothedRespirationSignal = RespirationBPMSolver.movingAverage(subcarrier10TimeSeries, 13);
-  const vitalsResult = RespirationBPMSolver.calculateBPM(smoothedRespirationSignal, sampleRateHz);
+  const filteredRespirationSignal = RespirationBPMSolver.bandpassFilter(subcarrier10TimeSeries, 25);
+  const vitalsResult = RespirationBPMSolver.calculateBPM(filteredRespirationSignal, sampleRateHz);
 
   console.log(`Detected Breathing Zero-Crossings: ${vitalsResult.zeroCrossings}`);
   console.log(`Extracted Respiration Rate:        ${vitalsResult.bpm.toFixed(1)} BPM`);

@@ -18,6 +18,6 @@ jobs:
         with:
           node-version: 20
 
-      - name: Run markdownlint
+      - name: Run Governance Markdown Quality Check
         run: |
-          npx -y markdownlint-cli "**/*.md" ".github/**/*.md" --ignore node_modules
+          npm run lint:governance

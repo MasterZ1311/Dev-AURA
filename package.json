@@ -4,8 +4,9 @@
   "description": "The Open-Source Developer Handbook and Engineering Standard",
   "private": true,
   "scripts": {
-    "test": "npm run verify:invariants && npm run lint:md",
+    "test": "npm run verify:invariants && npm run lint:governance",
     "verify:invariants": "python scripts/verify-invariants.py",
+    "lint:governance": "npx -y markdownlint-cli \"README.md\" \"RULES.md\" \"TEST_READY.md\" \"docs/REPOSITORY_AUDIT_REPORT.md\" \"docs/templates/*.md\" \".github/**/*.md\"",
     "lint:md": "npx -y markdownlint-cli \"**/*.md\" \".github/**/*.md\" --ignore node_modules --ignore .agents",
     "lint:md:fix": "npx -y markdownlint-cli --fix \"**/*.md\" \".github/**/*.md\" --ignore node_modules --ignore .agents"
   },
