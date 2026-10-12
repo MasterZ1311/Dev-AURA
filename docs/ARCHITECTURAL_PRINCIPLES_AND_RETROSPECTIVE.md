@@ -101,10 +101,13 @@ graph TD
 
 ```text
 Portfolio Breakdown by Engineering Domain:
-├── Native Systems & Desktop OS        -> CodexOS, Aura 3.0
+├── Native Systems & Desktop OS        -> CodexOS, Aura 3.0, Aura Android
 ├── Cryptography & Zero-Knowledge      -> Kryptyx, Ghost Messenger (Calypso)
 ├── In-Browser WASM Processing         -> ErgonPDF
-├── Sovereign Neural Speech & AI       -> Rheo, VoiceBox, Skills Bot
+├── Sovereign Neural Speech & Local AI -> Rheo, VoiceBox, Skills Bot, RAG from Scratch
+├── Edge RF Sensing & WiFi DensePose   -> RuView
+├── Decentralized Swarms & Wire P2P    -> NuTorrent (Android & PC)
+├── Offline Mesh & Delay-Tolerant Relays-> NOVA (ShareIt Copy), MeshLink (Mesh Message)
 ├── High-Stakes Operations & Esports   -> Valorant Tournament Operations, BGMI TCC
 ├── Smart City & Distributed Commerce  -> Parkly, Kamaal Shop Website, COUNT
 ├── Clinical Health & Identity Systems -> PinkPulse, SDA Matrimony DigiLocker
@@ -302,6 +305,79 @@ Portfolio Breakdown by Engineering Domain:
   - Zero-fluff, zero-emoji, highly professional technical style.
   - Enforced atomic PRs and Conventional Commits to ensure long-term open-source maintainability.
 
+### 2.10 Edge RF Sensing & Spatial Intelligence
+
+#### 2.10.1 RuView (π RuView)
+- **Domain**: Contactless WiFi Spatial Intelligence, Through-Wall Presence & Vital Signs.
+- **Core Technology Stack**: Rust 1.85+, Python, ESP32-S3 Firmware, Ed25519, Home Assistant MQTT (HA-DISCO), Matter, Apple HomeKit (HAP-1.1), PyTorch.
+- **What Was Built**:
+  - A spatial intelligence platform that transforms ordinary Wi-Fi into an ambient radar sensing system using Channel State Information (CSI) from low-cost ESP32-S3 hardware ($9/node).
+  - Contactless vital signs extraction: breathing rate and heart rate calculated through walls and in complete darkness with zero wearables or cameras.
+  - A 4-bit quantized 128-dimensional contrastive encoder fitting inside an 8 KB memory footprint, executing in microseconds on Raspberry Pi and edge hardware.
+  - Multi-frequency mesh scanning across 6 Wi-Fi channels using neighboring access points as passive radar illuminators.
+  - Cryptographic attestation pipeline binding RF sensor telemetry to an immutable Ed25519 witness chain.
+- **Key Architectural Decisions**:
+  - Edge-first computation: Signal filtering and feature extraction occur on the microcontroller and local bridge, guaranteeing zero video feeds and zero biometric cloud leakage.
+  - Bandpass phase filtering: Phase unwrapping with circular variance zero-crossing BPM estimators (0.1–0.5 Hz for breathing, 0.8–2.0 Hz for heart rate).
+
+---
+
+### 2.11 Decentralized Wire Protocols & P2P Swarms
+
+#### 2.11.1 NuTorrent (Android & PC)
+- **Domain**: Sovereign BitTorrent Client & Wire Protocol Engine.
+- **Core Technology Stack**: Kotlin 2.0.21, Jetpack Compose, Compose Multiplatform (Desktop), Coroutines & Flow, Room SQLite / SQLDelight, Java NIO / Raw Sockets.
+- **What Was Built**:
+  - A production-grade, release-ready BitTorrent v1 client sharing 85% of its core engine across Android and Windows desktop.
+  - Native implementation of 11 BitTorrent Enhancement Proposals (BEPs): Bencode serialization, BEP 15 UDP trackers, BEP 5 Kademlia DHT, BEP 11 PEX peer exchange, and BEP 14 multicast local peer discovery.
+  - BEP 6 Fast Extension (`AllowedFast`, `SuggestPiece`, `HaveAll`, `HaveNone`, `RejectRequest`), enabling accelerated piece acquisition during choke states.
+  - Inbound TCP peer server (`IncomingPeerServer`) on ports 6881–6889 paired with pure-Kotlin SSDP multicast and UPnP IGD NAT traversal (`UpnpClient`).
+  - Hierarchical token-bucket bandwidth rate limiter managing upload and download limits with lockless atomic byte accounting.
+- **Key Architectural Decisions**:
+  - Zero third-party libtorrent dependency: Built from scratch on raw TCP/UDP sockets to guarantee full control over piece state machines and memory buffers.
+  - Sequential piece acquisition mode enabling on-demand streaming playback of media files while downloading.
+
+---
+
+### 2.12 Offline Mesh Protocols & Delay-Tolerant Relaying
+
+#### 2.12.1 NOVA (ShareIt Copy)
+- **Domain**: Offline-First Local Hotspot File Transfer & Delay-Tolerant Mesh Relay.
+- **Core Technology Stack**: Kotlin, Jetpack Compose, mDNS / DNS-SD (`NsdManager`), Storage Access Framework (SAF), Foreground Service, AES-256-GCM, ECDH.
+- **What Was Built**:
+  - A high-speed, 100% offline peer-to-peer file transfer engine operating over local Wi-Fi and Wi-Fi Direct Hotspots without internet infrastructure.
+  - Bounded 1 MiB streaming chunk pipeline delivering multi-gigabyte files with constant, predictable RAM footprints.
+  - Authenticated session security: Ephemeral Elliptic Curve Diffie-Hellman (ECDH) key exchange with HKDF-SHA256 and AES-256-GCM chunk encryption.
+  - Visual pairing verification via 4-word Short Authentication String (SAS).
+  - Store-and-forward mesh relaying: Intermediate peer nodes store encrypted chunks and forward them opportunistically when within wireless range of target recipients, confirmed via ECDSA-signed delivery receipts.
+- **Key Architectural Decisions**:
+  - Chunked streaming over SAF `ContentResolver` input/output streams, completely bypassing Android 11+ Scoped Storage memory bottlenecks.
+
+#### 2.12.2 MeshLink (Mesh Message)
+- **Domain**: Bounded Epidemic Mesh Protocol & Physical Radio Abstraction.
+- **Core Technology Stack**: Kotlin, Room SQLite, Google Nearby Connections (`P2P_CLUSTER`), BLE / Wi-Fi Direct radios.
+- **What Was Built**:
+  - An offline epidemic store-and-forward mesh communication system designed for infrastructure-free disaster and local group scenarios.
+  - Clean separation of radio hardware via the `PeerTransport` interface, accompanied by an in-memory `FakeTransport` simulator capable of testing multi-hop routing, packet drops, and latency deterministically.
+  - Five-stage synchronization handshake protocol: `HELLO` -> `SUMMARY` -> `REQUEST` -> `TRANSFER` -> `RELAY_ACK`.
+- **Key Architectural Decisions**:
+  - Pre-transmission persistence: All messages and transit envelopes are committed to local SQLite before radio transmission is initiated, guaranteeing zero data loss during sudden connection drops.
+
+---
+
+### 2.13 Frameworkless Local Vector Retrieval
+
+#### 2.13.1 RAG from Scratch (College Recommendation System)
+- **Domain**: Local Retrieval-Augmented Generation & Vector Ranking.
+- **Core Technology Stack**: Python, Flask, React, Vite, `sentence-transformers` (`all-MiniLM-L6-v2`), `scikit-learn`, `Ollama` (`Gemma 3`).
+- **What Was Built**:
+  - An educational, frameworkless Retrieval-Augmented Generation (RAG) system built without LangChain, LlamaIndex, or cloud vector databases.
+  - Tabular document vectorizer computing 384-dimensional dense embeddings using local `all-MiniLM-L6-v2`.
+  - In-memory vector similarity ranking using pure `scikit-learn` cosine similarity matrix multiplication.
+  - Local LLM prompt grounding piping context directly into Ollama running `Gemma 3`.
+- **Key Architectural Decisions**:
+  - Elimination of framework bloat: Building vector search from first principles using standard matrix math and local Ollama REST endpoints to provide complete visibility into token context windows and retrieval mechanics.
+
 ---
 
 ## 3. What All We Learnt: Engineering Insights and Hard-Won Lessons
@@ -402,6 +478,50 @@ graph LR
 
 ---
 
+### 3.7 Radio Physics, RF Perturbations, and Channel State Information (CSI)
+
+#### Wi-Fi as an Active Radar Sensor
+- **Observation**: Optical cameras cannot see through walls or operate in pitch-black darkness, and they severely violate personal privacy when deployed in domestic or medical bedrooms.
+- **Learning**: In *RuView*, capturing subcarrier channel disturbances via ESP32-S3 Channel State Information (CSI) turns existing Wi-Fi transmissions into an ambient radar sensing array. By tracking phase shifts across 64 OFDM subcarriers, chest expansions during breathing (0.1–0.5 Hz) and heart contractions (0.8–2.0 Hz) can be measured through drywall with zero wearables.
+
+#### 4-Bit Extreme Quantization for Edge Microcontrollers
+- **Observation**: Deep neural networks typically demand gigabytes of VRAM, making edge deployment on \$9 microcontrollers impossible without cloud offloading.
+- **Learning**: In *RuView*, 4-bit quantizing a 128-dimensional contrastive encoder compressed the entire neural inference model into an **8 KB memory footprint**. It runs in microseconds on local CPU cores and Raspberry Pis without dropping accuracy, eliminating cloud dependencies.
+
+---
+
+### 3.8 Wire Protocol Engineering and Swarm Concurrency
+
+#### Zero-Dependency Wire Protocol Implementation
+- **Observation**: Relying on monolithic C/C++ libraries (such as libtorrent) creates complex FFI binding issues, binary bloat, and platform cross-compilation nightmares on mobile.
+- **Learning**: In *NuTorrent*, writing the BitTorrent v1 engine directly in pure Kotlin over raw TCP/UDP sockets provided complete architectural transparency. Implementing Bencoding, the Kademlia DHT, and BEP 6 Fast Extensions enabled seamless porting across Android and Windows desktop with 85% shared code.
+
+#### NAT Traversal via Automated UPnP Port Mapping
+- **Observation**: Torrents run behind home routers without port forwarding fail to accept incoming peer connections, dropping available swarm bandwidth by up to 70%.
+- **Learning**: In *NuTorrent*, integrating pure-Kotlin SSDP multicast discovery and UPnP IGD SOAP requests directly into the client automatically maps TCP ports 6881–6889 on the local gateway, achieving "Connectable" status behind consumer NATs without manual user router configuration.
+
+---
+
+### 3.9 Delay-Tolerant Networks (DTN) and Store-and-Forward Mesh Topologies
+
+#### Decoupling Radio Hardware via Abstract Transport Contracts
+- **Observation**: Tying mesh routing code directly to Google Nearby Connections, Bluetooth GATT, or Wi-Fi Direct APIs makes testing multi-hop routing topologies nearly impossible without 10 physical test phones.
+- **Learning**: In *MeshLink*, abstracting the radio layer into a `PeerTransport` interface allowed building an in-memory `FakeTransport` simulator. Multi-hop packet hops, opportunistic gossiping, and simulated 20% packet drops were tested and verified deterministically in standard automated test suites.
+
+#### Streaming Chunk Pipelines and Bounded Memory Footprints
+- **Observation**: Buffering whole multi-gigabyte video or archive files into memory during local peer-to-peer file sharing triggers immediate Android Out-Of-Memory (OOM) crashes.
+- **Learning**: In *NOVA (ShareIt Copy)*, breaking files into a streaming 1 MiB chunk pipeline combined with Android Storage Access Framework `ContentResolver` streams guaranteed a constant memory ceiling regardless of file size, streaming multi-gigabyte transfers smoothly.
+
+---
+
+### 3.10 Frameworkless AI Architecture: Demystifying Vector Search
+
+#### Escaping Heavy AI Framework Abstractions
+- **Observation**: Beginners often believe that building Retrieval-Augmented Generation (RAG) requires complex third-party frameworks like LangChain, LlamaIndex, or cloud vector database services.
+- **Learning**: In the *College Recommendation System (RAG from Scratch)*, building the retrieval pipeline from first principles using `sentence-transformers` (`all-MiniLM-L6-v2`) and pure `scikit-learn` cosine similarity demonstrated that vector search is fundamentally simple matrix multiplication. Removing framework bloat improved debugging clarity, lowered latency, and allowed seamless integration with local Ollama (`Gemma 3`) instances.
+
+---
+
 ## 4. The Unified Technical Playbook
 
 Based on our collective experience across this portfolio, all future engineering follows this non-negotiable playbook:
@@ -409,16 +529,18 @@ Based on our collective experience across this portfolio, all future engineering
 | Discipline | Standard Specification |
 | :--- | :--- |
 | **System Architecture** | Local-First preferred; cloud utilized exclusively for multi-tenant coordination. |
-| **Desktop Engineering** | Rust + Tauri 2.0 preferred over Electron for system-level tools. |
+| **Desktop Engineering** | Rust + Tauri 2.0 preferred over Electron; Kotlin Multiplatform for shared desktop/mobile engines. |
+| **Radio & Edge Sensing** | Physical RF perturbation sensing (CSI); 4-bit edge model quantization (<10 KB). |
+| **P2P & Swarm Protocols**| Bencode/TCP wire framing; UPnP IGD traversal; epidemic store-and-forward mesh routing. |
 | **Security Baseline** | Zero-trust boundaries; post-quantum ready (ML-KEM-768); air-gapped where feasible. |
 | **Data Validation** | Strict runtime schema parsing (Zod, Valibot, Pydantic) at all system boundaries. |
 | **State Management** | Finite state machines with explicit transitions; physical resource verification gates. |
 | **Rendering Performance** | Virtualized lists for all dynamic collections; 60 FPS GPU-accelerated micro-interactions. |
-| **Testing Strategy** | Property-based testing (`fast-check`) for core domain math; unit tests for state machines. |
+| **Testing Strategy** | Property-based testing (`fast-check`) for core domain math; unit tests for state machines and fake transport mesh simulators. |
 | **Documentation Standard** | Living Single Source of Truth specifications; Conventional Commits; zero-emoji professional markdown. |
 
 ---
 
 <div align="center">
-  <sub>Synthesized from the engineering architectures of CodexOS, Kryptyx, ErgonPDF, Rheo, Parkly, Valorant Tournament Operations, BGMI TCC, PinkPulse, Calypso, and Aura.</sub>
+  <sub>Synthesized from the engineering architectures of CodexOS, Kryptyx, ErgonPDF, Rheo, Parkly, Valorant Tournament Operations, BGMI TCC, PinkPulse, Calypso, RuView, NuTorrent, NOVA, MeshLink, RAG from Scratch, and Aura.</sub>
 </div>

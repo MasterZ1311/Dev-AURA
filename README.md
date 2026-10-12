@@ -35,9 +35,9 @@ It encompasses the entire lifecycle of an engineer's growth:
 
 This handbook is designed for public collaboration. It establishes authoritative standards, practical guides, and architectural case studies from initial workstation configuration to complex distributed systems engineering.
 
-- [**The Sovereign Developer Learning Path**](./docs/learning-paths/README.md): Step-by-step masterclass taking you from zero to building sovereign systems across 6 specialized stages.
+- [**The Sovereign Developer Learning Path**](./docs/learning-paths/README.md): Step-by-step masterclass taking you from zero to building sovereign systems across 7 specialized stages.
 - [**Engineering Principles Hub**](./docs/engineering-principles/README.md): 8 core architectural principles (Sovereign Computing, Post-Quantum Cryptography, Invariant State Machines, Client WASM, Multi-Agent Systems, and more).
-- [**Project Case Studies Hub**](./docs/project-case-studies/README.md): Production architectures and retrospectives across our software systems (*CodexOS*, *Kryptyx*, *ErgonPDF*, *Rheo*, *VTO*, *Parkly*, *PinkPulse*, *Calypso*, *Zeus*).
+- [**Project Case Studies Hub**](./docs/project-case-studies/README.md): Production architectures and retrospectives across our software systems (*CodexOS*, *Kryptyx*, *ErgonPDF*, *Rheo*, *VTO*, *Parkly*, *PinkPulse*, *Calypso*, *Zeus*, *RuView*, *NuTorrent*, *NOVA*, *MeshLink*, *College Recommendation System*).
 - [**Master Architecture Synthesis**](./docs/ARCHITECTURAL_PRINCIPLES_AND_RETROSPECTIVE.md): Exhaustive retrospective and technical playbook.
 
 ---
@@ -53,7 +53,8 @@ docs/learning-paths/
 ├── 03-high-performance-compute-and-wasm/     # Web Workers, zero-copy ArrayBuffers, in-browser PDF manipulation
 ├── 04-realtime-engines-and-physical-systems/ # 10-PC LAN modeling, Berger Round-Robin, Battle Royale scoring
 ├── 05-sovereign-ai-and-multi-agent-swarms/    # Local PyTorch MPS/CUDA, Model Context Protocol, agent event buses
-└── 06-distributed-commerce-and-creative/      # Optimistic Concurrency, double-entry ledgers, 60 FPS GLSL shaders
+├── 06-distributed-commerce-and-creative/      # Optimistic Concurrency, double-entry ledgers, 60 FPS GLSL shaders
+└── 07-p2p-mesh-and-edge-rf-sensing/           # BitTorrent wire protocol, store-and-forward mesh, Wi-Fi CSI sensing
 ```
 
 Explore the full curriculum: [**Master Learning Path Index**](./docs/learning-paths/README.md)
@@ -65,7 +66,7 @@ Explore the full curriculum: [**Master Learning Path Index**](./docs/learning-pa
 ```text
 Aura/
 └── docs/
-    ├── learning-paths/                       # 6-Stage Zero-to-Hero Sovereign Engineering Path
+    ├── learning-paths/                       # 7-Stage Zero-to-Hero Sovereign Engineering Path
     ├── 01-foundations-and-setup/             # IDEs, Terminals, Shells, Dotfiles, Toolchains
     ├── 02-git-and-github-craft/              # Version Control, Clean History, PR Etiquette, Signing
     ├── 03-code-craft-and-architecture/       # Clean Code, SOLID, TDD, Design Patterns, Types

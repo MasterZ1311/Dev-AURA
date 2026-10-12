@@ -13,7 +13,9 @@ This directory documents the concrete architectures, trade-offs, components, and
 | **Native Desktop & Systems** | [`native-desktop-and-systems/`](./native-desktop-and-systems/README.md) | CodexOS, Aura 3.0 |
 | **Cryptography & Zero-Knowledge** | [`cryptography-and-zero-knowledge/`](./cryptography-and-zero-knowledge/README.md) | Kryptyx, Ghost Messenger (Calypso) |
 | **Client-Side WASM Compute** | [`client-side-wasm-compute/`](./client-side-wasm-compute/README.md) | ErgonPDF |
-| **Sovereign AI & Neural Speech** | [`sovereign-ai-and-neural-speech/`](./sovereign-ai-and-neural-speech/README.md) | Rheo, VoiceBox, Skills Bot |
+| **Sovereign AI & Neural Speech** | [`sovereign-ai-and-neural-speech/`](./sovereign-ai-and-neural-speech/README.md) | Rheo, VoiceBox, Skills Bot, Frameworkless Local RAG |
+| **Edge Sensing & Radio Physics** | [`edge-sensing-and-radio-physics/`](./edge-sensing-and-radio-physics/README.md) | RuView (WiFi DensePose) |
+| **Peer-to-Peer & Mesh Protocols** | [`peer-to-peer-and-mesh-protocols/`](./peer-to-peer-and-mesh-protocols/README.md) | NuTorrent, NOVA, MeshLink |
 | **Realtime Operations & Esports** | [`realtime-operations-and-esports/`](./realtime-operations-and-esports/README.md) | Valorant Tournament Ops, BGMI TCC |
 | **Distributed Marketplaces** | [`distributed-commerce-and-marketplaces/`](./distributed-commerce-and-marketplaces/README.md) | Parkly, COUNT, Kamaal Shop |
 | **Clinical Health & Verification** | [`clinical-health-and-verification/`](./clinical-health-and-verification/README.md) | PinkPulse, SDA Matrimony DigiLocker |

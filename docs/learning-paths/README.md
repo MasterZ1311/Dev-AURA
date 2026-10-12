@@ -1,6 +1,6 @@
 # The Sovereign Developer Learning Path
 
-> From Initial Editor Setup to Architecting Air-Gapped Vaults, Local Neural Speech Engines, and Physical LAN Tournament Systems.
+> From Initial Editor Setup to Architecting Air-Gapped Vaults, Local Neural Speech Engines, Physical LAN Tournament Systems, Decentralized BitTorrent Wire Protocols, and Wi-Fi Spatial Radar.
 
 ---
 
@@ -14,14 +14,15 @@ When ambitious students try to build real-world systems, they hit immediate road
 - Their mobile apps leak sensitive user credentials because they never learned how to air-gap or use hardware keystores.
 - Their tournament brackets break on match day because software was written without modeling physical hardware stations.
 - Their 3D web portfolios cause mobile phones to overheat within 60 seconds because of uncapped Retina resolution.
+- Their networking breaks during emergencies or offline conditions because they never learned peer-to-peer wire protocols or store-and-forward mesh routing.
 
-This curriculum is distilled directly from the production architectures and hard-won lessons across our software portfolio (*CodexOS*, *Kryptyx*, *ErgonPDF*, *Rheo*, *Valorant Tournament Operations*, *Parkly*, *PinkPulse*, *Calypso*, and *Zeus*).
+This curriculum is distilled directly from the production architectures and hard-won lessons across our software portfolio (*CodexOS*, *Kryptyx*, *ErgonPDF*, *Rheo*, *Valorant Tournament Operations*, *Parkly*, *PinkPulse*, *Calypso*, *Zeus*, *RuView*, *NuTorrent*, *NOVA*, *MeshLink*, and *College Recommendation System*).
 
 It takes you step-by-step from beginner workstation foundations to building sovereign, resilient, high-agency software systems.
 
 ---
 
-## The 6 Builder Stages
+## The 7 Builder Stages
 
 ```mermaid
 graph TD
@@ -30,6 +31,7 @@ graph TD
     S3 --> S4[Stage 4: Real-Time Engines & Physical Hardware Constraints]
     S4 --> S5[Stage 5: Sovereign AI & Multi-Agent Swarms]
     S5 --> S6[Stage 6: Distributed Commerce, Ledgers & Physical 3D Shaders]
+    S6 --> S7[Stage 7: P2P Networks, Mesh Protocols & Edge RF Sensing]
 ```
 
 ---
@@ -73,11 +75,18 @@ graph TD
 - [`03-ethical-data-and-ephemeral-identity.md`](./06-distributed-commerce-and-creative-engineering/03-ethical-data-and-ephemeral-identity.md): Client-side Gail Model oncology calculations (*PinkPulse*) and DigiLocker OAuth2 non-extractive verification (*SDA Matrimony*).
 - [`04-gpu-pipelines-and-custom-glsl-shaders.md`](./06-distributed-commerce-and-creative-engineering/04-gpu-pipelines-and-custom-glsl-shaders.md): 60 FPS WebGL pipelines, custom GLSL vertex/fragment wave shaders, DPR clamping, and GPU memory disposal (as in *ZEUS*).
 
+### [Stage 7: P2P Networks, Mesh Protocols & Edge RF Sensing](./07-p2p-mesh-and-edge-rf-sensing/README.md)
+> *Decentralized wire protocols, zero-infrastructure offline mesh routing, radio-frequency spatial sensing, and frameworkless local AI vector retrieval.*
+- [`01-bittorrent-protocol-and-bencoding.md`](./07-p2p-mesh-and-edge-rf-sensing/01-bittorrent-protocol-and-bencoding.md): Binary wire protocols, Bencoding serializing/deserializing, Kademlia DHT XOR distance, BEP 6 Fast Extension, and token-bucket bandwidth limiters (as in *NuTorrent*).
+- [`02-local-mesh-relaying-and-store-and-forward.md`](./07-p2p-mesh-and-edge-rf-sensing/02-local-mesh-relaying-and-store-and-forward.md): Zero-infrastructure networking, mDNS local discovery, streaming 1 MiB chunk pipelines, ephemeral ECDH key agreement with SAS visual pairing words, and delay-tolerant store-and-forward epidemic sync handshakes (as in *NOVA* and *MeshLink*).
+- [`03-wifi-sensing-and-csi-signal-processing.md`](./07-p2p-mesh-and-edge-rf-sensing/03-wifi-sensing-and-csi-signal-processing.md): Edge RF signal processing, OFDM subcarrier phase measurement, phase unwrapping, bandpass filtering, and extracting human vital signs through walls without optical cameras (as in *RuView*).
+- [`04-frameworkless-local-rag-from-scratch.md`](./07-p2p-mesh-and-edge-rf-sensing/04-frameworkless-local-rag-from-scratch.md): Frameworkless semantic retrieval, 384-dimensional dense text embeddings, pure cosine similarity dot products, defensive system prompt framing, and zero-cloud local LLM synthesis with Ollama (as in *College Recommendation System*).
+
 ---
 
 ## How to Study This Curriculum
 
-1. **Pick Your Entry Stage**: If you are a beginner, start at Stage 1. If you already have fullstack experience, jump directly to Stage 2 (Cryptography) or Stage 4 (Real-Time Systems).
+1. **Pick Your Entry Stage**: If you are a beginner, start at Stage 1. If you already have fullstack experience, jump directly to Stage 2 (Cryptography), Stage 4 (Real-Time Systems), or Stage 7 (P2P Networks).
 2. **Build Every Playground**: Each guide includes a self-contained, compilable code playground. Do not just read the code; run it on your local machine, inspect the console outputs, and break things intentionally.
 3. **Tackle the Weekend Hackathon Challenge**: Every lesson ends with a 3-tier project challenge (Core, Advanced, Hardcore). Complete at least the Core level before moving to the next module.
 4. **Adhere to the Invariants**: Zero emojis, clean architecture, comprehensive type safety, and defensive engineering.
