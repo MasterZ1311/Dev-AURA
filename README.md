@@ -35,9 +35,28 @@ It encompasses the entire lifecycle of an engineer's growth:
 
 This handbook is designed for public collaboration. It establishes authoritative standards, practical guides, and architectural case studies from initial workstation configuration to complex distributed systems engineering.
 
+- [**The Sovereign Developer Learning Path**](./docs/learning-paths/README.md): Step-by-step masterclass taking you from zero to building sovereign systems across 6 specialized stages.
 - [**Engineering Principles Hub**](./docs/engineering-principles/README.md): 8 core architectural principles (Sovereign Computing, Post-Quantum Cryptography, Invariant State Machines, Client WASM, Multi-Agent Systems, and more).
 - [**Project Case Studies Hub**](./docs/project-case-studies/README.md): Production architectures and retrospectives across our software systems (*CodexOS*, *Kryptyx*, *ErgonPDF*, *Rheo*, *VTO*, *Parkly*, *PinkPulse*, *Calypso*, *Zeus*).
 - [**Master Architecture Synthesis**](./docs/ARCHITECTURAL_PRINCIPLES_AND_RETROSPECTIVE.md): Exhaustive retrospective and technical playbook.
+
+---
+
+## The Sovereign Developer Learning Path
+
+The fastest way for students and self-taught engineers to graduate from syntax to production-ready architecture. Follow the dedicated, progressive subfolders:
+
+```text
+docs/learning-paths/
+├── 01-foundations-to-local-first/             # Shell fluency, SQLite embedded, Rust/Tauri 2.0, Virtual DOM
+├── 02-cryptographic-fortress-and-zero-trust/ # Argon2id, AES-GCM, 0-permission mobile airgaps, Double Ratchet
+├── 03-high-performance-compute-and-wasm/     # Web Workers, zero-copy ArrayBuffers, in-browser PDF manipulation
+├── 04-realtime-engines-and-physical-systems/ # 10-PC LAN modeling, Berger Round-Robin, Battle Royale scoring
+├── 05-sovereign-ai-and-multi-agent-swarms/    # Local PyTorch MPS/CUDA, Model Context Protocol, agent event buses
+└── 06-distributed-commerce-and-creative/      # Optimistic Concurrency, double-entry ledgers, 60 FPS GLSL shaders
+```
+
+Explore the full curriculum: [**Master Learning Path Index**](./docs/learning-paths/README.md)
 
 ---
 
@@ -46,6 +65,7 @@ This handbook is designed for public collaboration. It establishes authoritative
 ```text
 Aura/
 └── docs/
+    ├── learning-paths/                       # 6-Stage Zero-to-Hero Sovereign Engineering Path
     ├── 01-foundations-and-setup/             # IDEs, Terminals, Shells, Dotfiles, Toolchains
     ├── 02-git-and-github-craft/              # Version Control, Clean History, PR Etiquette, Signing
     ├── 03-code-craft-and-architecture/       # Clean Code, SOLID, TDD, Design Patterns, Types
