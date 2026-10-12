@@ -5,6 +5,33 @@
 
 ---
 
+## Technical Architecture: Query Optimizer & B+ Tree Index Traversal
+
+Relational database engines (PostgreSQL, SQLite) determine data retrieval paths using cost-based query planners:
+
+```mermaid
+graph TD
+    RawSQL["Incoming SQL Query: SELECT * FROM orders WHERE user_id = 42"] --> QueryParser[SQL Lexer & Parser]
+    
+    QueryParser --> CostPlanner[Cost-Based Query Planner & Optimizer]
+    
+    CostPlanner --> DecisionNode{"Index Available for user_id?"}
+    
+    DecisionNode -->|No Index: O N Time| SeqScan["Sequential Scan: Reads Every 8 KB Disk Page into Shared Buffer"]
+    DecisionNode -->|Composite Index: O log N Time| BTreeScan["B+ Tree Index Scan"]
+    
+    subgraph B+ Tree Index Memory Navigation
+        BTreeScan --> RootPage[Root Node Page: Binary Search Pivot]
+        RootPage --> InternalPage[Internal Branch Node: Range Bounds]
+        InternalPage --> LeafPage["Leaf Node: Contains Ordered Keys & Tuple IDs (TIDs)"]
+    end
+    
+    LeafPage --> HeapFetch["Point Lookup to Heap Memory: Read Exact Row Tuple"]
+    SeqScan & HeapFetch --> ResultTuples[Stream Result Rows to Client]
+```
+
+---
+
 ## Indexing Fundamentals (PostgreSQL)
 
 When datasets exceed hundreds of thousands of rows, queries lacking targeted indexes trigger full table scans (**Sequential Scans**).

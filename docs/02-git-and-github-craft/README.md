@@ -6,6 +6,22 @@ This track focuses on version control workflows, linear commit histories, pull r
 
 ---
 
+## Technical Architecture: Trunk-Based Development & Linear Release Flow
+
+```mermaid
+graph LR
+    Main["main (Protected Stable Branch)"] -->|Branch| Topic1["feat/auth-service"]
+    Main -->|Branch| Topic2["fix/cache-invalidation"]
+    
+    Topic1 -->|Rebase on Latest main| Rebased1["feat/auth-service (Linear)"]
+    Rebased1 -->|Squash & Merge| MainV1["main (v1.1.0 Tag)"]
+    
+    Topic2 -->|Rebase on MainV1| Rebased2["fix/cache-invalidation (Linear)"]
+    Rebased2 -->|Fast-Forward Merge| MainV2["main (v1.1.1 Tag)"]
+```
+
+---
+
 ## Track Curriculum & Progress
 
 | Module / Topic | File | Status | Difficulty |

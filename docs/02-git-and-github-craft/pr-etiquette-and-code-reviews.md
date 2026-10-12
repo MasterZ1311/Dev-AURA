@@ -5,6 +5,33 @@
 
 ---
 
+## Technical Architecture: Pull Request Lifecycle & CI Quality Gates
+
+A high-signal engineering workflow prevents regressions by automating verification before peer review:
+
+```mermaid
+graph TD
+    LocalBranch["Local Topic Branch: feat/token-rotation"] --> GitPush["Signed Push to Remote Fork"]
+    GitPush --> OpenPR["Open Pull Request via gh pr create"]
+    
+    subgraph Automated Continuous Integration Matrix
+        OpenPR --> RunnerMatrix{Parallel CI Runners}
+        RunnerMatrix --> LintJob["Linter & Typecheck: Biome / tsc"]
+        RunnerMatrix --> TestJob["Unit & Integration Tests: Vitest / Cargo"]
+        RunnerMatrix --> SecurityJob["Static Security Scan: CodeQL / Trivy"]
+    end
+    
+    LintJob & TestJob & SecurityJob --> StatusChecks{"All Checks Pass?"}
+    
+    StatusChecks -->|No| BlockMerge["Block Merge: Post Diagnostic Logs to PR"]
+    StatusChecks -->|Yes| PeerReview["Peer Review Gate: Senior Engineer Inspection"]
+    
+    PeerReview --> Approval{"Approved & Signed Off?"}
+    Approval --> FastForward["Linear Squash & Merge to Main Branch"]
+```
+
+---
+
 ## Anatomy of a Standard Pull Request
 
 A well-structured PR minimizes review latency and provides clear historical context.

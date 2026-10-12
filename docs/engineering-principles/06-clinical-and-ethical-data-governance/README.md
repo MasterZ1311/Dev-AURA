@@ -12,6 +12,29 @@
 
 ---
 
+## Technical Architecture: Non-Extractive Clinical Governance Pipeline
+
+```mermaid
+graph TD
+    PatientUser[Patient / Citizen User] --> ClientDevice[Sovereign Client Device: Browser / Mobile]
+    
+    subgraph Client-Side Ephemeral Risk Assessment
+        ClientDevice --> ClinicalInputs[Input Clinical Factors: Age, Biopsy History, Family Tree]
+        ClinicalInputs --> GailModelEngine[Client-Side Gail Model Statistical Risk Math]
+        GailModelEngine --> RiskScoreOutput[Immediate Score Render: Zero Network Transmission]
+        RiskScoreOutput --> BufferScrubber[Volatile RAM Buffer Zeroization & Local Wipe]
+    end
+    
+    subgraph Non-Extractive Identity Verification
+        ClientDevice --> OAuthConsent[OAuth2 Cryptographic Consent Token Request]
+        OAuthConsent --> DigiLockerGov[Government Identity Gateway: DigiLocker API]
+        DigiLockerGov --> SignedClaim[Cryptographically Signed Assertion: Identity Verified = TRUE]
+        SignedClaim --> AppBackend[Platform Backend: Store Boolean Token Only - Zero PII Retained]
+    end
+```
+
+---
+
 ## Architectural Applications Across Portfolio
 
 - **PinkPulse**: Digital oncology platform combining multi-stage clinical risk assessment with patient-controlled local symptom tracking and auditable clinical dashboards.

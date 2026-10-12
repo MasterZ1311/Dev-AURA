@@ -12,6 +12,28 @@
 
 ---
 
+## Technical Architecture: Invariant-Driven Finite State Machine
+
+```mermaid
+graph TD
+    TriggerEvent[External Event: Match Completed / Slot Reserved] --> PreFlightGate{Pre-Flight Verification Invariants}
+    
+    subgraph Pre-Flight Validation Matrix
+        PreFlightGate --> InvariantA[Physical Hardware Check: 10-PC Station Ready]
+        PreFlightGate --> InvariantB[Concurrency Check: Version Stamp Matched]
+        PreFlightGate --> InvariantC[Mathematical Check: Berger Round-Robin Valid]
+    end
+    
+    InvariantA & InvariantB & InvariantC --> GateResult{"All Invariants Satisfied?"}
+    
+    GateResult -->|Invariant Violated| RollbackState["Abort Transition: State Remains Immutable & Deterministic"]
+    GateResult -->|Verified Valid| AtomicTransition["Execute Atomic Transition: Match SCHEDULED -> IN_PROGRESS"]
+    
+    AtomicTransition --> StateCommit[Commit to Persistent Store & Broadcast State Change]
+```
+
+---
+
 ## Architectural Applications Across Portfolio
 
 - **Valorant Tournament Operations System (VTO)**: Direct mapping of 10-PC LAN stations to match schedules, combined with a 10-point pre-flight validation gate and Berger round-robin mathematics.

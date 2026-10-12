@@ -5,6 +5,24 @@
 
 ---
 
+## Technical Architecture: Parse, Don't Validate at System Boundaries
+
+Static types exist only at compile time and are stripped by the compiler. Systems remain reliable by enforcing runtime validation barriers at external I/O boundaries:
+
+```mermaid
+graph LR
+    UntrustedIO["Untrusted External I/O: HTTP JSON / Webhook / DB Row"] --> BoundaryGateway["System Ingress Boundary: unknown Type"]
+    
+    BoundaryGateway --> SchemaParser["Runtime Schema Validator: Zod / TypeBox / Valibot"]
+    
+    SchemaParser -->|Invalid Schema| RejectionGate["Fail Fast: 400 Bad Request with Typed Error Matrix"]
+    SchemaParser -->|Valid Schema| InferredType["Type Invariant Core: z.infer<T> / Branded Type"]
+    
+    InferredType --> SafeDomain["Core Domain Logic: Guaranteed Type Safety & Zero Undefined Checks"]
+```
+
+---
+
 ## Static Types vs Runtime Boundaries
 
 Static types disappear upon compilation. When untrusted inputs arrive from HTTP requests, message queues, or third-party webhooks, runtime schema validation is necessary.

@@ -5,6 +5,31 @@
 
 ---
 
+## Technical Architecture: Production Incident Lifecycle and Feedback Loop
+
+Resilient engineering organizations treat production failures as systemic feedback mechanisms to harden architecture:
+
+```mermaid
+graph TD
+    SystemAnomaly[Production Anomaly: Error Rate Spike / High Latency] --> TelemetryAlert[Automated Telemetry Alert: Prometheus / PagerDuty]
+    
+    TelemetryAlert --> TriagePhase["Triage Phase: Declare Severity Level (SEV-1 / SEV-2)"]
+    TriagePhase --> WarRoom["Incident War Room: Incident Commander Assigned"]
+    
+    subgraph Mitigation & Stabilization (< 30m)
+        WarRoom --> TrafficShedding[Shed Traffic: Rate Limiter / Feature Flag Disable]
+        WarRoom --> RollbackAction[Execute Automated Canary / Blue-Green Rollback]
+        WarRoom --> DBRecovery[Kill Blocking Transactions / Scale Replica Pool]
+    end
+    
+    TrafficShedding & RollbackAction & DBRecovery --> VerificationGate{"Service Restored to SLA?"}
+    
+    VerificationGate -->|Yes| PostmortemPhase["Blameless Postmortem (5 Whys): Architectural Root Cause"]
+    PostmortemPhase --> PreventionActions["Preventative Action Items: Automated Linters, Invariant Tests & Circuit Breakers"]
+```
+
+---
+
 ## Incident Severity Framework
 
 | Severity Level | Definition | Target Resolution | Example |

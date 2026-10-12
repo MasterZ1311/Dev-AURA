@@ -16,6 +16,21 @@ In Stage 1, you will reclaim the host system:
 
 ---
 
+## Technical Architecture: Stage 1 Progressive Roadmap
+
+```mermaid
+graph TD
+    M1["Module 01: Host System & Shell (Terminal Fluency, Zsh, POSIX Streams)"] --> M2["Module 02: Embedded SQLite Storage (WAL Mode, Local Schema Migrations)"]
+    M2 --> M3["Module 03: Native Rust & Tauri 2.0 (IPC Bridge, PTY Spawning, Native Processes)"]
+    M3 --> M4["Module 04: Virtualized DOM Rendering (TanStack Virtual, 100k Rows at 60 FPS)"]
+    
+    subgraph Sovereign Desktop Deliverable
+        M4 --> AppDeliverable["Sovereign Desktop Engineering: High Performance, < 60 MB RAM, 100% Offline"]
+    end
+```
+
+---
+
 ## Modules in This Stage
 
 ```text

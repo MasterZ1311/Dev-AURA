@@ -11,6 +11,30 @@
 
 ---
 
+## Technical Architecture: Real-Time Esports & Venue Operations Model
+
+```mermaid
+graph TD
+    TournamentAdmin[Tournament Admin / Field Referee] --> ControlCenter[Ops Dashboard & Ingress API]
+    
+    subgraph Physical Resource Engine (VTO)
+        ControlCenter --> VenueModel[Physical Venue Topology: Station 1 to 10]
+        VenueModel --> StationHealthFSM[Station State Machine: AVAILABLE / IN_MATCH / HARDWARE_FAULT]
+        StationHealthFSM --> PreFlightGate{10-Point Pre-Flight Verification Gate}
+        PreFlightGate --> BergerEngine[Berger Round-Robin Pairing Matrix]
+    end
+    
+    subgraph Multi-Lobby Vectorized Scoring Engine (BGMI TCC)
+        ControlCenter --> CSVIngest[Streaming CSV Results Stream / Ingame API]
+        CSVIngest --> VectorScoring[Vectorized 25-Squad BGIS Point Matrix Lookups]
+        VectorScoring --> TieBreakerFSM[Deterministic Tiebreaker Hierarchy: Wins -> Placements -> Kills]
+    end
+    
+    BergerEngine & TieBreakerFSM --> LiveBroadcast[Real-Time Verified Leaderboard Broadcast & Stage Displays]
+```
+
+---
+
 ## Domain Engineering Highlights
 
 1. **Physical Resource Modeling**: Direct mapping between physical venue assets (PC stations, monitors, network subnets) and software scheduling algorithms.

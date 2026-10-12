@@ -20,6 +20,20 @@ In Stage 5, you will learn to build **Sovereign AI Systems** (as engineered in *
 
 ---
 
+## Technical Architecture: Stage 5 Sovereign AI & Swarms Roadmap
+
+```mermaid
+graph TD
+    M1["Module 01: Host Neural Inference (PyTorch Device Dispatch: MPS / CUDA, Streaming PCM Audio)"] --> M2["Module 02: Model Context Protocol (Declarative Tool Contracts, JSON Schemas, MCP Stdio Sockets)"]
+    M2 --> M3["Module 03: Event-Driven Agent Choreography (Asynchronous Event Bus, Micro-Agents, Consensus Flow)"]
+    
+    subgraph Sovereign Intelligence Suite
+        M3 --> AgenticDeliverable["Autonomous On-Device AI: Local Voice Synthesis, Standardized Tool Execution, Swarm Orchestration"]
+    end
+```
+
+---
+
 ## Modules in This Stage
 
 ```text

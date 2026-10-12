@@ -5,6 +5,26 @@
 
 ---
 
+## Technical Architecture: Engineering Competency Matrix & Scope of Impact
+
+Career growth in software engineering expands from local syntax execution to global organizational leverage and architectural sovereignty:
+
+```mermaid
+graph TD
+    L0["Level 0: Syntax & Workstation (Tooling, Editor, Basic Data Structures)"] --> L1["Level 1: Autonomous Execution (Unit Testing, Feature Delivery, Bug Fixes)"]
+    L1 --> L2["Level 2: Production Reliability (CI/CD Pipelines, SQL Optimization, Docker)"]
+    L2 --> L3["Level 3: Systems Architecture (Distributed Invariants, State Machines, Threat Modeling)"]
+    L3 --> L4["Level 4: High-Agency Leadership (RFC Authoring, Blameless Culture, Cross-Team Force Multiplier)"]
+    
+    subgraph Sphere of Engineering Influence
+        L0 & L1 --> TaskScope["Task-Level Scope: Hours to Days"]
+        L2 & L3 --> SystemScope["System-Level Scope: Months to Quarters"]
+        L4 --> StrategicScope["Organizational & Industry Scope: Multi-Year Vision"]
+    end
+```
+
+---
+
 ## The Engineering Progression Model
 
 ```text

@@ -11,6 +11,30 @@
 
 ---
 
+## Technical Architecture: Distributed Marketplace & Ledger Topology
+
+```mermaid
+graph TD
+    UserDriver[Driver: Mobile Booking Client] --> BookingService[Booking Orchestration Service]
+    UserHost[Host: Parking Spot Owner] --> ListingService[Listing & Inspection Service]
+    
+    subgraph Multi-Agent Autonomous Coordination (Parkly)
+        ListingService --> VisionAgent[Vision Agent: Driveway Suitability Verification]
+        BookingService --> PricingAgent[Dynamic Yield Pricing Agent: Demand Heatmaps]
+        BookingService --> DisputeAgent[Dispute Arbitration Agent]
+    end
+    
+    subgraph Dual-Database Transactional Architecture
+        BookingService --> OCCLock{Optimistic Concurrency: Version == V_expected?}
+        OCCLock -->|Version Match| PostgresTx[(PostgreSQL: ACID Booking & Double-Entry Ledger)]
+        OCCLock -->|Version Conflict| RetryHandler[Shed Transaction & Refresh UI State]
+        
+        SensorStream[IoT Ultrasonic Sensors] --> DynamoDB[(DynamoDB: High-Throughput Occupancy Telemetry)]
+    end
+```
+
+---
+
 ## Domain Engineering Highlights
 
 1. **Dual-Database Architecture**: PostgreSQL for ACID transactional bookings and ledgers, combined with DynamoDB for high-throughput IoT sensor occupancy streams.

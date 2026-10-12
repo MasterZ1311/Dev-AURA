@@ -15,6 +15,28 @@ This section documents our production case study in **Edge RF Sensing & Spatial 
 
 ---
 
+## Technical Architecture: Edge RF Spatial Sensing Pipeline
+
+```mermaid
+graph TD
+    Transmitter[Ambient Wi-Fi Transmitter: 2.4 / 5 GHz OFDM Wavefront] --> HumanSubject[Human Subject in Room: Chest Motion & Body Perturbation]
+    HumanSubject --> ReceiverNode[ESP32-S3 Microcontroller Receiver: CSI Promiscuous Ingestion]
+    
+    subgraph Edge DSP & Feature Extraction
+        ReceiverNode --> PhaseUnwrap[Phase Unwrapping & Static Multipath Baseline Removal]
+        PhaseUnwrap --> Bandpass[Digital Bandpass Filtering: 0.1-0.5 Hz Breathing / 0.8-2.0 Hz Cardiac]
+        Bandpass --> BPMZeroCrossing[Zero-Crossing Respiration BPM Solver]
+        PhaseUnwrap --> QuantizedModel[8 KB INT4 Quantized Contrastive Spatial Model]
+    end
+    
+    BPMZeroCrossing --> ContactlessVitals[Vitals Metric Output: 16.2 BPM Contactless Respiration]
+    QuantizedModel --> SpatialClassification[Room State: Bed Occupied / Fall Detected]
+    
+    ContactlessVitals & SpatialClassification --> LocalHub[Home Assistant MQTT / Matter Edge Network]
+```
+
+---
+
 ## Case Studies in This Category
 
 - [`ruview-wifi-densepose.md`](./ruview-wifi-densepose.md): Spatial intelligence, through-wall presence detection, contactless vital signs extraction, and Ed25519 witness attestation.

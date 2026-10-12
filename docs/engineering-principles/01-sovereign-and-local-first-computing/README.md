@@ -12,6 +12,24 @@
 
 ---
 
+## Technical Architecture: Sovereign Local-First System Model
+
+```mermaid
+graph TD
+    UserDevice[User Workstation / Mobile Device] --> HostRuntime[Native Host Runtime: Tauri / Electron / Android]
+    
+    subgraph Sovereign Host Execution Envelope
+        HostRuntime --> LocalCompute[Host Hardware Acceleration: Multi-Core CPU / GPU / NPU]
+        HostRuntime --> LocalDB[(Embedded Local Database: SQLite WAL / SQLCipher)]
+        HostRuntime --> LocalFS[Plaintext / Encrypted Local File System]
+    end
+    
+    LocalCompute --> ZeroLatencyOutput[Instant 0ms Latency User Interface]
+    LocalDB --> FullDataOwnership[100% User Data Sovereignty & Zero Cloud Leakage]
+```
+
+---
+
 ## Architectural Applications Across Portfolio
 
 - **CodexOS**: Replaced cloud IDE telemetry with local Rust-based process management and on-device Mistral AI diagnostics.

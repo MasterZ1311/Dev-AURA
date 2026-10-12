@@ -5,6 +5,32 @@
 
 ---
 
+## Technical Architecture: State Lifecycle and DOM Commit Pipeline
+
+High-performance frontends separate asynchronous server cache from ephemeral client UI state, avoiding unnecessary re-renders in the browser engine:
+
+```mermaid
+graph TD
+    UserAction[User Interaction: Click / Keypress] --> Dispatcher{State Category}
+    
+    Dispatcher -->|Ephemeral Client State: Modals, Theme| ZustandStore[Client Store: Zustand / Nano Stores]
+    Dispatcher -->|Asynchronous Server State: REST / GraphQL| ServerCache[Server Cache: TanStack Query / SWR]
+    
+    ServerCache <-->|Deduplicated Stale-While-Revalidate| NetworkEndpoint[Remote API / Edge Cache]
+    
+    ZustandStore & ServerCache --> StateChange[Atomic State Mutation Notification]
+    
+    subgraph Browser Render Loop & Reconciliation
+        StateChange --> RenderPhase["Render Phase: Fiber Tree Diffing & Work Scheduling (Concurrent)"]
+        RenderPhase --> CommitPhase["Commit Phase: Mutate Host DOM Elements"]
+        CommitPhase --> LayoutPaint["Browser Engine: Recalculate Styles, Layout & Composite (Paint)"]
+    end
+    
+    LayoutPaint --> FrameOutput["60 FPS Frame Output: Target INP < 200ms"]
+```
+
+---
+
 ## Core Web Vitals (CWV) Targets
 
 1. **LCP (Largest Contentful Paint)**: < 2.5s (Time taken to render main visible content).

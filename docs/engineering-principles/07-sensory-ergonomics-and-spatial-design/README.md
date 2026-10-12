@@ -12,6 +12,29 @@
 
 ---
 
+## Technical Architecture: GPU Render Loop & Web Audio Pipeline
+
+```mermaid
+graph TD
+    UserEvent[User Input: Scroll / Focus Transition / Click] --> EngineCoordinator[Sensory Coordinator Layer]
+    
+    subgraph Web Audio Acoustic Pipeline
+        EngineCoordinator --> ToneJSEngine[Tone.js Synthesizer: Harmonic Sine / Pentatonic Chime]
+        ToneJSEngine --> AudioContext[Web Audio API AudioContext: GainNode & Envelope Filter]
+        AudioContext --> LowLatencyAudio[Hardware Speakers: Smooth Biofeedback Chime]
+    end
+    
+    subgraph 60 FPS GPU Spatial Pipeline
+        EngineCoordinator --> ThreeScene[Three.js Scene Graph & Camera Frustum]
+        ThreeScene --> CustomGLSL[Custom GLSL Vertex & Fragment Wave Shaders]
+        CustomGLSL --> DPRClamping[DPR Clamping: Max DPR = 2.0 to Protect Mobile GPU]
+        DPRClamping --> RAF[requestAnimationFrame 16.6ms Render Loop]
+        RAF --> ScreenOutput[Fluid 60 FPS Spatial WebGL Canvas]
+    end
+```
+
+---
+
 ## Architectural Applications Across Portfolio
 
 - **Aura 3.0**: Incorporates Tone.js audio soundscapes to support deep work intervals, paired with a virtualized chronological timeline.

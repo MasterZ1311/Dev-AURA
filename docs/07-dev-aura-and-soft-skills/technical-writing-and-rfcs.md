@@ -5,6 +5,33 @@
 
 ---
 
+## Technical Architecture: RFC Decision Flow & Architectural Consensus
+
+Engineering organizations avoid costly architectural rewrites by establishing a structured proposal, review, and decision pipeline:
+
+```mermaid
+graph TD
+    IdentifyProblem[Identify Architectural Pain Point / Scaling Limit] --> DraftRFC[Author RFC Document: Problem, Invariants, Tradeoffs]
+    
+    DraftRFC --> PeerReviewPeriod["RFC Review Period: RFC PR Opened in docs/rfcs/"]
+    
+    subgraph Multi-Disciplinary Review Matrix
+        PeerReviewPeriod --> SecurityReview[Security Review: Threat Modeling & Auth Boundaries]
+        PeerReviewPeriod --> SREPerformance[SRE Review: Latency, DB Indexes & Failure Modes]
+        PeerReviewPeriod --> FrontendBackend[Product Engineers: DX, Typings & API Ergonomics]
+    end
+    
+    SecurityReview & SREPerformance & FrontendBackend --> ConsensusMeeting{"Consensus Reached?"}
+    
+    ConsensusMeeting -->|Revisions Requested| ReviseRFC[Address Comments & Update Benchmarks]
+    ReviseRFC --> PeerReviewPeriod
+    
+    ConsensusMeeting -->|Approved| ADRCommit["Commit Architectural Decision Record (ADR): Status = ACCEPTED"]
+    ADRCommit --> IncrementalRollout[Execute Phased Implementation in Production]
+```
+
+---
+
 ## What is a Request for Comments (RFC)?
 
 An RFC details a proposed architectural change, migration, or interface design prior to implementation. It gathers peer review to surface architectural risks and edge cases before substantial engineering time is invested.

@@ -12,6 +12,24 @@
 
 ---
 
+## Technical Architecture: Specification-Driven Development & Living SSoT
+
+```mermaid
+graph TD
+    FeatureRequirement[New Product Requirement / Scaling Milestone] --> SpecAuthoring[Phase 1: Technical Specification & ERD Modeling in docs/]
+    
+    SpecAuthoring --> SchemaDefinition[Phase 2: Formal Type Contracts & Interface Schemas]
+    SchemaDefinition --> InvariantTesting[Phase 3: Write Failing Invariant Tests & Unit Mocks]
+    
+    InvariantTesting --> CoreImplementation[Phase 4: Write Core Business Domain & Engine Logic]
+    CoreImplementation --> PassingTests[All Tests Pass & Invariants Confirmed]
+    
+    PassingTests --> AtomicCommit[Phase 5: Atomic Git Commit: Code + Tests + Updated Markdown Docs]
+    AtomicCommit --> GitRepo[(Living SSoT: Code and Architecture Evolve In Lockstep in Git)]
+```
+
+---
+
 ## Architectural Applications Across Portfolio
 
 - **Parkly**: Complete 8-part Master Documentation Suite detailing market analysis, unit economics, ERDs, REST contracts, and multi-agent topologies.

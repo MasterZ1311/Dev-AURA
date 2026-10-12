@@ -13,6 +13,32 @@
 
 ---
 
+## Technical Architecture: Host Virtualization and Toolchain Execution
+
+Modern cross-platform development relies on strict isolation between system host kernels, container runtimes, and userland polyglot toolchains:
+
+```mermaid
+graph TD
+    Hardware[Host Physical Hardware: CPU / RAM / NVMe / GPU] --> HostKernel[Host OS Kernel: Windows NT / Darwin / Linux]
+    
+    HostKernel --> WSL2[WSL2 Hyper-V Micro-VM: Real Linux 6.x Kernel]
+    HostKernel --> NativeOS[Native Host Userland]
+    
+    subgraph Isolated Runtime Layer: mise / asdf
+        WSL2 --> MiseWSL[mise Environment Manager]
+        NativeOS --> MiseHost[mise Environment Manager]
+        
+        MiseWSL --> NodeEnv[Node.js / Bun Runtime]
+        MiseWSL --> RustEnv[Rust toolchain: rustup / cargo]
+        MiseWSL --> PyEnv[Python virtualenvs: uv / pyenv]
+    end
+    
+    WSL2 --> DockerEngine[Docker Daemon / Container Namespaces & Cgroups]
+    DockerEngine --> DevContainers[Isolated Service Containers: PostgreSQL / Redis]
+```
+
+---
+
 ## 1. System Package Managers
 
 ### macOS: Homebrew

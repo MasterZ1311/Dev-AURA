@@ -14,6 +14,28 @@
 
 ---
 
+## Technical Architecture: Language Server Protocol (LSP) and Editor Subsystems
+
+Modern code editors (VS Code, Cursor, Neovim) do not compile or parse code inside the user interface thread. They use a decoupled client-server architecture communicating via JSON-RPC 2.0:
+
+```mermaid
+graph TD
+    UserInterface[Editor Frontend: Monaco / Webview / Buffer View] <-->|JSON-RPC 2.0 over Stdio| LanguageClient[Language Client Extension]
+    
+    LanguageClient <-->|LSP Wire Protocol| LanguageServer[Language Server: tsserver / rust-analyzer / gopls]
+    
+    subgraph Language Server Subsystems
+        LanguageServer --> ASTParser[Incremental AST Parser]
+        LanguageServer --> TypeChecker[Static Type Checker & Symbol Table]
+        LanguageServer --> DiagnosticLinter[Diagnostic Linter Engine]
+    end
+    
+    DiagnosticLinter -->|Publish Diagnostics: Errors & Warnings| LanguageClient
+    TypeChecker -->|Hover Tooltips, Autocomplete & Go-To-Definition| LanguageClient
+```
+
+---
+
 ## Typography and Readability
 
 1. **Geist Mono** (Vercel) – Modern, clean monospace geometry.

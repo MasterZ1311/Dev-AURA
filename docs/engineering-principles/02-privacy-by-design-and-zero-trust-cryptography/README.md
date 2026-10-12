@@ -12,6 +12,27 @@
 
 ---
 
+## Technical Architecture: Zero-Trust Cryptographic Pipeline
+
+```mermaid
+graph TD
+    UserMasterSecret[User Master Passphrase / Mnemonic Seed] --> KDF[Memory-Hard Argon2id Key Derivation]
+    
+    KDF --> SymmetricKey[256-Bit Symmetric Master Key]
+    PostQuantumExchange[Post-Quantum Lattice: ML-KEM-768 Encapsulation] --> SharedLatticeSecret[Quantum-Resistant Shared Secret]
+    
+    SymmetricKey & SharedLatticeSecret --> HybridCipher[Hybrid AEAD Engine: AES-256-GCM]
+    
+    subgraph Air-Gapped Secure Enclave
+        HybridCipher --> LocalHardwareVault[Android Hardware Keystore / StrongBox]
+        HybridCipher --> VolatileRAMWiper[Immediate Zeroization of Plaintext Memory Buffers]
+    end
+    
+    LocalHardwareVault --> SecureStorage[(SQLCipher Encrypted Local Vault)]
+```
+
+---
+
 ## Architectural Applications Across Portfolio
 
 - **Kryptyx**: 100% offline Android password fortress with 0 network permissions, biometric hardware keystore, and ML-KEM-768 post-quantum encryption.

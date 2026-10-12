@@ -14,6 +14,28 @@
 
 ---
 
+## Technical Architecture: Pseudo-Terminal (PTY) and Prompt Pipeline
+
+Modern terminal workflows execute across three decoupled layers: the GUI terminal emulator, the operating system kernel PTY driver, and the shell process:
+
+```mermaid
+graph TD
+    Keyboard[User Keyboard Input] --> TerminalGUI[Terminal Emulator: WezTerm / Ghostty / Alacritty]
+    
+    TerminalGUI <-->|Bidirectional Byte Stream: Escape Sequences & UTF-8| PTYMaster[PTY Master / ConPTY Device]
+    PTYMaster <-->|Kernel IPC: Signals, WinSize, I/O| PTYSlave[PTY Slave: /dev/pts/X]
+    
+    PTYSlave <-->|Standard I/O Streams| ShellProcess[Shell Engine: Zsh / Fish / Bash]
+    
+    subgraph Shell Execution Environment
+        ShellProcess --> PromptEngine[Starship Prompt: Git Status & Toolchain Telemetry]
+        ShellProcess --> FuzzyFinder[fzf Interactive Filter & History Engine]
+        ShellProcess --> FastTools[Fast Utilities: ripgrep / eza / zoxide]
+    end
+```
+
+---
+
 ## Modern CLI Replacement Matrix
 
 | Standard Command | Modern Replacement | Implementation Language | Primary Advantage |

@@ -5,6 +5,30 @@
 
 ---
 
+## Technical Architecture: Multi-Stage OCI Container Layering
+
+Multi-stage containerization drastically reduces attack surfaces and image footprints by stripping build compilers and package managers from the runtime image:
+
+```mermaid
+graph TD
+    SourceCode[Application Source Code + Manifests] --> Stage1[Stage 1: Dependencies Container: node:20-alpine]
+    Stage1 --> NPMInstall[npm ci: Full devDependencies & Native Compilers]
+    
+    NPMInstall --> Stage2[Stage 2: Builder Container]
+    Stage2 --> BuildProcess[TypeScript Compiler: tsc / bundler -> dist/ Output]
+    BuildProcess --> PruneProcess[npm prune --production: Strip devDependencies]
+    
+    subgraph Final Minimal Production Image: runner
+        PruneProcess -->|Copy Compiled dist/ only| MinimalRunner[Alpine / Distroless Base: ~50 MB]
+        PruneProcess -->|Copy Production node_modules| MinimalRunner
+        MinimalRunner --> NonRootUser[Security Invariant: Run as Non-Root UID 1001]
+    end
+    
+    MinimalRunner --> DeployedContainer[Production Container: Read-Only Root Filesystem]
+```
+
+---
+
 ## Multi-Stage Build Architecture
 
 Multi-stage builds separate build-time dependencies from the final minimal production image:

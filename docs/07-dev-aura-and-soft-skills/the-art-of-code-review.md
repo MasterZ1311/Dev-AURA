@@ -5,6 +5,34 @@
 
 ---
 
+## Technical Architecture: Code Review Quality Gate Pipeline
+
+High-velocity teams separate automated syntactic feedback from human architectural review:
+
+```mermaid
+graph TD
+    AuthorPush[Author Pushes Feature Branch] --> AutoValidation[Automated CI Validation: Linters, Formatters, Unit Tests]
+    
+    AutoValidation --> CheckResult{"CI Passes?"}
+    CheckResult -->|Fails| AuthorFix["Author Fixes Failures: Zero Human Reviewer Interruption"]
+    AuthorFix --> AutoValidation
+    
+    CheckResult -->|Passes| ReviewerAssign[Reviewer Assigned: Senior Peer Engineer]
+    
+    subgraph Human Architectural Inspection
+        ReviewerAssign --> ThreatModel[Check Threat Model & Access Control Invariants]
+        ReviewerAssign --> PerfCheck[Check Computational Complexity: O N vs O N^2]
+        ReviewerAssign --> TestCoverage[Verify Edge-Case Test Scenarios & Invariant Assertions]
+    end
+    
+    ThreatModel & PerfCheck & TestCoverage --> PrefixedComments[Prefixed Feedback: Blocking, Nit, Question, Praise]
+    PrefixedComments --> VerificationCycle{"All Blocking Items Resolved?"}
+    
+    VerificationCycle -->|Yes| SignedApproval[Signed Review Approval -> Fast-Forward Merge]
+```
+
+---
+
 ## Code Review Principles
 
 Code reviews function as a knowledge transfer and quality control mechanism, not an adversarial gate.

@@ -5,6 +5,30 @@
 
 ---
 
+## Technical Architecture: Declarative State Reconciliation Engine
+
+Infrastructure as Code compares target configuration declarations against recorded state and live cloud resources to compute an execution graph:
+
+```mermaid
+graph TD
+    HCLDeclarations["Target State: *.tf Code (VPC, RDS, ECS)"] --> TerraformCore[Terraform / OpenTofu Core Engine]
+    
+    subgraph State Consistency & Locking
+        RemoteStorage[Remote Encrypted State: AWS S3 / GCS] <-->|Read / Write State JSON| TerraformCore
+        DistributedLock[Distributed State Lock: DynamoDB / Consul] <-->|Acquire / Release Lock| TerraformCore
+    end
+    
+    TerraformCore <-->|Query Current Live State| CloudAPIs[Cloud Provider APIs: AWS / GCP / Azure]
+    
+    TerraformCore --> PlanOutput["Execution Plan Graph: Calculate Add (+), Modify (~), Destroy (-)"]
+    PlanOutput --> ApplyApproval{"Manual / CI Approval Gate"}
+    
+    ApplyApproval -->|Approved| IdempotentApply[Idempotent Apply: API Mutations to Cloud Providers]
+    IdempotentApply --> LiveInfra[Live Infrastructure Converged to Target State]
+```
+
+---
+
 ## Principles of Infrastructure as Code
 
 - **Declarative**: Express target infrastructure states rather than imperative execution scripts.

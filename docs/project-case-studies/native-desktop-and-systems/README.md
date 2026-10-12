@@ -11,6 +11,25 @@
 
 ---
 
+## Technical Architecture: Native Desktop Systems Model
+
+```mermaid
+graph TD
+    UserApp[Native Desktop Application] --> WindowManager[Native Window & Webview Host]
+    
+    subgraph Rust Native Engine (Tauri 2.0 FFI)
+        WindowManager <-->|Asynchronous IPC Bridge: Zero Webview Block| RustCore[Rust Native Core Engine]
+        RustCore --> PTYProcess[Spawn PTY Child Processes: bash / zsh / pwsh]
+        RustCore --> SysMetrics[Hardware Telemetry: CPU / RAM / Disk IO via sysinfo]
+        RustCore --> LocalVault[(Local SQLite Storage: Fast WAL Mode)]
+    end
+    
+    PTYProcess <-->|PTY Streams| XTerm[xterm.js GPU-Accelerated Terminal Emulator]
+    LocalVault <-->|Offline State| FrontendUI[Virtualized 60 FPS React 19 Frontend]
+```
+
+---
+
 ## Domain Engineering Highlights
 
 1. **Tauri vs. Electron Runtime Tradeoffs**: Choosing lightweight system webviews paired with Rust FFI over multi-gigabyte Electron runtimes drops idle RAM usage by 90%.

@@ -5,6 +5,32 @@
 
 ---
 
+## Technical Architecture: Ingress API Gateway and Middleware Pipeline
+
+A production API enforces security, rate limiting, authentication, and validation before reaching application controllers:
+
+```mermaid
+graph TD
+    ClientRequest[Incoming Client HTTP Request: TLS Encrypted] --> ReverseProxy[Reverse Proxy / Edge Gateway: Nginx / Cloudflare]
+    
+    ReverseProxy --> RateLimiter[Token-Bucket Rate Limiter / DDoS Mitigation]
+    RateLimiter --> AuthMiddleware[Authentication Middleware: JWT / OAuth2 Verification]
+    AuthMiddleware --> ValidationMiddleware[Request Schema Validation: Zod / JSON Schema]
+    
+    ValidationMiddleware --> Router[API Router: Route Matching & Versioning]
+    
+    subgraph Core Application Service Layer
+        Router --> Controller[API Controller: HTTP Request Unpacking]
+        Controller --> Service[Domain Business Logic Service]
+        Service --> Repository[Data Repository: DB Abstraction Layer]
+    end
+    
+    Repository --> Database[(Primary Database: PostgreSQL / SQLite)]
+    Service --> ResponseEnvelope[Standardized JSON Response / Error Envelope]
+```
+
+---
+
 ## Core Rules of API Design
 
 ### 1. Resource-Oriented URI Structure

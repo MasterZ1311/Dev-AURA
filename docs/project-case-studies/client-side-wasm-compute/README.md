@@ -10,6 +10,28 @@
 
 ---
 
+## Technical Architecture: In-Browser Heavy Compute Pipeline
+
+```mermaid
+graph TD
+    ClientBrowser[Client Web Browser: Chrome / Firefox / Safari] --> MainUIThread[Main UI Thread: React Interface & Virtual Canvas]
+    
+    MainUIThread -->|Zero-Copy postMessage: Transferable ArrayBuffer| WorkerPool[Dedicated Web Worker Thread Pool]
+    
+    subgraph Client-Side WebAssembly Sandbox
+        WorkerPool --> WASMLoader[pdf-lib / C++ WASM Binary Engine]
+        WASMLoader --> InMemBuffer[In-Memory TypedArray Manipulation: Linear RAM]
+        InMemBuffer --> Operations[Merge, Split, OCR, Compress, Watermark, Encrypt]
+        Operations --> OutputBinary[Generate Target Document Binary Stream]
+    end
+    
+    OutputBinary -->|Return Transferred ArrayBuffer| MainUIThread
+    MainUIThread --> BlobManager[Blob URL Creation & Download Stream]
+    BlobManager --> URLRevoke[Explicit URL.revokeObjectURL: Garbage Collect V8 Heap]
+```
+
+---
+
 ## Domain Engineering Highlights
 
 1. **Client-Side Heavy Compute**: Moving binary processing directly into the browser runtime eliminates cloud server operating costs.

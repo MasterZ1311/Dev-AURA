@@ -4,6 +4,26 @@
 
 ---
 
+## Technical Architecture: Unified Sovereign Systems Topology
+
+```mermaid
+graph TD
+    UserClient[Sovereign User Host: Desktop / Mobile / Browser] --> Principle01[01. Sovereign & Local-First: Zero Cloud Lock-In]
+    
+    Principle01 --> Principle02[02. Privacy by Design: Argon2id + ML-KEM-768 Zero-Trust]
+    Principle01 --> Principle03[03. Invariant State Machines: Physical Station & Venue Modeling]
+    Principle01 --> Principle04[04. Client Heavy Compute: Web Workers & WASM SIMD]
+    
+    Principle03 & Principle04 --> Principle05[05. Multi-Agent Choreography: Decoupled Event Streams & MCP]
+    Principle02 --> Principle06[06. Ethical Data Governance: Ephemeral Clinical Compute & OAuth Consent]
+    
+    Principle04 --> Principle07[07. Sensory Ergonomics: 60 FPS GLSL & Harmonic Tone.js Audio]
+    
+    Principle01 & Principle02 & Principle03 & Principle05 --> Principle08[08. Living SSoT: Spec-Driven Development & Invariant Tests]
+```
+
+---
+
 ## Directory Overview
 
 This directory documents the 8 foundational engineering principles that guide our technical decisions across systems programming, cryptography, distributed computing, state machines, and human-computer interaction.

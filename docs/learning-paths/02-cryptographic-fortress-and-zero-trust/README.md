@@ -16,6 +16,20 @@ Stage 2 teaches the principles of **Sovereign Applied Cryptography**:
 
 ---
 
+## Technical Architecture: Stage 2 Cryptographic Defense Roadmap
+
+```mermaid
+graph TD
+    M1["Module 01: Symmetric Ciphers & Argon2id (Memory-Hard KDF, AES-256-GCM AEAD, RAM Wiping)"] --> M2["Module 02: Air-Gapped Mobile Security (0-Network Manifest, Android Keystore StrongBox)"]
+    M2 --> M3["Module 03: Ephemeral P2P & Double Ratchet (WebRTC DataChannels, Signal Protocol, BIP-39 Identity)"]
+    
+    subgraph Zero-Knowledge Security Posture
+        M3 --> VaultDeliverable["Sovereign Zero-Trust Systems: Unbreakable at Rest, Ephemeral in Transit, Zero Metadata"]
+    end
+```
+
+---
+
 ## Modules in This Stage
 
 ```text

@@ -15,6 +15,30 @@
 
 ---
 
+## Technical Architecture: Hexagonal Ports & Adapters Architecture
+
+The Dependency Inversion Principle (DIP) isolates core business domain logic from external frameworks, databases, and third-party APIs:
+
+```mermaid
+graph TD
+    subgraph Core Domain: Pure Business Invariants
+        Entities[Domain Entities & Value Objects]
+        UseCases[Application Use Cases / Interactors]
+        Ports[Inbound & Outbound Ports: Interfaces / Contracts]
+    end
+    
+    subgraph Adapters: External Boundary Implementation
+        HTTPAdapter[Inbound HTTP / REST / GraphQL Controller] -->|Calls Inbound Port| UseCases
+        UseCases -->|Invokes Outbound Port| Ports
+        
+        DBAdapter[Outbound Postgres / SQLite Repository Adapter] -.->|Implements| Ports
+        MailAdapter[Outbound SMTP / SES Email Adapter] -.->|Implements| Ports
+        MQAdapter[Outbound RabbitMQ / Kafka Event Bus Adapter] -.->|Implements| Ports
+    end
+```
+
+---
+
 ## Practical Refactoring: Before and After
 
 ### Anti-Pattern: Mixed Concerns in Single Class

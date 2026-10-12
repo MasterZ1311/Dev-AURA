@@ -21,6 +21,19 @@ In Stage 3, you will learn to turn the user's browser runtime into a sovereign, 
 
 ---
 
+## Technical Architecture: Stage 3 Client Compute Roadmap
+
+```mermaid
+graph TD
+    M1["Module 01: Web Workers & Zero-Copy Memory (Transferable ArrayBuffers, postMessage Transfer List)"] --> M2["Module 02: In-Browser Binary Manipulation (WASM Sandboxing, pdf-lib, Blob Lifecycles)"]
+    
+    subgraph Zero-Server Compute Engine
+        M2 --> BrowserSupercomputer["High-Throughput Client-Side Processing: Zero Cloud Bills, 60 FPS UI, 100% Privacy"]
+    end
+```
+
+---
+
 ## Modules in This Stage
 
 ```text

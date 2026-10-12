@@ -15,6 +15,20 @@ In real-world operations—such as organizing a 32-team physical LAN tournament 
 
 ---
 
+## Technical Architecture: Stage 4 Real-Time Physical Engine Roadmap
+
+```mermaid
+graph TD
+    M1["Module 01: Physical Hardware Invariants (10-PC Stations, Subnet Mapping, Station Health FSM)"] --> M2["Module 02: Tournament Pairing Mathematics (Berger Round-Robin Matrix, 10-Point Pre-Flight Gates)"]
+    M2 --> M3["Module 03: Vectorized Scoring Engine (25-Squad BGIS Point Matrix, Streaming CSV Ingestion)"]
+    
+    subgraph Operational Reality Engine
+        M3 --> PhysicalOpsDeliverable["Deterministic LAN / Esports Ops: Conflict-Free Scheduling, 0 Double-Bookings, Resilient to Hardware Outages"]
+    end
+```
+
+---
+
 ## Modules in This Stage
 
 ```text

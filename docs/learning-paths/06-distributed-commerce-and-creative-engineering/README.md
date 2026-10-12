@@ -14,6 +14,21 @@ The final stage of the Sovereign Developer Learning Path synthesizes high-concur
 
 ---
 
+## Technical Architecture: Stage 6 Commerce & Graphics Roadmap
+
+```mermaid
+graph TD
+    M1["Module 01: Concurrency Control (Optimistic Version Counter Locking, Atomic Booking FSM)"] --> M2["Module 02: Double-Entry Ledger (Zero Float Drift, Sum Debits == Sum Credits Invariant)"]
+    M2 --> M3["Module 03: Ethical Ephemeral Identity (Client-Side Oncology Risk, DigiLocker OAuth Consent)"]
+    M3 --> M4["Module 04: 60 FPS GPU WebGL Pipelines (Custom GLSL Wave Shaders, DPR Clamping, VRAM Disposal)"]
+    
+    subgraph Enterprise Grade Sovereign Core
+        M4 --> ProductionDeliverable["Mission-Critical Production Engineering: Scalable Financial Integrity, Zero Surveillance, 60 FPS 3D"]
+    end
+```
+
+---
+
 ## Modules in This Stage
 
 ```text

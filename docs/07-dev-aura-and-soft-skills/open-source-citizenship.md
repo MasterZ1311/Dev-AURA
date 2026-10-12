@@ -5,6 +5,34 @@
 
 ---
 
+## Technical Architecture: Open-Source Contribution Lifecycle
+
+High-value open-source contributions follow a disciplined lifecycle that respects maintainer bandwidth:
+
+```mermaid
+graph TD
+    IdentifyNeed[Identify Bug / Improvement / Good First Issue] --> SearchRepo[Search Prior Issues & RFC Discussions]
+    
+    SearchRepo --> ForkRepo[Fork Repository & Clone Locally]
+    ForkRepo --> TestBranch[Create Topic Branch: fix/issue-123]
+    
+    TestBranch --> WriteCode[Implement Atomic Solution + Failing Test Fix]
+    WriteCode --> LocalVerification[Run Test Suite & Linters: npm test / cargo test]
+    
+    LocalVerification --> OpenPR[Submit Pull Request with Minimal Reproduction]
+    
+    subgraph Maintainer Triage & CI Pipeline
+        OpenPR --> AutomatedCI{CI Quality Gates Pass?}
+        AutomatedCI -->|No| FixFeedback[Address Automated Failures Promptly]
+        FixFeedback --> OpenPR
+        
+        AutomatedCI -->|Yes| MaintainerReview[Maintainer Code Review & Sign-off]
+        MaintainerReview --> MergeUpstream[Merge into Upstream Main Branch]
+    end
+```
+
+---
+
 ## Standards of Open Source Collaboration
 
 1. **Review Contributing Guidelines First**: Inspect `CONTRIBUTING.md`, style guides, and PR requirements prior to opening pull requests.

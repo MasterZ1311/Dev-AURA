@@ -5,6 +5,28 @@
 
 ---
 
+## Technical Architecture: Defense-in-Depth Application Security Perimeter
+
+Security cannot rely on a single defensive layer. Production systems enforce layered, zero-trust cryptographic and behavioral gates:
+
+```mermaid
+graph TD
+    PublicInternet[Untrusted Public Internet / Threat Actors] --> EdgeFirewall[Layer 1: Edge WAF & DDoS Mitigation: Cloudflare / AWS Shield]
+    
+    EdgeFirewall --> NetworkGateway[Layer 2: API Gateway: TLS 1.3 Termination & Rate Limiting]
+    NetworkGateway --> AuthGate[Layer 3: Authentication & Scope Authorization: OAuth2 / RBAC]
+    
+    AuthGate --> AppFirewall[Layer 4: Ingress Schema Validation & Sanitization: Anti-XSS / Zod]
+    
+    subgraph Data & Storage Security Layer
+        AppFirewall --> ORMQuery[Layer 5: Parameterized SQL Prepared Statements: Anti-SQLi]
+        ORMQuery --> TenantScope[Layer 6: Tenant Isolation & IDOR Invariant: WHERE tenant_id = $X]
+        TenantScope --> EncryptedDB[(Layer 7: Database Encrypted at Rest: AES-256-GCM / SQLCipher)]
+    end
+```
+
+---
+
 ## OWASP Top Security Mitigations
 
 ### 1. Broken Access Control & IDOR

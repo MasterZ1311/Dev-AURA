@@ -12,6 +12,36 @@
 
 ---
 
+## Technical Architecture: Sovereign AI & Neural Speech Topology
+
+```mermaid
+graph TD
+    InputPrompt[User Text Prompt / Microphone Audio Stream] --> Dispatcher{Compute Pipeline Dispatcher}
+    
+    subgraph Sovereign Neural Voice Engine (Rheo)
+        Dispatcher --> PyTorchRuntime[Host PyTorch Inference Runtime]
+        PyTorchRuntime --> HardwareDetect{Dynamic Hardware Detection}
+        HardwareDetect -->|Apple Silicon| MPSDevice[Metal Performance Shaders: torch.device 'mps']
+        HardwareDetect -->|NVIDIA GPU| CUDADevice[Tensor Cores: torch.device 'cuda']
+        HardwareDetect -->|CPU Fallback| CPUDevice[AVX-512 Vectorized Engine]
+        MPSDevice & CUDADevice & CPUDevice --> StreamingVocoder[Streaming Neural Vocoder]
+        StreamingVocoder --> PCMBuffers[Streaming PCM Audio Chunks: TTFB < 50ms]
+    end
+    
+    subgraph Frameworkless Semantic Search (Local RAG)
+        Dispatcher --> MiniLMEmbedder[384-Dim Local Embedding: all-MiniLM-L6-v2]
+        MiniLMEmbedder --> CosineSearch[SIMD L2-Normalized Vector Dot Products]
+        CosineSearch --> TopKDocs[Top-K Verified Context Records]
+        TopKDocs --> OllamaLLM[Local Sovereign LLM: Ollama Gemma 3 on Port 11434]
+    end
+    
+    subgraph Agentic Integration Standard
+        Dispatcher --> MCPSocket[Model Context Protocol Stdio Socket: Skills Bot Tools]
+    end
+```
+
+---
+
 ## Domain Engineering Highlights
 
 1. **Host-Accelerated Neural Inference**: Dynamic detection and dispatching of inference jobs across Apple Silicon (Metal), NVIDIA (CUDA), and AMD (ROCm).

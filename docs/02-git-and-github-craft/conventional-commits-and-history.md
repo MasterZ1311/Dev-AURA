@@ -5,6 +5,29 @@
 
 ---
 
+## Technical Architecture: Git Object DAG and Linear History Lifecycle
+
+Git models history as a cryptographic Directed Acyclic Graph (DAG) of immutable commit objects. Conventional Commits and interactive rebases rewrite history to maintain linear, bisectable project timelines:
+
+```mermaid
+graph LR
+    subgraph Feature Development Branch
+        C1["c1: feat(api): add auth endpoint"] --> C2["c2: fix: typo in token parsing"]
+        C2 --> C3["c3: chore: update test fixtures"]
+    end
+    
+    subgraph Interactive Rebase: Squashing & Reordering
+        C1 & C2 & C3 -.->|git rebase -i HEAD~3: squash & reword| CleanC["c1_clean: feat(api): add jwt token authentication"]
+    end
+    
+    subgraph Linear Main Branch
+        BaseCommit["main: release v1.0.0"] --> CleanC
+        CleanC --> SemanticRelease["Automated Semantic Release: v1.1.0 Bump & Changelog Generation"]
+    end
+```
+
+---
+
 ## Conventional Commit Structure
 
 ```text

@@ -5,6 +5,29 @@
 
 ---
 
+## Technical Architecture: Cryptographic Commit Verification Pipeline
+
+Commit signing embeds an asymmetric digital signature directly inside the raw Git commit object buffer:
+
+```mermaid
+graph TD
+    CommitPayload["Git Commit Buffer: tree, parent, author, committer, message"] --> PrivateKey["Developer Private Key: Ed25519 (~/.ssh/id_ed25519)"]
+    
+    PrivateKey --> DigitalSignature["Generate Digital Signature (Ed25519 / SSH-SIG)"]
+    DigitalSignature --> SignedObject["Embed 'gpgsig' Header into Git Commit Object"]
+    
+    SignedObject --> GitPush["git push origin main"]
+    GitPush --> GitHubServer["GitHub Remote Repository Hook"]
+    
+    GitHubServer --> KeyLookup["Lookup Author's Registered Public Key Ring"]
+    KeyLookup --> VerificationGate{"Verify Signature: Hash(Commit) == Decrypt(Sig, PubKey)"}
+    
+    VerificationGate -->|Valid Signature| VerifiedBadge["Status: VERIFIED (Green Badge)"]
+    VerificationGate -->|Mismatch / Unsigned| UnverifiedStatus["Status: UNVERIFIED / REJECTED"]
+```
+
+---
+
 ## Importance of Commit Signing
 
 Without cryptographic signing, git commit metadata can be arbitrarily forged:

@@ -11,6 +11,29 @@
 
 ---
 
+## Technical Architecture: Sovereign Health & Verification Model
+
+```mermaid
+graph TD
+    UserCitizen[User / Patient Device] --> IngressGate[Client-Side Privacy Boundary]
+    
+    subgraph Clinical Risk Evaluation (PinkPulse)
+        IngressGate --> ClinicalInputs[Patient Clinical Factors: Age, Family History, Biopsy]
+        ClinicalInputs --> StatisticalEngine[Gail Model / Tyrer-Cuzick Statistical Engine]
+        StatisticalEngine --> AbsoluteRiskScore[Calculate 5-Year & Lifetime Absolute Risk %]
+        AbsoluteRiskScore --> RAMScrubber[Immediate Volatile Memory Zeroization]
+    end
+    
+    subgraph Sovereign Identity Verification (SDA Matrimony)
+        IngressGate --> OAuthConsent[DigiLocker Government Gateway OAuth2 Redirect]
+        OAuthConsent --> CryptographicToken[Issued Consent Token: Aadhaar / Driving License Verified]
+        CryptographicToken --> TokenVerification[Backend Signature Validation: RS256 Public Key]
+        TokenVerification --> UserVerificationFlag[Store Verified Boolean Flag: Zero Raw Documents Retained]
+    end
+```
+
+---
+
 ## Domain Engineering Highlights
 
 1. **Clinically Validated Risk Engines**: Survey responses are scored against peer-reviewed statistical health standards rather than arbitrary point systems.

@@ -5,6 +5,35 @@
 
 ---
 
+## Technical Architecture: OpenTelemetry Distributed Ingestion Pipeline
+
+Distributed systems maintain visibility across service boundaries using standardized telemetry protocols:
+
+```mermaid
+graph TD
+    UserClient[Web Browser / Mobile Client: W3C TraceContext Injected] --> APIGateway[API Gateway / Edge Envoy Proxy]
+    
+    APIGateway -->|Propagate traceparent Header| MicroserviceA[Service A: Node.js / Express]
+    MicroserviceA -->|Propagate Context| MicroserviceB[Service B: Go / gRPC]
+    MicroserviceB -->|SQL Span| Database[(PostgreSQL Engine)]
+    
+    subgraph OpenTelemetry Telemetry Collection
+        MicroserviceA -.->|OTLP / gRPC| OTelCollector[OpenTelemetry Collector Daemon]
+        MicroserviceB -.->|OTLP / gRPC| OTelCollector
+        Database -.->|Query Metrics| OTelCollector
+    end
+    
+    subgraph Unified Observability Backends
+        OTelCollector --> MetricsStorage[Time-Series Metrics: Prometheus / VictoriaMetrics]
+        OTelCollector --> TraceStorage[Distributed Traces: Jaeger / Tempo]
+        OTelCollector --> LogStorage[Structured Logs: Loki / ClickHouse]
+    end
+    
+    MetricsStorage & TraceStorage & LogStorage --> Dashboard[Unified Engineering Dashboard: Grafana]
+```
+
+---
+
 ## 1. Structured JSON Logging
 
 Emit structured JSON with trace correlation IDs rather than unstructured text logs:

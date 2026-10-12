@@ -5,6 +5,39 @@
 
 ---
 
+## Technical Architecture: Multi-Stage CI/CD Deployment Lifecycle
+
+Automated delivery pipelines enforce progressive gates, caching layers, and deterministic releases:
+
+```mermaid
+graph TD
+    DeveloperPush[Signed Commit Pushed to Git Branch] --> WebhookTrigger[GitHub Actions Workflow Trigger]
+    
+    subgraph Parallel Stage 1: Fast Validation (< 2m)
+        WebhookTrigger --> LintJob[Lint & Format: Biome]
+        WebhookTrigger --> TypecheckJob[Typecheck: tsc --noEmit]
+        WebhookTrigger --> SecurityJob[Secret & Dependency Scan: Trivy]
+    end
+    
+    subgraph Stage 2: Automated Testing (< 5m)
+        LintJob & TypecheckJob & SecurityJob --> TestRunner[Unit & Integration Test Matrix: Ubuntu / Node 20]
+        TestRunner --> CoverageGate{"Coverage > 85%?"}
+    end
+    
+    subgraph Stage 3: Artifact Build & Attestation
+        CoverageGate -->|Pass| DockerBuild[Multi-Stage Docker Build & SBOM Attestation]
+        DockerBuild --> ContainerRegistry[Push OCI Image to GitHub Packages / ECR]
+    end
+    
+    subgraph Stage 4: Zero-Downtime Deployment
+        ContainerRegistry --> StagingDeploy[Deploy to Staging Environment]
+        StagingDeploy --> SmokeTests{Automated E2E Smoke Tests Pass?}
+        SmokeTests -->|Pass| ProductionDeploy[Canary / Blue-Green Rolling Deployment to Production]
+    end
+```
+
+---
+
 ## Production CI Workflow Configuration
 
 Create `.github/workflows/ci.yml`:

@@ -11,6 +11,31 @@
 
 ---
 
+## Technical Architecture: Cryptography & Zero-Knowledge Topology
+
+```mermaid
+graph TD
+    UserIdentity[User BIP-39 24-Word Seed / Master Passphrase] --> ArgonKDF[Memory-Hard Argon2id KDF: High Time & Memory Cost]
+    
+    ArgonKDF --> MasterSecret[256-Bit Master Cryptographic Secret]
+    
+    subgraph Air-Gapped Storage Architecture (Kryptyx)
+        MasterSecret --> HardwareKeystore[Android Keystore / StrongBox Hardware Security Module]
+        HardwareKeystore --> BiometricGate{BiometricPrompt Fingerprint / PIN}
+        BiometricGate --> MLKEM[ML-KEM-768 Post-Quantum Lattice Encapsulation]
+        MLKEM --> AESGCM[AES-256-GCM Authenticated Encryption]
+        AESGCM --> DiskVault[(SQLCipher Encrypted Local Database)]
+    end
+    
+    subgraph Zero-Metadata Transit Architecture (Ghost Messenger)
+        MasterSecret --> SignalEngine[Signal Protocol: Double Ratchet & PreKeys]
+        SignalEngine --> WebRTCDataChannel[WebRTC Direct P2P DataChannel: Bypass Signaling Backend]
+        WebRTCDataChannel --> RemotePeer[Remote Peer Device: Direct Ephemeral Decrypt]
+    end
+```
+
+---
+
 ## Domain Engineering Highlights
 
 1. **Air-Gap Verification via OS Permissions**: Eliminating internet permissions at the OS manifest level delivers verifiable isolation against network attacks.

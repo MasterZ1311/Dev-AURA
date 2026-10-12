@@ -12,6 +12,32 @@
 
 ---
 
+## Technical Architecture: Decentralized Wire & Mesh Topology
+
+```mermaid
+graph TD
+    NodeA[Local Sovereign Node A] --> DiscoveryMesh{Discovery & Transport Subsystems}
+    
+    subgraph Discovery & NAT Traversal
+        DiscoveryMesh --> mDNSBroadcaster[Local mDNS / NSD Service Broadcast: _mesh._tcp]
+        DiscoveryMesh --> UPnPClient[SSDP UPnP IGD Multicast: Punch Router WAN Ports]
+        DiscoveryMesh --> DHTTable[Kademlia 160-Bit XOR Distance Routing Table]
+    end
+    
+    subgraph Direct Radio & Wire Protocols
+        mDNSBroadcaster --> DirectWiFi[Local Wi-Fi / Hotspot TCP Stream: 1 MiB Chunk Pipeline]
+        DHTTable --> BitTorrentWire[BitTorrent TCP Peer Wire: Bencode, Bitfield, AllowedFast]
+        DiscoveryMesh --> BLERadio[Bluetooth Low Energy GATT Transport]
+    end
+    
+    subgraph Delay-Tolerant Store-and-Forward (DTN)
+        BLERadio --> SyncHandshake[5-Stage Sync Handshake: HELLO -> SUMMARY -> REQUEST -> TRANSFER -> RELAY_ACK]
+        SyncHandshake --> SQLiteVault[(Pre-Transmission SQLite Durable Storage)]
+    end
+```
+
+---
+
 ## Domain Engineering Highlights
 
 1. **Wire Protocol Engineering**: Decoding binary payloads, state machines over raw TCP/UDP streams, and zero-allocation parsing.

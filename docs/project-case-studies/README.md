@@ -4,6 +4,38 @@
 
 ---
 
+## Technical Architecture: Production Systems Ecosystem
+
+The case studies in this directory span the full spectrum of sovereign systems engineering:
+
+```mermaid
+graph TD
+    UserClient[Sovereign User Device / Edge Node] --> SystemsDomains{Production System Domains}
+    
+    subgraph Host Systems & Cryptography
+        SystemsDomains --> NativeDesktop["Native Desktop: CodexOS (Tauri/Rust) & Aura 3.0 (Tone.js)"]
+        SystemsDomains --> ZeroTrustCrypto["Air-Gapped Vaults: Kryptyx (ML-KEM-768) & Calypso (WebRTC/Double Ratchet)"]
+    end
+    
+    subgraph Client Compute & Neural AI
+        SystemsDomains --> ClientWASM["Client WASM: ErgonPDF (pdf-lib in Web Workers)"]
+        SystemsDomains --> SovereignAI["Sovereign AI: Rheo (PyTorch MPS/CUDA) & Local RAG (384-Dim Dot Product)"]
+    end
+    
+    subgraph Decentralized Networks & Radio Physics
+        SystemsDomains --> EdgeRF["Edge RF Sensing: RuView (ESP32-S3 Wi-Fi CSI Spatial Radar)"]
+        SystemsDomains --> P2PMesh["Wire & Mesh: NuTorrent (BitTorrent DHT) & NOVA/MeshLink (Epidemic DTN)"]
+    end
+    
+    subgraph Real-Time Ops & Marketplaces
+        SystemsDomains --> EsportsOps["Real-Time Ops: VTO (Berger Round-Robin) & BGMI TCC (BGIS Scoring)"]
+        SystemsDomains --> Marketplaces["Marketplaces & Ledgers: Parkly (OCC Locking) & COUNT (Double-Entry Ledger)"]
+        SystemsDomains --> Clinical3D["Ethics & 3D: PinkPulse (Gail Model) & ZEUS (60 FPS GLSL Shaders)"]
+    end
+```
+
+---
+
 ## Directory Overview
 
 This directory documents the concrete architectures, trade-offs, components, and hard-won lessons across our production systems:

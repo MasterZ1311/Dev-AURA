@@ -12,6 +12,28 @@
 
 ---
 
+## Technical Architecture: Off-Thread Client Compute & WASM Pipeline
+
+```mermaid
+graph TD
+    UserEvent[User Uploads 200 MB PDF / Large Dataset] --> UIThread[Main UI Thread: 60 FPS React Render Loop]
+    
+    UIThread --> TransferBuffer["Zero-Copy ArrayBuffer Transfer: postMessage(buffer, [buffer])"]
+    
+    subgraph Web Worker Dedicated Sandbox
+        TransferBuffer --> WorkerScope[Web Worker Background Thread]
+        WorkerScope --> WASMRuntime[Compiled WebAssembly Runtime: pdf-lib / C++ / Rust]
+        WASMRuntime --> LinearMemory[WASM Linear Heap Memory: SIMD Accelerated]
+        LinearMemory --> ProcessedBytes[Generate Output Binary Payload]
+    end
+    
+    ProcessedBytes -->|Transfer Output Buffer| MainReturn[UI Thread Ingestion]
+    MainReturn --> ObjectURL[URL.createObjectURL -> Download / Display]
+    MainReturn --> MemoryDispose[URL.revokeObjectURL -> Zero Heap Memory Leak]
+```
+
+---
+
 ## Architectural Applications Across Portfolio
 
 - **ErgonPDF**: Complete PDF manipulation suite (merging, splitting, encryption, compression, OCR) running entirely in the browser using WASM and Web Workers with zero server uploads.
